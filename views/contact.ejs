@@ -1,0 +1,34 @@
+<%- include('partials/header', { pageTitle: 'Liên hệ - Tân Hưng Lợi', activeNav: 'contact' }) %>
+
+<div class="container">
+  <div class="breadcrumb"><a href="/">Trang chủ</a> / Liên hệ</div>
+  <div class="page-body no-right">
+    <aside><%- include('partials/sidebar-left') %></aside>
+
+    <main>
+      <div class="box">
+        <div class="box-body content-page">
+          <h1>Liên hệ</h1>
+          <p><strong>Doanh nghiệp tư nhân Yến Linh</strong> — Bánh Pía Tân Hưng Lợi</p>
+          <p><strong>Hotline đặt hàng:</strong> 0919 454 484</p>
+          <p><strong>Cửa hàng Sóc Trăng:</strong> 122 Lý Thường Kiệt, TP Sóc Trăng, tỉnh Sóc Trăng — ĐT: 0299 3821035</p>
+          <p><strong>Xưởng SX:</strong> 391 Mạc Đỉnh Chi, P4, TP Sóc Trăng — ĐT: 0299 3610473</p>
+          <p><strong>Chi nhánh Sài Gòn:</strong> 418/45 Hồng Bàng, Phường Minh Phụng, TP.HCM — ĐT: 0919 454 484</p>
+          <p>Email: yentrangchau@gmail.com</p>
+
+          <% if (successMsg) { %><div class="alert alert-success" style="margin-top:20px;"><%= successMsg %></div><% } %>
+
+          <form action="/lien-he" method="post" style="max-width:520px; margin-top:20px;">
+            <div class="field"><label>Họ tên</label><input type="text" name="name" required /></div>
+            <div class="field"><label>Email</label><input type="email" name="email" required /></div>
+            <div class="field"><label>Số điện thoại</label><input type="text" name="phone" required /></div>
+            <div class="field"><label>Nội dung</label><textarea name="message" rows="5" required></textarea></div>
+            <button type="submit" class="btn btn-primary">Gửi liên hệ</button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

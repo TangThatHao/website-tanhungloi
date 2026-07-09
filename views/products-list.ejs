@@ -1,0 +1,23 @@
+<%- include('partials/header', { pageTitle: (activeCategory ? categoryName + ' - ' : '') + 'Sản phẩm - Tân Hưng Lợi', activeNav: 'products', searchQuery }) %>
+
+<div class="container">
+  <div class="breadcrumb"><a href="/">Trang chủ</a> / <a href="/san-pham">Sản phẩm</a><% if (categoryName) { %> / <%= categoryName %><% } %></div>
+  <div class="page-body">
+    <aside><%- include('partials/sidebar-left', { activeCategory }) %></aside>
+
+    <main>
+      <div class="section-title"><%= categoryName || (searchQuery ? 'Kết quả tìm kiếm: "' + searchQuery + '"' : 'Tất cả sản phẩm') %></div>
+      <% if (products.length === 0) { %>
+        <div class="empty-state">Không tìm thấy sản phẩm nào.</div>
+      <% } else { %>
+        <div class="product-grid">
+          <% products.forEach(p => { %><%- include('partials/product-card', { p, currentPath: '/san-pham' }) %><% }) %>
+        </div>
+      <% } %>
+    </main>
+
+    <aside><%- include('partials/sidebar-right') %></aside>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

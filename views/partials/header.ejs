@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Bánh Pía Tân Hưng Lợi - Đặc sản Sóc Trăng' %></title>
+  <meta name="description" content="Bánh pía Tân Hưng Lợi - đặc sản Sóc Trăng nổi tiếng với nhân đậu xanh, sầu riêng, trứng muối. Đặt hàng trực tuyến giao tận nơi." />
+  <link rel="icon" href="/images/logo.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div class="topbar-lang">Tiếng Việt</div>
+      <div class="topbar-links">
+        <% if (currentUser) { %>
+          <a href="/tai-khoan">Xin chào, <%= currentUser.full_name || currentUser.username %></a>
+          <% if (currentUser.role === 'admin') { %><a href="/admin">Trang quản trị</a><% } %>
+          <a href="/dang-xuat">Đăng xuất</a>
+        <% } else { %>
+          <a href="/dang-nhap">Đăng nhập</a>
+          <a href="/dang-ky">Đăng ký</a>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="container header-main">
+      <a href="/" class="brand">
+        <img src="/images/logo.jpg" alt="Tân Hưng Lợi" />
+        <div class="brand-text">
+          <h1>TÂN HƯNG LỢI</h1>
+          <span>Đặc sản bánh pía Sóc Trăng</span>
+        </div>
+      </a>
+      <div class="header-contact">
+        <a href="tel:0919454484" class="contact-hotline">
+          <span class="contact-hotline-icon">📞</span>
+          <span>
+            <small>Hotline đặt hàng</small>
+            <strong>0919 454 484</strong>
+          </span>
+        </a>
+        <div class="contact-addresses">
+          <div>📍 <strong>Sóc Trăng:</strong> 122 Lý Thường Kiệt, TP Sóc Trăng</div>
+          <div>📍 <strong>Sài Gòn:</strong> 418/45 Hồng Bàng, P. Minh Phụng, TP.HCM</div>
+        </div>
+      </div>
+      <a href="/gio-hang" class="header-cart">
+        🛒 Giỏ hàng <span class="cart-count"><%= cartCount %></span>
+      </a>
+    </div>
+  </header>
+
+  <nav class="main-nav">
+    <div class="container">
+      <ul class="nav-menu">
+        <li><a href="/" class="<%= activeNav === 'home' ? 'active' : '' %>">TRANG CHỦ</a></li>
+        <li><a href="/san-pham" class="<%= activeNav === 'products' ? 'active' : '' %>">SẢN PHẨM</a></li>
+        <li><a href="/tin-tuc" class="<%= activeNav === 'news' ? 'active' : '' %>">TIN TỨC</a></li>
+        <li><a href="/gioi-thieu" class="<%= activeNav === 'about' ? 'active' : '' %>">GIỚI THIỆU</a></li>
+        <li><a href="/dich-vu" class="<%= activeNav === 'service' ? 'active' : '' %>">DỊCH VỤ</a></li>
+        <li><a href="/lien-he" class="<%= activeNav === 'contact' ? 'active' : '' %>">LIÊN HỆ</a></li>
+      </ul>
+      <form class="nav-search" action="/san-pham" method="get">
+        <input type="text" name="search" placeholder="Sản phẩm cần tìm..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" />
+        <button type="submit">Tìm kiếm</button>
+      </form>
+    </div>
+  </nav>
+
+  <div class="promo-strip">
+    <div class="container promo-strip-inner">
+      <span>🔥 <strong>Freeship</strong> nội thành Sóc Trăng cho đơn từ 200.000đ</span>
+      <span>🎁 Mua 5 tặng 1 hộp bánh pía đậu sầu riêng</span>
+      <span>☎ Đặt hàng nhanh: <strong>0919 454 484</strong></span>
+    </div>
+  </div>
+
+  <a href="tel:0919454484" class="call-fab" aria-label="Gọi ngay">
+    <span class="call-fab-ring"></span>
+    <span class="call-fab-icon">📞</span>
+  </a>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng nhập quản trị - Tân Hưng Lợi</title>
+  <link rel="icon" href="/images/logo.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body style="background: var(--color-dark);">
+  <div class="container">
+    <div class="form-box" style="margin-top:80px;">
+      <h2>ĐĂNG NHẬP QUẢN TRỊ</h2>
+      <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+      <form action="/admin/dang-nhap" method="post">
+        <div class="field"><label>Tên đăng nhập</label><input type="text" name="username" required /></div>
+        <div class="field"><label>Mật khẩu</label><input type="password" name="password" required /></div>
+        <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+      </form>
+      <div class="form-alt">Tài khoản demo: <strong>admin</strong> / <strong>admin123</strong></div>
+      <div class="form-alt"><a href="/">← Về trang chủ</a></div>
+    </div>
+  </div>
+</body>
+</html>

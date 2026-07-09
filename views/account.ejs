@@ -1,0 +1,52 @@
+<%- include('partials/header', { pageTitle: 'Tài khoản của tôi - Tân Hưng Lợi', activeNav: '' }) %>
+
+<div class="container">
+  <div class="breadcrumb"><a href="/">Trang chủ</a> / Tài khoản của tôi</div>
+  <div class="account-layout" style="margin-bottom:40px;">
+    <nav class="box account-nav">
+      <a href="/tai-khoan" class="active">Thông tin tài khoản</a>
+      <a href="/gio-hang">Giỏ hàng</a>
+      <a href="/dang-xuat">Đăng xuất</a>
+    </nav>
+
+    <div>
+      <div class="box">
+        <div class="box-title">THÔNG TIN CÁ NHÂN</div>
+        <div class="box-body">
+          <% if (successMsg) { %><div class="alert alert-success"><%= successMsg %></div><% } %>
+          <form action="/tai-khoan" method="post">
+            <div class="field"><label>Họ tên</label><input type="text" name="full_name" value="<%= currentUser.full_name || '' %>" /></div>
+            <div class="field"><label>Email</label><input type="email" value="<%= currentUser.email %>" disabled /></div>
+            <div class="field"><label>Số điện thoại</label><input type="text" name="phone" value="<%= currentUser.phone || '' %>" /></div>
+            <button type="submit" class="btn btn-primary">Cập nhật</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-title">LỊCH SỬ ĐƠN HÀNG</div>
+        <div class="box-body">
+          <% if (orders.length === 0) { %>
+            <p style="color:var(--color-muted);">Bạn chưa có đơn hàng nào.</p>
+          <% } else { %>
+            <table class="order-table">
+              <thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead>
+              <tbody>
+                <% orders.forEach(o => { %>
+                  <tr>
+                    <td>#<%= o.id %></td>
+                    <td><%= new Date(o.created_at).toLocaleString('vi-VN') %></td>
+                    <td><%= formatPrice(o.total) %></td>
+                    <td><span class="status-pill status-<%= o.status %>"><%= ({moi:'Mới', dang_xu_ly:'Đang xử lý', hoan_thanh:'Hoàn thành', huy:'Đã hủy'})[o.status] %></span></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

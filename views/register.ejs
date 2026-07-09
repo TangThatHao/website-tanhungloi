@@ -1,0 +1,20 @@
+<%- include('partials/header', { pageTitle: 'Đăng ký - Tân Hưng Lợi', activeNav: '' }) %>
+
+<div class="container">
+  <div class="form-box">
+    <h2>ĐĂNG KÝ THÀNH VIÊN</h2>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <form action="/dang-ky" method="post">
+      <div class="field"><label>Họ và tên</label><input type="text" name="full_name" value="<%= form.full_name || '' %>" required /></div>
+      <div class="field"><label>Email</label><input type="email" name="email" value="<%= form.email || '' %>" required /></div>
+      <div class="field"><label>Số điện thoại</label><input type="text" name="phone" value="<%= form.phone || '' %>" required /></div>
+      <div class="field"><label>Tên đăng nhập</label><input type="text" name="username" value="<%= form.username || '' %>" required /></div>
+      <div class="field"><label>Mật khẩu</label><input type="password" name="password" required /></div>
+      <div class="field"><label>Xác nhận mật khẩu</label><input type="password" name="confirm_password" required /></div>
+      <button type="submit" class="btn btn-primary btn-block">Đăng ký</button>
+    </form>
+    <div class="form-alt">Đã có tài khoản? <a href="/dang-nhap">Đăng nhập</a></div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

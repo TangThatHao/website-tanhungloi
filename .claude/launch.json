@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server.js"],
+      "port": 3000
+    },
+    {
+      "name": "dev-pg",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/dev-pg-server.js"],
+      "port": 55432
+    }
+  ]
+}

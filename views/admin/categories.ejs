@@ -1,0 +1,33 @@
+<%- include('partials/layout-header', { pageTitle: 'Danh mục', activeAdminNav: 'categories' }) %>
+
+<div class="admin-card" style="max-width:520px;">
+  <h3 style="margin-top:0;">Thêm danh mục</h3>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form action="/admin/danh-muc/them" method="post" style="display:flex; gap:10px;">
+    <input type="text" name="name" placeholder="Tên danh mục" required style="flex:1; padding:10px; border:1px solid var(--color-border); border-radius:6px;" />
+    <button type="submit" class="btn btn-primary">Thêm</button>
+  </form>
+</div>
+
+<div class="admin-card">
+  <h3 style="margin-top:0;">Danh sách danh mục (<%= categories.length %>)</h3>
+  <table class="admin-table">
+    <thead><tr><th>Tên danh mục</th><th>Slug</th><th>Số sản phẩm</th><th></th></tr></thead>
+    <tbody>
+      <% categories.forEach(c => { %>
+        <tr>
+          <td><%= c.name %></td>
+          <td><%= c.slug %></td>
+          <td><%= c.productCount %></td>
+          <td class="admin-actions">
+            <form action="/admin/danh-muc/<%= c.id %>/xoa" method="post" onsubmit="return confirm('Xóa danh mục này?');">
+              <button type="submit" class="btn btn-primary btn-sm">Xóa</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/layout-footer') %>

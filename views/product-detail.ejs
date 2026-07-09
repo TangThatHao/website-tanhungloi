@@ -1,0 +1,48 @@
+<%- include('partials/header', { pageTitle: product.name + ' - Tân Hưng Lợi', activeNav: 'products' }) %>
+
+<div class="container">
+  <div class="breadcrumb"><a href="/">Trang chủ</a> / <a href="/san-pham">Sản phẩm</a> / <%= product.name %></div>
+  <div class="page-body no-right">
+    <aside><%- include('partials/sidebar-left') %></aside>
+
+    <main>
+      <div class="box">
+        <div class="box-body">
+          <div class="product-detail">
+            <div class="gallery">
+              <img src="<%= product.image %>" alt="<%= product.name %>" />
+            </div>
+            <div>
+              <h1><%= product.name %></h1>
+              <div class="price-lg"><%= formatPrice(product.price) %></div>
+              <% if (successMsg) { %><div class="alert alert-success"><%= successMsg %></div><% } %>
+              <form action="/gio-hang/them" method="post">
+                <input type="hidden" name="productId" value="<%= product.id %>" />
+                <input type="hidden" name="redirectTo" value="/san-pham/<%= product.slug %>" />
+                <div class="qty-box">
+                  <label for="qty">Số lượng:</label>
+                  <input type="number" id="qty" name="qty" value="1" min="1" />
+                </div>
+                <button type="submit" class="btn btn-primary">Thêm vào giỏ hàng</button>
+                <a href="/gio-hang" class="btn btn-outline">Xem giỏ hàng</a>
+              </form>
+              <div class="desc-block">
+                <h3>Mô tả sản phẩm</h3>
+                <p><%= product.description %></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <% if (related.length) { %>
+        <div class="section-title" style="margin-top:24px;">Sản phẩm liên quan</div>
+        <div class="product-grid">
+          <% related.forEach(p => { %><%- include('partials/product-card', { p, currentPath: '/san-pham/' + product.slug }) %><% }) %>
+        </div>
+      <% } %>
+    </main>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

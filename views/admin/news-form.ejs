@@ -1,0 +1,24 @@
+<%- include('partials/layout-header', { pageTitle: news ? 'Sửa bài viết' : 'Thêm bài viết', activeAdminNav: 'news' }) %>
+
+<div class="admin-card" style="max-width:680px;">
+  <h3 style="margin-top:0;"><%= news ? 'Sửa bài viết' : 'Thêm bài viết mới' %></h3>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form action="<%= news ? '/admin/tin-tuc/' + news.id + '/sua' : '/admin/tin-tuc/them' %>" method="post" enctype="multipart/form-data">
+    <div class="field"><label>Tiêu đề</label><input type="text" name="title" value="<%= news ? news.title : '' %>" required /></div>
+    <div class="field">
+      <label>Ảnh đại diện (tải file lên)</label>
+      <input type="file" name="image_file" accept="image/*" />
+      <% if (news && news.thumbnail) { %><img src="<%= news.thumbnail %>" style="width:100px; margin-top:8px; border-radius:6px;" /><% } %>
+    </div>
+    <div class="field"><label>Hoặc dán URL ảnh</label><input type="text" name="image_url" placeholder="/images/news/... hoặc https://..." /></div>
+    <div class="field"><label>Tóm tắt</label><textarea name="summary" rows="2" required><%= news ? news.summary : '' %></textarea></div>
+    <div class="field"><label>Nội dung</label><textarea name="content" rows="8" required><%= news ? news.content : '' %></textarea></div>
+    <div class="field">
+      <label><input type="checkbox" name="is_featured" <%= news && news.is_featured ? 'checked' : '' %> style="width:auto;" /> Bài viết nổi bật</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu bài viết</button>
+    <a href="/admin/tin-tuc" class="btn btn-outline">Hủy</a>
+  </form>
+</div>
+
+<%- include('partials/layout-footer') %>

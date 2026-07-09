@@ -1,0 +1,14 @@
+<%- include('partials/header', { pageTitle: 'Đặt hàng thành công - Tân Hưng Lợi', activeNav: '' }) %>
+
+<div class="container">
+  <div class="empty-state">
+    <h2 style="color: var(--color-primary);">Đặt hàng thành công!</h2>
+    <p>Cảm ơn bạn đã đặt hàng tại Tân Hưng Lợi. Mã đơn hàng của bạn là <strong>#<%= orderId %></strong>.</p>
+    <p>Tổng giá trị đơn hàng: <strong><%= formatPrice(total) %></strong></p>
+    <p>Chúng tôi sẽ liên hệ với bạn sớm nhất để xác nhận và giao hàng.</p>
+    <a href="/" class="btn btn-primary">Về trang chủ</a>
+    <a href="/tai-khoan" class="btn btn-outline">Xem đơn hàng của tôi</a>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

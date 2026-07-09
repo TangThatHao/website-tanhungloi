@@ -1,0 +1,30 @@
+<%- include('partials/layout-header', { pageTitle: 'Tin tức', activeAdminNav: 'news' }) %>
+
+<div class="admin-card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+    <h3 style="margin:0;">Danh sách tin tức (<%= newsItems.length %>)</h3>
+    <a href="/admin/tin-tuc/them" class="btn btn-primary">+ Thêm bài viết</a>
+  </div>
+  <table class="admin-table">
+    <thead><tr><th>Ảnh</th><th>Tiêu đề</th><th>Nổi bật</th><th>Ngày đăng</th><th></th></tr></thead>
+    <tbody>
+      <% newsItems.forEach(n => { %>
+        <tr>
+          <td><img src="<%= n.thumbnail %>" alt="" /></td>
+          <td><%= n.title %></td>
+          <td><%= n.is_featured ? '⭐' : '' %></td>
+          <td><%= new Date(n.created_at).toLocaleDateString('vi-VN') %></td>
+          <td class="admin-actions">
+            <a href="/tin-tuc/<%= n.slug %>" target="_blank" class="btn btn-outline btn-sm">Xem</a>
+            <a href="/admin/tin-tuc/<%= n.id %>/sua" class="btn btn-outline btn-sm">Sửa</a>
+            <form action="/admin/tin-tuc/<%= n.id %>/xoa" method="post" onsubmit="return confirm('Xóa bài viết này?');">
+              <button type="submit" class="btn btn-primary btn-sm">Xóa</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/layout-footer') %>

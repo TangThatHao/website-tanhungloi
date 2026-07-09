@@ -1,0 +1,30 @@
+<%- include('partials/layout-header', { pageTitle: 'Tổng quan', activeAdminNav: 'dashboard' }) %>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="num"><%= stats.productCount %></div><div class="label">Sản phẩm</div></div>
+  <div class="stat-card"><div class="num"><%= stats.orderCount %></div><div class="label">Đơn hàng</div></div>
+  <div class="stat-card"><div class="num"><%= formatPrice(stats.revenue) %></div><div class="label">Doanh thu</div></div>
+  <div class="stat-card"><div class="num"><%= stats.memberCount %></div><div class="label">Thành viên</div></div>
+</div>
+
+<div class="admin-card">
+  <h3 style="margin-top:0;">Đơn hàng gần đây</h3>
+  <table class="admin-table">
+    <thead><tr><th>Mã</th><th>Khách hàng</th><th>Điện thoại</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày đặt</th></tr></thead>
+    <tbody>
+      <% recentOrders.forEach(o => { %>
+        <tr>
+          <td><a href="/admin/don-hang/<%= o.id %>">#<%= o.id %></a></td>
+          <td><%= o.customer_name %></td>
+          <td><%= o.phone %></td>
+          <td><%= formatPrice(o.total) %></td>
+          <td><span class="status-pill status-<%= o.status %>"><%= ({moi:'Mới', dang_xu_ly:'Đang xử lý', hoan_thanh:'Hoàn thành', huy:'Đã hủy'})[o.status] %></span></td>
+          <td><%= new Date(o.created_at).toLocaleString('vi-VN') %></td>
+        </tr>
+      <% }) %>
+      <% if (recentOrders.length === 0) { %><tr><td colspan="6">Chưa có đơn hàng.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/layout-footer') %>

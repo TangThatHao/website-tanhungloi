@@ -1,0 +1,35 @@
+<%- include('partials/layout-header', { pageTitle: 'Sản phẩm', activeAdminNav: 'products' }) %>
+
+<div class="admin-card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+    <h3 style="margin:0;">Danh sách sản phẩm (<%= products.length %>)</h3>
+    <a href="/admin/san-pham/them" class="btn btn-primary">+ Thêm sản phẩm</a>
+  </div>
+  <table class="admin-table">
+    <thead><tr><th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Giá</th><th>Nhãn</th><th></th></tr></thead>
+    <tbody>
+      <% products.forEach(p => { %>
+        <tr>
+          <td><img src="<%= p.image %>" alt="" /></td>
+          <td><%= p.name %></td>
+          <td><%= p.category_name || '-' %></td>
+          <td><%= formatPrice(p.price) %></td>
+          <td>
+            <% if (p.is_hot) { %><span class="status-pill status-huy">HOT</span><% } %>
+            <% if (p.is_new) { %><span class="status-pill status-hoan_thanh">MỚI</span><% } %>
+            <% if (p.is_export) { %><span class="status-pill status-dang_xu_ly">XK</span><% } %>
+          </td>
+          <td class="admin-actions">
+            <a href="/san-pham/<%= p.slug %>" target="_blank" class="btn btn-outline btn-sm">Xem</a>
+            <a href="/admin/san-pham/<%= p.id %>/sua" class="btn btn-outline btn-sm">Sửa</a>
+            <form action="/admin/san-pham/<%= p.id %>/xoa" method="post" onsubmit="return confirm('Xóa sản phẩm này?');">
+              <button type="submit" class="btn btn-primary btn-sm">Xóa</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/layout-footer') %>

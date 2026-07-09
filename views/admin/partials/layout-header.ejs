@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Quản trị' %> - Tân Hưng Lợi</title>
+  <link rel="icon" href="/images/logo.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <div class="admin-body">
+    <aside class="admin-sidebar">
+      <div class="brand">🥮 TÂN HƯNG LỢI<br/><small style="font-weight:400; color:#cbb996;">Trang quản trị</small></div>
+      <nav>
+        <a href="/admin" class="<%= activeAdminNav === 'dashboard' ? 'active' : '' %>">📊 Tổng quan</a>
+        <a href="/admin/san-pham" class="<%= activeAdminNav === 'products' ? 'active' : '' %>">🥮 Sản phẩm</a>
+        <a href="/admin/danh-muc" class="<%= activeAdminNav === 'categories' ? 'active' : '' %>">📁 Danh mục</a>
+        <a href="/admin/tin-tuc" class="<%= activeAdminNav === 'news' ? 'active' : '' %>">📰 Tin tức</a>
+        <a href="/admin/don-hang" class="<%= activeAdminNav === 'orders' ? 'active' : '' %>">🧾 Đơn hàng</a>
+        <a href="/admin/lien-he" class="<%= activeAdminNav === 'contacts' ? 'active' : '' %>">✉️ Liên hệ</a>
+        <a href="/" target="_blank">🌐 Xem website</a>
+        <a href="/admin/dang-xuat">🚪 Đăng xuất</a>
+      </nav>
+    </aside>
+    <div class="admin-main">
+      <div class="admin-topbar">
+        <strong><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Quản trị' %></strong>
+        <span>Xin chào, <%= currentUser ? (currentUser.full_name || currentUser.username) : '' %></span>
+      </div>
+      <div class="admin-content">

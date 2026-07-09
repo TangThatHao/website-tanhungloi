@@ -1,0 +1,19 @@
+<%- include('partials/header', { pageTitle: title + ' - Tân Hưng Lợi', activeNav }) %>
+
+<div class="container">
+  <div class="breadcrumb"><a href="/">Trang chủ</a> / <%= title %></div>
+  <div class="page-body no-right">
+    <aside><%- include('partials/sidebar-left') %></aside>
+
+    <main>
+      <div class="box">
+        <div class="box-body content-page">
+          <h1><%= title %></h1>
+          <%- content %>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

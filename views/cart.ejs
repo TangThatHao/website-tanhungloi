@@ -1,0 +1,56 @@
+<%- include('partials/header', { pageTitle: 'Giỏ hàng - Tân Hưng Lợi', activeNav: '' }) %>
+
+<div class="container">
+  <div class="breadcrumb"><a href="/">Trang chủ</a> / Giỏ hàng</div>
+  <div class="section-title">Giỏ hàng của bạn</div>
+
+  <% if (items.length === 0) { %>
+    <div class="empty-state">
+      <p>Giỏ hàng của bạn đang trống.</p>
+      <a href="/san-pham" class="btn btn-primary">Tiếp tục mua sắm</a>
+    </div>
+  <% } else { %>
+    <form action="/gio-hang/cap-nhat" method="post">
+      <table class="cart-table">
+        <thead>
+          <tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th><th></th></tr>
+        </thead>
+        <tbody>
+          <% items.forEach(item => { %>
+            <tr>
+              <td class="prod-cell">
+                <img src="<%= item.product.image %>" alt="<%= item.product.name %>" />
+                <a href="/san-pham/<%= item.product.slug %>"><%= item.product.name %></a>
+              </td>
+              <td><%= formatPrice(item.product.price) %></td>
+              <td><input type="number" name="qty[<%= item.product.id %>]" value="<%= item.qty %>" min="1" /></td>
+              <td><%= formatPrice(item.lineTotal) %></td>
+              <td>
+                <form action="/gio-hang/xoa" method="post">
+                  <input type="hidden" name="productId" value="<%= item.product.id %>" />
+                  <button type="submit" class="btn btn-outline btn-sm">Xóa</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;">
+        <button type="submit" class="btn btn-outline">Cập nhật giỏ hàng</button>
+        <a href="/san-pham" class="btn btn-outline">Tiếp tục mua sắm</a>
+      </div>
+    </form>
+
+    <div class="cart-summary">
+      <div class="box">
+        <div class="box-body">
+          <div class="row"><span>Tạm tính</span><span><%= formatPrice(total) %></span></div>
+          <div class="row total"><span>Tổng cộng</span><span><%= formatPrice(total) %></span></div>
+          <a href="/thanh-toan" class="btn btn-primary btn-block" style="margin-top:10px;">Tiến hành đặt hàng</a>
+        </div>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<%- include('partials/footer') %>

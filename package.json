@@ -1,0 +1,23 @@
+{
+  "name": "tanhungloi-website",
+  "version": "1.0.0",
+  "description": "Website banh pia Tan Hung Loi - clone tanhungloi.com",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "pg:local": "node scripts/dev-pg-server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "multer": "^2.0.1",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.4",
+    "@electric-sql/pglite-socket": "^0.2.7"
+  }
+}

@@ -1,0 +1,43 @@
+<div class="box">
+  <div class="box-title">📦 DANH MỤC SẢN PHẨM</div>
+  <div class="box-body" style="padding:6px 14px;">
+    <ul class="cat-list">
+      <% navCategories.forEach(cat => { %>
+        <li><a href="/san-pham?category=<%= cat.slug %>" class="<%= typeof activeCategory !== 'undefined' && activeCategory === cat.slug ? 'active' : '' %>">▸ <%= cat.name %></a></li>
+      <% }) %>
+      <li><a href="/san-pham">▸ Tất cả sản phẩm</a></li>
+    </ul>
+  </div>
+</div>
+
+<div class="box">
+  <div class="box-title">🔥 SẢN PHẨM HOT</div>
+  <div class="box-body">
+    <% sidebarHotProducts.forEach(p => { %>
+      <a href="/san-pham/<%= p.slug %>" class="mini-product">
+        <img src="<%= p.image %>" alt="<%= p.name %>" />
+        <div>
+          <div class="price"><%= formatPrice(p.price) %></div>
+          <div class="name"><%= p.name %></div>
+        </div>
+      </a>
+    <% }) %>
+  </div>
+</div>
+
+<div class="box">
+  <div class="box-title">📰 BÀI VIẾT HAY</div>
+  <div class="box-body">
+    <ul class="news-ticker">
+      <% sidebarNews.forEach(n => { %>
+        <li>
+          <img src="<%= n.thumbnail %>" alt="<%= n.title %>" />
+          <div>
+            <div class="title"><a href="/tin-tuc/<%= n.slug %>"><%= n.title %></a></div>
+            <div class="excerpt"><%= n.summary.slice(0, 50) %>...</div>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+</div>

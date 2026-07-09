@@ -1,0 +1,17 @@
+<div class="product-card">
+  <div class="badges">
+    <% if (p.is_hot) { %><span class="badge hot">🔥 HOT</span><% } %>
+    <% if (p.is_new) { %><span class="badge new">✨ MỚI</span><% } %>
+    <a href="/san-pham/<%= p.slug %>" class="thumb"><img src="<%= p.image %>" alt="<%= p.name %>" loading="lazy" /></a>
+  </div>
+  <div class="info">
+    <div class="price"><%= formatPrice(p.price) %></div>
+    <div class="name"><a href="/san-pham/<%= p.slug %>"><%= p.name %></a></div>
+    <form action="/gio-hang/them" method="post">
+      <input type="hidden" name="productId" value="<%= p.id %>" />
+      <input type="hidden" name="qty" value="1" />
+      <input type="hidden" name="redirectTo" value="<%= typeof currentPath !== 'undefined' ? currentPath : '/san-pham' %>" />
+      <button type="submit" class="btn btn-primary btn-sm btn-block">Thêm vào giỏ</button>
+    </form>
+  </div>
+</div>

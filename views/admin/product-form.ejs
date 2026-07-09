@@ -1,0 +1,38 @@
+<%- include('partials/layout-header', { pageTitle: product ? 'Sửa sản phẩm' : 'Thêm sản phẩm', activeAdminNav: 'products' }) %>
+
+<div class="admin-card" style="max-width:640px;">
+  <h3 style="margin-top:0;"><%= product ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới' %></h3>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form action="<%= product ? '/admin/san-pham/' + product.id + '/sua' : '/admin/san-pham/them' %>" method="post" enctype="multipart/form-data">
+    <div class="field"><label>Tên sản phẩm</label><input type="text" name="name" value="<%= product ? product.name : '' %>" required /></div>
+    <div class="field">
+      <label>Danh mục</label>
+      <select name="category_id" required>
+        <% categories.forEach(c => { %>
+          <option value="<%= c.id %>" <%= product && product.category_id === c.id ? 'selected' : '' %>><%= c.name %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="field"><label>Giá (VNĐ, để trống nếu "Liên hệ")</label><input type="number" name="price" value="<%= product && product.price !== null ? product.price : '' %>" /></div>
+    <div class="field">
+      <label>Ảnh sản phẩm (tải file lên)</label>
+      <input type="file" name="image_file" accept="image/*" />
+      <% if (product && product.image) { %><img src="<%= product.image %>" style="width:80px; margin-top:8px; border-radius:6px;" /><% } %>
+    </div>
+    <div class="field"><label>Hoặc dán URL ảnh</label><input type="text" name="image_url" placeholder="/images/products/... hoặc https://..." /></div>
+    <div class="field"><label>Mô tả</label><textarea name="description" rows="4"><%= product ? product.description : '' %></textarea></div>
+    <div class="field">
+      <label><input type="checkbox" name="is_hot" <%= product && product.is_hot ? 'checked' : '' %> style="width:auto;" /> Sản phẩm HOT</label>
+    </div>
+    <div class="field">
+      <label><input type="checkbox" name="is_new" <%= product && product.is_new ? 'checked' : '' %> style="width:auto;" /> Sản phẩm mới</label>
+    </div>
+    <div class="field">
+      <label><input type="checkbox" name="is_export" <%= product && product.is_export ? 'checked' : '' %> style="width:auto;" /> Sản phẩm xuất khẩu</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu sản phẩm</button>
+    <a href="/admin/san-pham" class="btn btn-outline">Hủy</a>
+  </form>
+</div>
+
+<%- include('partials/layout-footer') %>

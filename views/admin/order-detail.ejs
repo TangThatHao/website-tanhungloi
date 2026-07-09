@@ -1,0 +1,42 @@
+<%- include('partials/layout-header', { pageTitle: 'Chi tiết đơn hàng #' + order.id, activeAdminNav: 'orders' }) %>
+
+<div class="admin-card">
+  <h3 style="margin-top:0;">Đơn hàng #<%= order.id %></h3>
+  <p><strong>Khách hàng:</strong> <%= order.customer_name %></p>
+  <p><strong>Điện thoại:</strong> <%= order.phone %></p>
+  <p><strong>Email:</strong> <%= order.email || '-' %></p>
+  <p><strong>Địa chỉ:</strong> <%= order.address %></p>
+  <p><strong>Ghi chú:</strong> <%= order.note || '-' %></p>
+  <p><strong>Ngày đặt:</strong> <%= new Date(order.created_at).toLocaleString('vi-VN') %></p>
+
+  <form action="/admin/don-hang/<%= order.id %>/trang-thai" method="post" style="display:flex; align-items:center; gap:10px; margin:16px 0;">
+    <label><strong>Trạng thái:</strong></label>
+    <select name="status">
+      <option value="moi" <%= order.status === 'moi' ? 'selected' : '' %>>Mới</option>
+      <option value="dang_xu_ly" <%= order.status === 'dang_xu_ly' ? 'selected' : '' %>>Đang xử lý</option>
+      <option value="hoan_thanh" <%= order.status === 'hoan_thanh' ? 'selected' : '' %>>Hoàn thành</option>
+      <option value="huy" <%= order.status === 'huy' ? 'selected' : '' %>>Đã hủy</option>
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
+  </form>
+
+  <table class="admin-table">
+    <thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead>
+    <tbody>
+      <% items.forEach(i => { %>
+        <tr>
+          <td><%= i.product_name %></td>
+          <td><%= formatPrice(i.price) %></td>
+          <td><%= i.qty %></td>
+          <td><%= formatPrice(i.price * i.qty) %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+    <tfoot>
+      <tr><td colspan="3" style="text-align:right;"><strong>Tổng cộng</strong></td><td><strong><%= formatPrice(order.total) %></strong></td></tr>
+    </tfoot>
+  </table>
+  <a href="/admin/don-hang" class="btn btn-outline" style="margin-top:14px;">← Quay lại danh sách</a>
+</div>
+
+<%- include('partials/layout-footer') %>
