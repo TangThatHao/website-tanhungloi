@@ -65,7 +65,14 @@
         <div class="nav-collapse" id="navCollapse">
           <ul class="nav-menu">
             <li><a href="/" class="<%= activeNav === 'home' ? 'active' : '' %>">TRANG CHỦ</a></li>
-            <li><a href="/san-pham" class="<%= activeNav === 'products' ? 'active' : '' %>">SẢN PHẨM</a></li>
+            <li>
+              <a href="/san-pham" class="<%= activeNav === 'products' ? 'active' : '' %>">SẢN PHẨM</a>
+              <ul class="nav-submenu">
+                <% navCategories.forEach(cat => { %>
+                  <li><a href="/san-pham?category=<%= cat.slug %>"><%= categoryIcon(cat.name) %> <%= cat.name %></a></li>
+                <% }) %>
+              </ul>
+            </li>
             <li><a href="/tin-tuc" class="<%= activeNav === 'news' ? 'active' : '' %>">TIN TỨC</a></li>
             <li><a href="/gioi-thieu" class="<%= activeNav === 'about' ? 'active' : '' %>">GIỚI THIỆU</a></li>
             <li><a href="/dich-vu" class="<%= activeNav === 'service' ? 'active' : '' %>">DỊCH VỤ</a></li>

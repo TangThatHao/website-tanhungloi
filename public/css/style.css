@@ -114,6 +114,7 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   letter-spacing: .8px; border-bottom: 2px solid transparent; transition: color .15s, border-color .15s;
 }
 .nav-menu a:hover, .nav-menu a.active { color: #fff; border-bottom-color: var(--color-accent); }
+.nav-submenu { display: none; }
 .nav-search { display: flex; }
 .nav-search input {
   border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.12); color: #fff;
@@ -413,10 +414,20 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .nav-search { margin-top: 14px; }
   .nav-search input { flex: 1; width: auto; }
 
+  /* Danh mục lồng trong mục "SẢN PHẨM" của menu chính, thay cho khối danh mục lặp lại ngoài trang */
+  .nav-submenu { display: block; padding: 2px 0 6px 14px; }
+  .nav-submenu li { list-style: none; }
+  .nav-submenu a {
+    display: block; padding: 10px 4px; font-size: 13px; font-weight: 500; color: #f0d9c2;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .nav-submenu a:hover { color: #fff; }
+
   /* Nội dung chính (kết quả sản phẩm/bài viết) hiện trước, sidebar danh mục/hot xuống dưới */
   .page-body > main { order: 1; }
   .page-body > aside:first-child { order: 2; }
   .page-body > aside:last-child { order: 3; }
+  #categoryBox { display: none; }
 
   /* Chip danh mục dạng lưới 3 cột, có icon, bo tròn kiểu pill - sinh động, không cuộn ngang. */
   .category-chips {
