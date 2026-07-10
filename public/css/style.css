@@ -354,6 +354,16 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .stat-grid { grid-template-columns: repeat(2, 1fr); }
   .admin-sidebar { display: none; }
 
+  /* Header gọn cho di động: logo/tên nhỏ lại, giỏ hàng chỉ còn icon + số */
+  .header-main { padding-top: 12px; padding-bottom: 12px; gap: 10px; }
+  .brand { gap: 9px; min-width: 0; }
+  .brand img { height: 42px; width: 42px; flex-shrink: 0; }
+  .brand-text { min-width: 0; }
+  .brand-text h1 { font-size: 15.5px; letter-spacing: .2px; white-space: nowrap; }
+  .brand-text span { font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+  .header-cart { flex-shrink: 0; padding: 9px 12px; gap: 5px; font-size: 12px; }
+  .header-cart-label { display: none; }
+
   .main-nav .container { padding-top: 6px; padding-bottom: 6px; flex-wrap: wrap; }
   .nav-toggle { display: flex; }
   .nav-collapse { display: none; flex-direction: column; align-items: stretch; width: 100%; }
