@@ -56,33 +56,35 @@
     </div>
   </header>
 
-  <nav class="main-nav">
-    <div class="container">
-      <button type="button" class="nav-toggle" id="navToggle" aria-label="Mở menu" aria-expanded="false">
-        <span></span><span></span><span></span>
-      </button>
-      <div class="nav-collapse" id="navCollapse">
-        <ul class="nav-menu">
-          <li><a href="/" class="<%= activeNav === 'home' ? 'active' : '' %>">TRANG CHỦ</a></li>
-          <li><a href="/san-pham" class="<%= activeNav === 'products' ? 'active' : '' %>">SẢN PHẨM</a></li>
-          <li><a href="/tin-tuc" class="<%= activeNav === 'news' ? 'active' : '' %>">TIN TỨC</a></li>
-          <li><a href="/gioi-thieu" class="<%= activeNav === 'about' ? 'active' : '' %>">GIỚI THIỆU</a></li>
-          <li><a href="/dich-vu" class="<%= activeNav === 'service' ? 'active' : '' %>">DỊCH VỤ</a></li>
-          <li><a href="/lien-he" class="<%= activeNav === 'contact' ? 'active' : '' %>">LIÊN HỆ</a></li>
-        </ul>
-        <form class="nav-search" action="/san-pham" method="get">
-          <input type="text" name="search" placeholder="Sản phẩm cần tìm..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" />
-          <button type="submit">Tìm kiếm</button>
-        </form>
+  <div class="nav-promo-row">
+    <nav class="main-nav">
+      <div class="container">
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="Mở menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="nav-collapse" id="navCollapse">
+          <ul class="nav-menu">
+            <li><a href="/" class="<%= activeNav === 'home' ? 'active' : '' %>">TRANG CHỦ</a></li>
+            <li><a href="/san-pham" class="<%= activeNav === 'products' ? 'active' : '' %>">SẢN PHẨM</a></li>
+            <li><a href="/tin-tuc" class="<%= activeNav === 'news' ? 'active' : '' %>">TIN TỨC</a></li>
+            <li><a href="/gioi-thieu" class="<%= activeNav === 'about' ? 'active' : '' %>">GIỚI THIỆU</a></li>
+            <li><a href="/dich-vu" class="<%= activeNav === 'service' ? 'active' : '' %>">DỊCH VỤ</a></li>
+            <li><a href="/lien-he" class="<%= activeNav === 'contact' ? 'active' : '' %>">LIÊN HỆ</a></li>
+          </ul>
+          <form class="nav-search" action="/san-pham" method="get">
+            <input type="text" name="search" placeholder="Sản phẩm cần tìm..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" />
+            <button type="submit">Tìm kiếm</button>
+          </form>
+        </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="promo-strip">
-    <div class="container promo-strip-inner">
-      <span>🔥 <strong>Freeship</strong> nội thành Sóc Trăng cho đơn từ 200.000đ</span>
-      <span>🎁 Mua 5 tặng 1 hộp bánh pía đậu sầu riêng</span>
-      <span>☎ Đặt hàng nhanh: <strong>0919 454 484</strong></span>
+    <div class="promo-strip">
+      <div class="container promo-strip-inner">
+        <span>🔥 Giao hàng nội thành <strong>TP.HCM</strong></span>
+        <span>🎁 Mua 5 tặng 1 hộp bánh pía đậu sầu riêng</span>
+        <span>☎ Đặt hàng nhanh: <strong>0919 454 484</strong></span>
+      </div>
     </div>
   </div>
 

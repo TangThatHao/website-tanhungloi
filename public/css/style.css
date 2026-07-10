@@ -364,13 +364,26 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .header-cart { flex-shrink: 0; padding: 9px 12px; gap: 5px; font-size: 12px; }
   .header-cart-label { display: none; }
 
-  .main-nav .container { padding-top: 6px; padding-bottom: 6px; flex-wrap: wrap; }
-  .nav-toggle { display: flex; }
-  .nav-collapse { display: none; flex-direction: column; align-items: stretch; width: 100%; }
-  .nav-collapse.open { display: flex; padding-bottom: 10px; }
+  /* Gộp hàng menu + khuyến mãi thành 1 hàng để đỡ tốn không gian */
+  .nav-promo-row { display: flex; align-items: stretch; }
+  .main-nav { position: relative; flex: 0 0 auto; }
+  .main-nav .container { padding: 8px 12px; }
+  .nav-toggle { display: flex; position: relative; z-index: 101; }
+  .nav-toggle.open { position: fixed; top: 20px; left: 20px; z-index: 102; }
+  .promo-strip { flex: 1; min-width: 0; display: flex; align-items: center; }
+  .promo-strip-inner { flex-wrap: nowrap; justify-content: flex-start; padding: 8px 10px; white-space: nowrap; overflow: hidden; }
+  .promo-strip-inner span:nth-child(2), .promo-strip-inner span:nth-child(3) { display: none; }
+
+  /* Menu mở ra toàn màn hình thay vì bị bóp nhỏ trong hàng gộp */
+  .nav-collapse { display: none; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+  .nav-collapse.open {
+    display: flex; position: fixed; inset: 0; z-index: 100;
+    background: linear-gradient(180deg, #e5271f 0%, var(--color-primary) 100%);
+    padding: 68px 20px 20px; overflow-y: auto;
+  }
   .nav-menu { flex-direction: column; width: 100%; }
-  .nav-menu a { padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,.14); }
-  .nav-search { margin-top: 10px; }
+  .nav-menu a { padding: 14px 4px; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,.14); }
+  .nav-search { margin-top: 14px; }
   .nav-search input { flex: 1; width: auto; }
 
   /* Nội dung chính (kết quả sản phẩm/bài viết) hiện trước, sidebar danh mục/hot xuống dưới */
