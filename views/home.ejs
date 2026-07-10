@@ -14,6 +14,12 @@
     <aside><%- include('partials/sidebar-left') %></aside>
 
     <main>
+      <div class="category-chips">
+        <a href="/san-pham">Tất cả</a>
+        <% navCategories.forEach(cat => { %>
+          <a href="/san-pham?category=<%= cat.slug %>"><%= cat.name %></a>
+        <% }) %>
+      </div>
       <div class="section-title">🔥 Sản phẩm bán chạy</div>
       <div class="product-grid">
         <% bestSellers.forEach(p => { %><%- include('partials/product-card', { p, currentPath: '/' }) %><% }) %>
