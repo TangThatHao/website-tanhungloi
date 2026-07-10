@@ -201,6 +201,8 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 .section-title::after { content: ""; flex: 1; height: 1px; background: var(--color-border); align-self: center; }
 .section-title::before { content: ""; width: 26px; height: 3px; background: var(--color-accent); align-self: center; order: -1; }
 
+.category-chips { display: none; }
+
 .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
 .product-card {
   background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius);
@@ -365,6 +367,17 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .page-body > main { order: 1; }
   .page-body > aside:first-child { order: 2; }
   .page-body > aside:last-child { order: 3; }
+
+  /* Chip danh mục cuộn ngang để đổi danh mục nhanh mà không cần lướt xuống sidebar */
+  .category-chips {
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 4px;
+    white-space: nowrap; -webkit-overflow-scrolling: touch;
+  }
+  .category-chips a {
+    flex: 0 0 auto; padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    background: #fff; border: 1px solid var(--color-border); color: var(--color-text);
+  }
+  .category-chips a.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
 
   .news-list-item { flex-direction: column; }
   .news-list-item img { width: 100%; height: 180px; }

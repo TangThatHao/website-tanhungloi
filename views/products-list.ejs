@@ -6,6 +6,12 @@
     <aside><%- include('partials/sidebar-left', { activeCategory }) %></aside>
 
     <main>
+      <div class="category-chips">
+        <a href="/san-pham" class="<%= !activeCategory ? 'active' : '' %>">Tất cả</a>
+        <% navCategories.forEach(cat => { %>
+          <a href="/san-pham?category=<%= cat.slug %>" class="<%= activeCategory === cat.slug ? 'active' : '' %>"><%= cat.name %></a>
+        <% }) %>
+      </div>
       <div class="section-title"><%= categoryName || (searchQuery ? 'Kết quả tìm kiếm: "' + searchQuery + '"' : 'Tất cả sản phẩm') %></div>
       <% if (products.length === 0) { %>
         <div class="empty-state">Không tìm thấy sản phẩm nào.</div>
