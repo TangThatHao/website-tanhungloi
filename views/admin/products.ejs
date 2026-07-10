@@ -1,18 +1,26 @@
 <%- include('partials/layout-header', { pageTitle: 'Sản phẩm', activeAdminNav: 'products' }) %>
 
 <div class="admin-card">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
     <h3 style="margin:0;">Danh sách sản phẩm (<%= products.length %>)</h3>
     <a href="/admin/san-pham/them" class="btn btn-primary">+ Thêm sản phẩm</a>
   </div>
+  <form method="get" action="/admin/san-pham" style="margin-bottom:16px;">
+    <select name="category" onchange="this.form.submit()" style="padding:9px 12px; border:1px solid var(--color-border); border-radius:6px; font-size:13.5px;">
+      <option value="">Tất cả danh mục</option>
+      <% categories.forEach(c => { %>
+        <option value="<%= c.slug %>" <%= activeCategory === c.slug ? 'selected' : '' %>><%= c.name %></option>
+      <% }) %>
+    </select>
+  </form>
   <table class="admin-table">
     <thead><tr><th>Thứ tự</th><th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Giá</th><th>Nhãn</th><th></th></tr></thead>
     <tbody>
       <% products.forEach((p, i) => { %>
         <tr>
           <td class="admin-actions">
-            <form action="/admin/san-pham/<%= p.id %>/len" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === 0 ? 'disabled' : '' %>>▲</button></form>
-            <form action="/admin/san-pham/<%= p.id %>/xuong" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === products.length - 1 ? 'disabled' : '' %>>▼</button></form>
+            <form action="/admin/san-pham/<%= p.id %>/len" method="post"><input type="hidden" name="category" value="<%= activeCategory %>" /><button type="submit" class="btn btn-outline btn-sm" <%= i === 0 ? 'disabled' : '' %>>▲</button></form>
+            <form action="/admin/san-pham/<%= p.id %>/xuong" method="post"><input type="hidden" name="category" value="<%= activeCategory %>" /><button type="submit" class="btn btn-outline btn-sm" <%= i === products.length - 1 ? 'disabled' : '' %>>▼</button></form>
           </td>
           <td><img src="<%= p.image %>" alt="" /></td>
           <td><%= p.name %></td>

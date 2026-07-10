@@ -75,12 +75,18 @@ router.get('/admin', asyncHandler(async (req, res) => {
 
 // ---------- Products ----------
 router.get('/admin/san-pham', asyncHandler(async (req, res) => {
+  const categories = await all('SELECT * FROM categories ORDER BY sort_order ASC');
+  const { category } = req.query;
+  const activeCategory = category ? categories.find((c) => c.slug === category) : null;
+
   const products = await all(`
     SELECT p.*, c.name AS category_name FROM products p
     LEFT JOIN categories c ON c.id = p.category_id
+    ${activeCategory ? 'WHERE p.category_id = ?' : ''}
     ORDER BY p.sort_order ASC
-  `);
-  res.render('admin/products', { products });
+  `, activeCategory ? [activeCategory.id] : []);
+
+  res.render('admin/products', { products, categories, activeCategory: activeCategory ? activeCategory.slug : '' });
 }));
 
 router.get('/admin/san-pham/them', asyncHandler(async (req, res) => {
@@ -144,12 +150,12 @@ router.post('/admin/san-pham/:id/xoa', asyncHandler(async (req, res) => {
 
 router.post('/admin/san-pham/:id/len', asyncHandler(async (req, res) => {
   await moveItem('products', req.params.id, 'up');
-  res.redirect('/admin/san-pham');
+  res.redirect(req.body.category ? `/admin/san-pham?category=${encodeURIComponent(req.body.category)}` : '/admin/san-pham');
 }));
 
 router.post('/admin/san-pham/:id/xuong', asyncHandler(async (req, res) => {
   await moveItem('products', req.params.id, 'down');
-  res.redirect('/admin/san-pham');
+  res.redirect(req.body.category ? `/admin/san-pham?category=${encodeURIComponent(req.body.category)}` : '/admin/san-pham');
 }));
 
 // ---------- Categories ----------
