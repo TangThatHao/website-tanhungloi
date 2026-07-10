@@ -9,8 +9,18 @@
       <div class="box">
         <div class="box-body">
           <div class="product-detail">
-            <div class="gallery">
-              <img src="<%= product.image %>" alt="<%= product.name %>" />
+            <div class="gallery" data-gallery='<%- JSON.stringify(gallery) %>'>
+              <div class="gallery-main">
+                <img id="mainProductImage" src="<%= gallery[0] %>" alt="<%= product.name %>" data-index="0" />
+                <button type="button" class="gallery-zoom-hint" aria-label="Xem ảnh lớn">🔍</button>
+              </div>
+              <% if (gallery.length > 1) { %>
+              <div class="gallery-thumbs">
+                <% gallery.forEach((img, i) => { %>
+                  <img class="gallery-thumb<%= i === 0 ? ' active' : '' %>" src="<%= img %>" data-index="<%= i %>" alt="<%= product.name %> - ảnh <%= i + 1 %>" />
+                <% }) %>
+              </div>
+              <% } %>
             </div>
             <div>
               <h1><%= product.name %></h1>
@@ -28,7 +38,7 @@
               </form>
               <div class="desc-block">
                 <h3>Mô tả sản phẩm</h3>
-                <p><%= product.description %></p>
+                <p class="desc-text"><%= product.description %></p>
               </div>
             </div>
           </div>
@@ -43,6 +53,17 @@
       <% } %>
     </main>
   </div>
+</div>
+
+<div id="lightboxOverlay" class="lightbox-overlay">
+  <button type="button" class="lightbox-close" aria-label="Đóng">&times;</button>
+  <button type="button" class="lightbox-nav lightbox-prev" aria-label="Ảnh trước">&#8249;</button>
+  <div class="lightbox-viewport">
+    <img id="lightboxImg" src="" alt="" draggable="false" />
+  </div>
+  <button type="button" class="lightbox-nav lightbox-next" aria-label="Ảnh sau">&#8250;</button>
+  <div class="lightbox-counter"><span id="lightboxCounter"></span></div>
+  <div class="lightbox-hint">Cuộn để zoom · Kéo để di chuyển · Nháy đúp để phóng to</div>
 </div>
 
 <%- include('partials/footer') %>

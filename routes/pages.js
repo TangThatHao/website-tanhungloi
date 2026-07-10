@@ -8,12 +8,43 @@ router.get('/gioi-thieu', (req, res) => {
     title: 'Giới thiệu',
     activeNav: 'about',
     content: `
-      <p>Bánh pía Tân Hưng Lợi là thương hiệu đặc sản nổi tiếng của Sóc Trăng, thuộc <strong>Doanh nghiệp tư nhân Yến Linh</strong>,
-      thành lập từ năm 2005. Với hơn nhiều năm kinh nghiệm, chúng tôi tự hào mang đến những chiếc bánh pía thơm ngon,
-      được làm thủ công từ sầu riêng nguyên chất, đậu xanh, khoai môn và lòng đỏ trứng vịt muối tuyển chọn.</p>
-      <p>Sản phẩm của chúng tôi không chỉ được ưa chuộng tại thị trường trong nước mà còn xuất khẩu sang nhiều quốc gia,
-      góp phần quảng bá đặc sản miền Tây Nam Bộ đến bạn bè quốc tế.</p>
-      <p>Chúng tôi cam kết quy trình sản xuất đảm bảo vệ sinh an toàn thực phẩm, giữ trọn hương vị truyền thống trong từng sản phẩm.</p>
+      <p>Bánh pía có ở nhiều tỉnh thuộc miền Tây Nam Bộ nhưng chỉ có bánh pía Sóc Trăng là nổi tiếng nhất. Cũng là vỏ bột mì,
+      nhân đậu xanh hoặc khoai môn tán nhuyễn trộn với sầu riêng, mỡ heo xắt nhỏ, lòng đỏ trứng vịt muối nhưng bánh pía Sóc Trăng
+      lại mang một hương vị riêng. Lớp vỏ bánh không khô cứng mà mềm dẻo, mịn màng ôm lấy nhân bánh thơm ngọt phía trong, mùi thơm
+      của bánh được tạo nên bởi những trái sầu riêng tươi ngon.</p>
+      <p>Người phương xa mỗi khi ghé thăm Sóc Trăng bao giờ cũng mua vài phong bánh Pía làm quà cho người ở nhà, như mang theo
+      hương vị ngọt ngào đậm đà, chân chất của một vùng quê Nam Bộ.</p>
+      <p>Bánh Pía <strong>TÂN HƯNG LỢI</strong> là một thương hiệu có tiếng ở Sóc Trăng, là nhãn hiệu duy nhất còn giữ lại bí quyết
+      làm bánh từ xưa, nguyên liệu để làm ra chiếc bánh Tân Hưng Lợi được chọn lọc nguyên liệu thiên nhiên thượng hạng, không sử
+      dụng tinh dầu sầu riêng, không sử dụng chất bảo quản.</p>
+
+      <p style="margin-top:24px;"><strong>DOANH NGHIỆP TƯ NHÂN YẾN LINH – THƯƠNG HIỆU BÁNH PÍA TÂN HƯNG LỢI</strong><br/>
+      Cửa hàng: 122 Lý Thường Kiệt, TP Sóc Trăng — ĐT: 0299 3821035<br/>
+      Xưởng sản xuất: 391 Mạc Đỉnh Chi, P4, TP Sóc Trăng — ĐT: 0299 3610473<br/>
+      Chi nhánh Sài Gòn: 418/45 Hồng Bàng, P. Minh Phụng, TP.HCM<br/>
+      Hotline: 0919 454 484<br/>
+      Website: banhpiasoctrang.onrender.com<br/>
+      Email: tholan.kha@gmail.com</p>
+
+      <p style="margin-top:24px;">Chúng tôi chuyên cung cấp những sản phẩm chất lượng đảm bảo với giá cả hợp lý dành cho các gói
+      quà, bánh cưới hỏi, công ty và gia đình, xuất khẩu...</p>
+      <p>Chúng tôi luôn quan tâm đến nhu cầu của khách hàng và đảm bảo sẽ làm hài lòng quý khách về chất lượng sản phẩm cũng như
+      dịch vụ. Hãy gọi ngay cho chúng tôi!</p>
+
+      <p style="margin-top:24px;"><strong>Cách thức đặt hàng rất đơn giản:</strong><br/>
+      Chỉ cần liên hệ với chúng tôi qua điện thoại hoặc qua website. Chúng tôi sẽ nhanh chóng liên hệ với Quý khách để xác nhận
+      thông tin.</p>
+      <p>Hình thức thanh toán: Tiền mặt hoặc Chuyển khoản.</p>
+
+      <p style="margin-top:24px;"><strong>Những lý do nên sử dụng dịch vụ và sản phẩm của chúng tôi:</strong></p>
+      <ul style="padding-left:20px; line-height:2;">
+        <li>Giao hàng nhanh chóng.</li>
+        <li>Sản phẩm phong phú, đa dạng.</li>
+        <li>Chất lượng đảm bảo.</li>
+        <li>Giá cả hợp lý.</li>
+        <li>Đặc biệt giao hàng miễn phí trong thành phố Sóc Trăng, nội thành TP.HCM và các tỉnh lân cận (tùy giá trị đơn hàng).
+        Chi tiết vui lòng liên hệ hotline 0919 454 484.</li>
+      </ul>
 
       <h3 style="margin-top:32px;">Quy trình sản xuất</h3>
       <div class="process-steps">

@@ -24,43 +24,64 @@ async function seedIfEmpty() {
     catIds[c.slug] = (await get('SELECT id FROM categories WHERE slug = ?', [c.slug])).id;
   }
 
-  const desc = (name) =>
-    `${name} được làm thủ công từ nguyên liệu chọn lọc: sầu riêng nguyên chất, đậu xanh tán nhuyễn, lòng đỏ trứng vịt muối và vỏ bột mì thơm mềm. Sản phẩm mang thương hiệu Tân Hưng Lợi, đặc sản nổi tiếng của Sóc Trăng.`;
+  // Mô tả lấy nguyên văn (copy y chang) từ trang tanhungloi.com, kể cả
+  // những sản phẩm trang gốc không có mô tả (để trống '').
+  const TPL_HACCP =
+    'Sử dụng nguyên liệu cao cấp.\nDa bánh mềm.\nVị ngọt dịu không gắt.\nThịt sầu riêng nguyên chất.\nLàm bằng phương pháp truyền thống kết hợp dây chuyền sản xuất khép kín.\nĐạt chuẩn HACCP - GMP, đã xuất khẩu đi nhiều nước trên thế giới.\nCông nghệ bảo quản bằng bao bì cao cấp dùng gói hút oxi bên trong để ngăn chặn sự phát triển của vi khuẩn, nấm mốc, kéo dài thời gian bảo quản bánh, sản phẩm không sử dụng chất bảo quản hay phẩm màu độc hại\n\nĐặc biệt Tân Hưng Lợi hổ trợ giao hàng tận nơi cho quý khách có nhu cầu. Giảm giá đặc biệt cho đơn hàng đặc biệt. Mọi chi tiết liên hệ SĐT 0908409788\n\nCách bảo quản: Để nơi khô ráo thoáng mát. Nên sử dụng ngay sau khi mở bao bì. Sản phẩm được bảo quản bằng bao bì và gói hút oxi bên trong, vì vậy sau khi xé bao bì thì nên ăn liền trong khoảng 7 ngày hoặc bảo quản trong ngăn mát tủ lạnh. Khi ăn có thể lấy ra cho vào lò vi sóng (Micro wave) quay nóng lại ăn sẽ ngon như bánh mới nướng hoặc ăn lạnh bánh cũng rất ngon.\n\nHạn sử dụng: 60 ngày kể từ ngày sản xuất.\n\nNgày sản xuất: Xem trên bao bì.';
 
   const products = [
-    { name: 'Mè láo', slug: 'me-lao', price: 30000, image: '/images/products/me-lao.jpg', cat: 'dac-san-khac', hot: 1 },
-    { name: 'Pía đậu sầu riêng 400gram (MSP: P4)', slug: 'pia-dau-sau-rieng-400gram-p4', price: 45000, image: '/images/products/pia-dau-400g.jpg', cat: 'pia-dau-sau-rieng-trung', hot: 1 },
-    { name: 'Pía đậu sầu riêng 500gram (MSP: P5)', slug: 'pia-dau-sau-rieng-500gram-p5', price: 60000, image: '/images/products/pia-dau-500g.jpg', cat: 'pia-dau-sau-rieng-trung', hot: 1 },
-    { name: 'Hộp quà tặng 2 gói bánh pía đặc biệt Tân Hưng Lợi', slug: 'hop-qua-tang-2-goi-banh-pia-dat-biet', price: 130000, image: '/images/products/hop-qua-2-goi.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1 },
-    { name: 'Hộp quà bánh pía không trứng', slug: 'hop-qua-banh-pia-khong-trung', price: 120000, image: '/images/products/hop-qua-khong-trung.png', cat: 'pia-sau-rieng-khong-trung', newp: 1 },
-    { name: 'Pía đậu sầu riêng trứng 550gram (MSP: P6L)', slug: 'pia-dau-sau-rieng-trung-550gram-p6l', price: 75000, image: '/images/products/pia-dau-trung-550g.png', cat: 'pia-dau-sau-rieng-trung', hot: 1, newp: 1 },
-    { name: 'Pía chay đậu sầu riêng 400gram (P4_CC)', slug: 'pia-chay-dau-sau-rieng-400gram-p4cc', price: 50000, image: '/images/products/pia-chay-400g.jpg', cat: 'banh-chay' },
-    { name: 'Pía đậu sầu riêng 600gram (MSP: P6)', slug: 'pia-dau-sau-rieng-600gram-p6', price: 65000, image: '/images/products/pia-dau-600g.jpg', cat: 'pia-dau-sau-rieng-trung' },
-    { name: 'Pía đậu sầu riêng trứng 450gram (MSP: P5L)', slug: 'pia-dau-sau-rieng-trung-450gram-p5l', price: 53000, image: '/images/products/pia-dau-trung-450g.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1 },
-    { name: 'Pía đậu sầu riêng 250gram (MSP: P250)', slug: 'pia-dau-sau-rieng-250gram-p250', price: 30000, image: '/images/products/pia-dau-250g.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1 },
-    { name: 'Pía đậu sầu riêng không trứng 500gram (MSP: P5_KT)', slug: 'pia-dau-sau-rieng-khong-trung-500gram-p5kt', price: 50000, image: '/images/products/pia-dau-khong-trung-500g.jpg', cat: 'pia-sau-rieng-khong-trung', newp: 1 },
-    { name: 'Pía môn sầu riêng 500gram (MSP: P5_M)', slug: 'pia-mon-sau-rieng-500gram-p5m', price: 60000, image: '/images/products/pia-mon-500g.jpg', cat: 'pia-mon-sau-rieng-trung' },
-    { name: 'Bánh Pía Đậu dừa sầu riêng', slug: 'banh-pia-dau-dua-sau-rieng', price: null, image: '/images/products/banh-pia-dau-dua.jpg', cat: 'banh-xuat-khau', exp: 1 },
-    { name: 'Bánh in nhân (500gram)', slug: 'banh-in-nhan-500gram', price: 45000, image: '/images/products/banh-in-nhan.jpg', cat: 'banh-in', exp: 1 },
-    { name: 'Bánh pía đậu sầu riêng trứng', slug: 'banh-pia-dau-sau-rieng-trung', price: 40000, image: '/images/products/pia-dau-trung.jpg', cat: 'pia-dau-sau-rieng-trung' },
-    { name: 'Pía đậu sầu riêng trứng 400gram (MSP: P4L)', slug: 'pia-dau-sau-rieng-trung-400gram-p4l', price: 55000, image: '/images/products/pia-dau-trung-400g-p4l.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1 },
-    { name: 'Pía môn sầu riêng 300gram (MSP: P3_M)', slug: 'pia-mon-sau-rieng-300gram-p3m', price: 40000, image: '/images/products/pia-mon-300g.jpg', cat: 'pia-mon-sau-rieng-trung' },
-    { name: 'Hộp quà bánh pía sầu riêng đặc biệt không trứng', slug: 'hop-qua-banh-pia-sau-rieng-dac-biet-khong-trung', price: 120000, image: '/images/products/hop-qua-khong-trung-dat-biet.png', cat: 'pia-sau-rieng-khong-trung', newp: 1 },
-    { name: 'Bánh in nhân hình chữ nhật', slug: 'banh-in-nhan-hinh-chu-nhat', price: 45000, image: '/images/products/banh-in-nhan-chu-nhat.jpg', cat: 'banh-in' },
-    { name: 'Bánh chay xuất khẩu 400gram', slug: 'banh-chay-xuat-khau-400gram', price: 50000, image: '/images/products/banh-chay-xuat-khau-400g.jpg', cat: 'banh-xuat-khau' },
-    { name: 'Bánh pía sầu riêng không trứng (xuất khẩu)', slug: 'banh-pia-sau-rieng-khong-trung-xuat-khau', price: null, image: '/images/products/banh-pia-khong-trung-xk.jpg', cat: 'banh-xuat-khau', exp: 1 },
-    { name: 'Bánh pía khoai môn sầu riêng đặc biệt thơm ngon', slug: 'banh-pia-khoai-mon-sau-rieng-dac-biet-thom-ngon', price: null, image: '/images/products/banh-pia-khoai-mon-dac-biet.jpg', cat: 'banh-xuat-khau', exp: 1 },
-    { name: 'Pía đậu sầu riêng 450gram (MSP: P_H450)', slug: 'pia-dau-sau-rieng-450gram-ph450', price: null, image: '/images/products/pia-dau-450g-ph450.jpg', cat: 'banh-xuat-khau', exp: 1 },
-    { name: 'Pía đậu sầu riêng trứng 550gram (MSP: P6L)', slug: 'pia-dau-sau-rieng-trung-550gram-p6l-2', price: 75000, image: '/images/products/pia-dau-trung-550g.png', cat: 'pia-dau-sau-rieng-trung' },
-    { name: 'Pía đậu sầu riêng 400gram (MSP: P4L)', slug: 'pia-dau-sau-rieng-400gram-p4l', price: 55000, image: '/images/products/pia-dau-trung-400g-p4l.jpg', cat: 'pia-dau-sau-rieng-trung' },
-    { name: 'Pía đậu sầu riêng 450gram (MSP: P_H450)', slug: 'pia-dau-sau-rieng-450gram-ph450-2', price: null, image: '/images/products/pia-dau-450g-ph450.jpg', cat: 'banh-chay', exp: 1 }
+    { name: 'Mè láo', slug: 'me-lao', price: 30000, image: '/images/products/me-lao.jpg', cat: 'dac-san-khac', hot: 1, desc: '' },
+    { name: 'Pía đậu sầu riêng 400gram (MSP: P4)', slug: 'pia-dau-sau-rieng-400gram-p4', price: 45000, image: '/images/products/pia-dau-400g.jpg', cat: 'pia-dau-sau-rieng-trung', hot: 1,
+      desc: TPL_HACCP + '\n\nThành phần: bột mì, đậu xanh, sầu riêng, mỡ thịt, dầu ăn, trứng, màu đỏ thực phẩm (E124)\nTrọng lượng: 400 gram/ 4 cái\nSản phẩm của DNTN Yến Linh' },
+    { name: 'Pía đậu sầu riêng 500gram (MSP: P5)', slug: 'pia-dau-sau-rieng-500gram-p5', price: 60000, image: '/images/products/pia-dau-500g.jpg', cat: 'pia-dau-sau-rieng-trung', hot: 1,
+      desc: 'gói gồm 4 bánh có 4 trứng ,  mỗi cái 125g và 1 trứng trong mỗi bánh .\n\n' + TPL_HACCP.replace('Ngày sản xuất: Xem trên bao bì.', 'Ngày sản xuất: Xem trên bao bì. bánh mới sản xuất cam kết sản xuất đúng ngày giao hàng .') },
+    { name: 'Hộp quà tặng 2 gói bánh pía đặc biệt Tân Hưng Lợi', slug: 'hop-qua-tang-2-goi-banh-pia-dat-biet', price: 130000, image: '/images/products/hop-qua-2-goi.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1,
+      desc: 'Hộp quà bánh pía Tân Hưng Lợi\n\n' + TPL_HACCP },
+    { name: 'Hộp quà bánh pía không trứng', slug: 'hop-qua-banh-pia-khong-trung', price: 120000, image: '/images/products/hop-qua-khong-trung.png', cat: 'pia-sau-rieng-khong-trung', newp: 1,
+      desc: 'Hộp quà tặng bánh pía cái nhỏ, mẫu mã đẹp, bánh nhỏ nhưng đặc biệt nhiều thịt sầu riêng, thơm ngon, không trứng\n\n' + TPL_HACCP },
+    { name: 'Pía đậu sầu riêng trứng 550gram (MSP: P6L)', slug: 'pia-dau-sau-rieng-trung-550gram-p6l', price: 75000, image: '/images/products/pia-dau-trung-550g.png', cat: 'pia-dau-sau-rieng-trung', hot: 1, newp: 1,
+      desc: 'Bánh được đóng gói từng cái rời, mỗi gói gồm 4 cái bên trong. Trọng lượng 550gram/gói (4 trứng)\n\n' + TPL_HACCP + 'cam kết hàng mới sản xuất đúng ngày gửi hàng.' },
+    { name: 'Pía chay đậu sầu riêng 400gram (P4_CC)', slug: 'pia-chay-dau-sau-rieng-400gram-p4cc', price: 50000, image: '/images/products/pia-chay-400g.jpg', cat: 'banh-chay',
+      desc: 'Bánh pía chay Tân Hưng Lơi, đạt chuẩn HACCAP và GMP, đã xuất khẩu đi các nước Châu Âu, Mĩ, Úc, Ấn, Hàn, Trung Quốc ...\n\nBánh sử dụng những nguyên liệu cao cấp, thịt sầu riêng nguyên chất, đậu xanh loại thượng hạng, làm bằng phương pháp làm bánh truyền thống kết hợp dây chuyền sản xuất khép kín, không sử dụng chất bảo quản độc hại. \n\nĐặc biệt Tân Hưng Lợi hổ trợ giao bánh tận nơi cho khách hàng có nhu cầu. Liên hệ 0908409788.' },
+    { name: 'Pía đậu sầu riêng 600gram (MSP: P6)', slug: 'pia-dau-sau-rieng-600gram-p6', price: 65000, image: '/images/products/pia-dau-600g.jpg', cat: 'pia-dau-sau-rieng-trung',
+      desc: 'Thành phần: bột mì, đậu xanh, sầu riêng, mỡ thịt, dầu ăn, trứng, màu đỏ thực phẩm (E124)\nTrọng lượng: 600 gram/ 4 cái , mỗi cái 1 trứng gói 4 trứng .\nSản phẩm của DNTN Yến Linh\n\n' + TPL_HACCP + 'cam kết hàng mới sản xuất đúng ngày gửi hàng.' },
+    { name: 'Pía đậu sầu riêng trứng 450gram (MSP: P5L)', slug: 'pia-dau-sau-rieng-trung-450gram-p5l', price: 53000, image: '/images/products/pia-dau-trung-450g.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1, desc: '' },
+    { name: 'Pía đậu sầu riêng 250gram (MSP: P250)', slug: 'pia-dau-sau-rieng-250gram-p250', price: 30000, image: '/images/products/pia-dau-250g.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1,
+      desc: 'Thành phần: bột mì, đậu xanh, sầu riêng, mỡ thịt, dầu ăn, màu đỏ thực phẩm (E124)\nTrọng lượng: 250 gram/ 4 cái\nSản phẩm của DNTN Yến Linh' },
+    { name: 'Pía đậu sầu riêng không trứng 500gram (MSP: P5_KT)', slug: 'pia-dau-sau-rieng-khong-trung-500gram-p5kt', price: 50000, image: '/images/products/pia-dau-khong-trung-500g.jpg', cat: 'pia-sau-rieng-khong-trung', newp: 1,
+      desc: 'Thành phần: bột mì, đậu xanh, sầu riêng, mỡ thịt, dầu ăn, màu đỏ thực phẩm (E124)\nTrọng lượng: 500 gram/ 4 cái\nSản phẩm của DNTN Yến Linh' },
+    { name: 'Pía môn sầu riêng 500gram (MSP: P5_M)', slug: 'pia-mon-sau-rieng-500gram-p5m', price: 60000, image: '/images/products/pia-mon-500g.jpg', cat: 'pia-mon-sau-rieng-trung',
+      desc: 'Thành phần: bột mì, khoai môn, sầu riêng, mỡ thịt, dầu ăn, trứng, màu đỏ thực phẩm (E124)\nTrọng lượng: 500gram/ 4 cái\nSản phẩm của DNTN Yến Linh' },
+    { name: 'Bánh Pía Đậu dừa sầu riêng', slug: 'banh-pia-dau-dua-sau-rieng', price: null, image: '/images/products/banh-pia-dau-dua.jpg', cat: 'banh-xuat-khau', exp: 1, desc: '' },
+    { name: 'Bánh in nhân (500gram)', slug: 'banh-in-nhan-500gram', price: 45000, image: '/images/products/banh-in-nhan.jpg', cat: 'banh-in', exp: 1,
+      desc: 'bánh in nhân đậu xanh sầu riêng , gói 4 cái , làm từ bột nếp , đậu xanh , sầu riêng , đường , dầu ăn và mạch nha , không chất bảo quản , bánh mền dẻo và thơm béo tự nhiên ,\n\nhạn sử dụng 30 ngày , ngày  sản xuất  mới nhất .' },
+    { name: 'Bánh pía đậu sầu riêng trứng', slug: 'banh-pia-dau-sau-rieng-trung', price: 40000, image: '/images/products/pia-dau-trung.jpg', cat: 'pia-dau-sau-rieng-trung',
+      desc: 'Thành phần: bột mì, đậu xanh, sầu riêng, trứng muối, mỡ, đường\n\nQuy cách đóng gỏi: 4cái/gói (300gram)\n\nQuy cách đóng thùng: 60 gói/thùng' },
+    { name: 'Pía đậu sầu riêng trứng 400gram (MSP: P4L)', slug: 'pia-dau-sau-rieng-trung-400gram-p4l', price: 55000, image: '/images/products/pia-dau-trung-400g-p4l.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1,
+      desc: 'Bánh được đóng gói từng cái rời, mỗi gói gồm 4 cái bên trong. Trọng lượng 400gram/gói (2 trứng)\n\n' + TPL_HACCP + 'cam kết hàng mới sản xuất đúng ngày gửi hàng.' },
+    { name: 'Pía môn sầu riêng 300gram (MSP: P3_M)', slug: 'pia-mon-sau-rieng-300gram-p3m', price: 40000, image: '/images/products/pia-mon-300g.jpg', cat: 'pia-mon-sau-rieng-trung',
+      desc: 'Thành phần: bột mì, khoai môn, sầu riêng, mỡ thịt, dầu ăn, trứng, màu đỏ thực phẩm (E124)\nTrọng lượng: 300gram/ 4 cái\nSản phẩm của DNTN Yến Linh' },
+    { name: 'Hộp quà bánh pía sầu riêng đặc biệt không trứng', slug: 'hop-qua-banh-pia-sau-rieng-dac-biet-khong-trung', price: 120000, image: '/images/products/hop-qua-khong-trung-dat-biet.png', cat: 'pia-sau-rieng-khong-trung', newp: 1,
+      desc: 'Hộp quà tặng bánh pía cái nhỏ, mẫu mã đẹp, bánh nhỏ nhưng đặc biệt nhiều thịt sầu riêng, thơm ngon, không trứng\n\nĐặc trưng của bánh pia Tân Hưng Lợi là còn giữ lại phương pháp làm bánh truyền thống, kết hợp sản xuất trên quy trình khép kín đạt chuẩn HACCAP và GMP, công nghệ bảo quản bằng bao bì cao cấp dùng gói hút oxi bên trong để ngăn chặn sự phát triển của vi khuẩn, nấm mốc, kéo dài thời gian bảo quản bánh, sản phẩm không sử dụng chất bảo quản hay phẩm màu độc hại\n\nĐặc biệt Tân Hưng Lợi hổ trợ giao hàng tận nơi cho quý khách có nhu cầu. Giảm giá đặc biệt cho đơn hàng đặc biệt. Mọi chi tiết liên hệ SĐT 0908409788' },
+    { name: 'Bánh in nhân hình chữ nhật', slug: 'banh-in-nhan-hinh-chu-nhat', price: 45000, image: '/images/products/banh-in-nhan-chu-nhat.jpg', cat: 'banh-in', desc: 'Bánh in nhân hình chữ nhật Tân Hưng Lợi' },
+    { name: 'Bánh chay xuất khẩu 400gram', slug: 'banh-chay-xuat-khau-400gram', price: 50000, image: '/images/products/banh-chay-xuat-khau-400g.jpg', cat: 'banh-xuat-khau', desc: '' },
+    { name: 'Bánh pía sầu riêng không trứng (xuất khẩu)', slug: 'banh-pia-sau-rieng-khong-trung-xuat-khau', price: null, image: '/images/products/banh-pia-khong-trung-xk.jpg', cat: 'banh-xuat-khau', exp: 1,
+      desc: 'Thành phần: bột mì, đậu xanh, sầu riêng, mỡ thịt, dầu ăn, màu đỏ thực phẩm (E124)\nTrọng lượng: 400 gram/ 4 cái\nSản phẩm của DNTN Yến Linh' },
+    { name: 'Bánh pía khoai môn sầu riêng đặc biệt thơm ngon', slug: 'banh-pia-khoai-mon-sau-rieng-dac-biet-thom-ngon', price: null, image: '/images/products/banh-pia-khoai-mon-dac-biet.jpg', cat: 'banh-xuat-khau', exp: 1,
+      desc: 'Mã sản phẩm: PKT_KM Bánh pía khoai môn sầu riêng đặc biệt thơm ngon\n\nTrọng lượng 500gram\n\nThành phần: khoai môn, sầu riêng, bột mì, đường dầu ăn...' },
+    { name: 'Pía đậu sầu riêng 450gram (MSP: P_H450)', slug: 'pia-dau-sau-rieng-450gram-ph450', price: null, image: '/images/products/pia-dau-450g-ph450.jpg', cat: 'banh-xuat-khau', exp: 1, desc: '' },
+    { name: 'Pía đậu sầu riêng trứng 550gram (MSP: P6L)', slug: 'pia-dau-sau-rieng-trung-550gram-p6l-2', price: 75000, image: '/images/products/pia-dau-trung-550g.png', cat: 'pia-dau-sau-rieng-trung',
+      desc: 'Bánh được đóng gói từng cái rời, mỗi gói gồm 4 cái bên trong. Trọng lượng 550gram/gói (4 trứng)\n\n' + TPL_HACCP + 'cam kết hàng mới sản xuất đúng ngày gửi hàng.' },
+    { name: 'Pía đậu sầu riêng 400gram (MSP: P4L)', slug: 'pia-dau-sau-rieng-400gram-p4l', price: 55000, image: '/images/products/pia-dau-trung-400g-p4l.jpg', cat: 'pia-dau-sau-rieng-trung',
+      desc: 'Bánh được đóng gói từng cái rời, mỗi gói gồm 4 cái bên trong. Trọng lượng 400gram/gói\n\n' + TPL_HACCP },
+    { name: 'Pía đậu sầu riêng 450gram (MSP: P_H450)', slug: 'pia-dau-sau-rieng-450gram-ph450-2', price: null, image: '/images/products/pia-dau-450g-ph450.jpg', cat: 'banh-chay', exp: 1, desc: '' }
   ];
 
   for (const p of products) {
     await run(
       `INSERT INTO products (category_id, name, slug, price, image, description, is_hot, is_new, is_export, stock)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [catIds[p.cat], p.name, p.slug, p.price, p.image, desc(p.name), p.hot ? 1 : 0, p.newp ? 1 : 0, p.exp ? 1 : 0, 100]
+      [catIds[p.cat], p.name, p.slug, p.price, p.image, p.desc, p.hot ? 1 : 0, p.newp ? 1 : 0, p.exp ? 1 : 0, 100]
     );
   }
 

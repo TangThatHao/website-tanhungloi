@@ -15,11 +15,25 @@
     </div>
     <div class="field"><label>Giá (VNĐ, để trống nếu "Liên hệ")</label><input type="number" name="price" value="<%= product && product.price !== null ? product.price : '' %>" /></div>
     <div class="field">
-      <label>Ảnh sản phẩm (tải file lên)</label>
+      <label>Ảnh đại diện (tải file lên)</label>
       <input type="file" name="image_file" accept="image/*" />
       <% if (product && product.image) { %><img src="<%= product.image %>" style="width:80px; margin-top:8px; border-radius:6px;" /><% } %>
     </div>
     <div class="field"><label>Hoặc dán URL ảnh</label><input type="text" name="image_url" placeholder="/images/products/... hoặc https://..." /></div>
+    <div class="field">
+      <label>Ảnh bổ sung (có thể chọn nhiều ảnh cùng lúc)</label>
+      <input type="file" name="gallery_files" accept="image/*" multiple />
+      <% if (galleryImages && galleryImages.length) { %>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:10px;">
+          <% galleryImages.forEach(g => { %>
+            <label style="text-align:center; font-size:11px; color:var(--color-muted);">
+              <img src="<%= g.image %>" style="width:70px; height:70px; object-fit:cover; border-radius:6px; display:block; margin-bottom:4px;" />
+              <input type="checkbox" name="delete_images" value="<%= g.id %>" style="width:auto;" /> Xóa
+            </label>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
     <div class="field"><label>Mô tả</label><textarea name="description" rows="4"><%= product ? product.description : '' %></textarea></div>
     <div class="field">
       <label><input type="checkbox" name="is_hot" <%= product && product.is_hot ? 'checked' : '' %> style="width:auto;" /> Sản phẩm HOT</label>

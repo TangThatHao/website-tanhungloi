@@ -24,6 +24,13 @@ CREATE TABLE IF NOT EXISTS products (
 ALTER TABLE products ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;
 UPDATE products SET sort_order = id WHERE sort_order = 0;
 
+CREATE TABLE IF NOT EXISTS product_images (
+  id SERIAL PRIMARY KEY,
+  product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+  image TEXT NOT NULL,
+  sort_order INTEGER DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS news (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,

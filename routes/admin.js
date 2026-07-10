@@ -89,28 +89,44 @@ router.get('/admin/san-pham', asyncHandler(async (req, res) => {
   res.render('admin/products', { products, categories, activeCategory: activeCategory ? activeCategory.slug : '' });
 }));
 
+const productUpload = upload.fields([{ name: 'image_file', maxCount: 1 }, { name: 'gallery_files', maxCount: 10 }]);
+
+async function addGalleryImages(productId, files) {
+  if (!files || !files.length) return;
+  const maxOrder = Number((await get('SELECT COALESCE(MAX(sort_order),0) m FROM product_images WHERE product_id = ?', [productId])).m);
+  let i = 1;
+  for (const file of files) {
+    const url = await saveUploadedFile(file);
+    await run('INSERT INTO product_images (product_id, image, sort_order) VALUES (?, ?, ?)', [productId, url, maxOrder + i]);
+    i++;
+  }
+}
+
 router.get('/admin/san-pham/them', asyncHandler(async (req, res) => {
   const categories = await all('SELECT * FROM categories ORDER BY sort_order ASC');
-  res.render('admin/product-form', { product: null, categories, error: null });
+  res.render('admin/product-form', { product: null, categories, galleryImages: [], error: null });
 }));
 
-router.post('/admin/san-pham/them', upload.single('image_file'), asyncHandler(async (req, res) => {
+router.post('/admin/san-pham/them', productUpload, asyncHandler(async (req, res) => {
   const categories = await all('SELECT * FROM categories ORDER BY sort_order ASC');
   const { name, category_id, price, description, image_url } = req.body;
 
   if (!name || !category_id) {
-    return res.render('admin/product-form', { product: null, categories, error: 'Vui lòng điền tên sản phẩm và chọn danh mục.' });
+    return res.render('admin/product-form', { product: null, categories, galleryImages: [], error: 'Vui lòng điền tên sản phẩm và chọn danh mục.' });
   }
 
-  const image = req.file ? await saveUploadedFile(req.file) : (image_url || '/images/logo.jpg');
+  const coverFile = req.files && req.files.image_file ? req.files.image_file[0] : null;
+  const image = coverFile ? await saveUploadedFile(coverFile) : (image_url || '/images/logo.jpg');
   const slug = await uniqueSlug(name, 'products');
   const maxOrder = Number((await get('SELECT COALESCE(MAX(sort_order),0) m FROM products')).m);
 
-  await run(
+  const inserted = await get(
     `INSERT INTO products (category_id, name, slug, price, image, description, is_hot, is_new, is_export, stock, sort_order)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
     [category_id, name, slug, price ? Number(price) : null, image, description || '', req.body.is_hot ? 1 : 0, req.body.is_new ? 1 : 0, req.body.is_export ? 1 : 0, 100, maxOrder + 1]
   );
+
+  await addGalleryImages(inserted.id, req.files && req.files.gallery_files);
 
   res.redirect('/admin/san-pham');
 }));
@@ -119,25 +135,35 @@ router.get('/admin/san-pham/:id/sua', asyncHandler(async (req, res) => {
   const product = await get('SELECT * FROM products WHERE id = ?', [req.params.id]);
   if (!product) return res.status(404).send('Không tìm thấy sản phẩm.');
   const categories = await all('SELECT * FROM categories ORDER BY sort_order ASC');
-  res.render('admin/product-form', { product, categories, error: null });
+  const galleryImages = await all('SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC', [product.id]);
+  res.render('admin/product-form', { product, categories, galleryImages, error: null });
 }));
 
-router.post('/admin/san-pham/:id/sua', upload.single('image_file'), asyncHandler(async (req, res) => {
+router.post('/admin/san-pham/:id/sua', productUpload, asyncHandler(async (req, res) => {
   const product = await get('SELECT * FROM products WHERE id = ?', [req.params.id]);
   if (!product) return res.status(404).send('Không tìm thấy sản phẩm.');
   const categories = await all('SELECT * FROM categories ORDER BY sort_order ASC');
   const { name, category_id, price, description, image_url } = req.body;
 
   if (!name || !category_id) {
-    return res.render('admin/product-form', { product, categories, error: 'Vui lòng điền tên sản phẩm và chọn danh mục.' });
+    const galleryImages = await all('SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC', [product.id]);
+    return res.render('admin/product-form', { product, categories, galleryImages, error: 'Vui lòng điền tên sản phẩm và chọn danh mục.' });
   }
 
-  const image = req.file ? await saveUploadedFile(req.file) : (image_url || product.image);
+  const coverFile = req.files && req.files.image_file ? req.files.image_file[0] : null;
+  const image = coverFile ? await saveUploadedFile(coverFile) : (image_url || product.image);
 
   await run(
     `UPDATE products SET category_id=?, name=?, price=?, image=?, description=?, is_hot=?, is_new=?, is_export=? WHERE id=?`,
     [category_id, name, price ? Number(price) : null, image, description || '', req.body.is_hot ? 1 : 0, req.body.is_new ? 1 : 0, req.body.is_export ? 1 : 0, req.params.id]
   );
+
+  const deleteIds = [].concat(req.body.delete_images || []);
+  for (const imgId of deleteIds) {
+    await run('DELETE FROM product_images WHERE id = ? AND product_id = ?', [imgId, req.params.id]);
+  }
+
+  await addGalleryImages(req.params.id, req.files && req.files.gallery_files);
 
   res.redirect('/admin/san-pham');
 }));

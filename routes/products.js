@@ -42,12 +42,14 @@ router.get('/san-pham/:slug', asyncHandler(async (req, res) => {
   const product = await get('SELECT * FROM products WHERE slug = ?', [req.params.slug]);
   if (!product) return res.status(404).send('Không tìm thấy sản phẩm.');
 
-  const related = await all(
-    'SELECT * FROM products WHERE category_id = ? AND id != ? ORDER BY RANDOM() LIMIT 4',
-    [product.category_id, product.id]
-  );
+  const [related, extraImages] = await Promise.all([
+    all('SELECT * FROM products WHERE category_id = ? AND id != ? ORDER BY RANDOM() LIMIT 4', [product.category_id, product.id]),
+    all('SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC', [product.id])
+  ]);
 
-  res.render('product-detail', { product, related, successMsg: req.query.added ? 'Đã thêm sản phẩm vào giỏ hàng.' : null });
+  const gallery = [product.image, ...extraImages.map((img) => img.image)].filter(Boolean);
+
+  res.render('product-detail', { product, related, gallery, successMsg: req.query.added ? 'Đã thêm sản phẩm vào giỏ hàng.' : null });
 }));
 
 module.exports = router;
