@@ -3,6 +3,7 @@ const router = express.Router();
 const { get, run, all } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { orderLookupRateLimit } = require('../middleware/auth');
+const { notifyNewOrder } = require('../utils/notify');
 
 async function getCartWithDetails(req) {
   const cart = req.session.cart || [];
@@ -87,6 +88,11 @@ router.post('/thanh-toan', asyncHandler(async (req, res) => {
       [orderId, item.product.id, item.product.name, item.product.price || 0, item.qty]
     );
   }
+
+  notifyNewOrder(
+    { id: orderId, customer_name, phone, address, total },
+    items.map((item) => ({ name: item.product.name, qty: item.qty }))
+  ).catch((err) => console.error('[notify] Loi khi gui thong bao don hang moi:', err.message));
 
   req.session.cart = [];
   res.locals.cartCount = 0;
