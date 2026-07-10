@@ -361,6 +361,11 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .nav-search { margin-top: 10px; }
   .nav-search input { flex: 1; width: auto; }
 
+  /* Nội dung chính (kết quả sản phẩm/bài viết) hiện trước, sidebar danh mục/hot xuống dưới */
+  .page-body > main { order: 1; }
+  .page-body > aside:first-child { order: 2; }
+  .page-body > aside:last-child { order: 3; }
+
   .news-list-item { flex-direction: column; }
   .news-list-item img { width: 100%; height: 180px; }
 
