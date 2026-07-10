@@ -9,6 +9,7 @@
     "pg:local": "node scripts/dev-pg-server.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.2",
     "bcryptjs": "^2.4.3",
     "ejs": "^3.1.10",
     "express": "^4.19.2",

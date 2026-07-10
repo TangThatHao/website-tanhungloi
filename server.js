@@ -6,6 +6,7 @@ const { initSchema } = require('./db');
 const { seedIfEmpty } = require('./db/seed');
 const { formatPrice } = require('./utils/format');
 const { loadUser } = require('./middleware/auth');
+const { ensureBucket, isSupabaseConfigured } = require('./utils/storage');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -59,6 +60,11 @@ app.use((err, req, res, next) => {
 async function main() {
   await initSchema();
   await seedIfEmpty();
+  if (isSupabaseConfigured) {
+    await ensureBucket();
+  } else {
+    console.warn('[storage] SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY chua duoc cau hinh - anh upload se luu tam vao dia, khong ben vung tren Render.');
+  }
   app.listen(PORT, () => {
     console.log(`Tan Hung Loi website dang chay tai http://localhost:${PORT}`);
   });

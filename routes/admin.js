@@ -4,6 +4,7 @@ const router = express.Router();
 const { run, get, all } = require('../db');
 const { requireAdmin, loginRateLimit, clearLoginAttempts } = require('../middleware/auth');
 const upload = require('../middleware/upload');
+const { saveUploadedFile } = require('../utils/storage');
 const { slugify } = require('../utils/format');
 const { asyncHandler } = require('../utils/asyncHandler');
 
@@ -94,7 +95,7 @@ router.post('/admin/san-pham/them', upload.single('image_file'), asyncHandler(as
     return res.render('admin/product-form', { product: null, categories, error: 'Vui lòng điền tên sản phẩm và chọn danh mục.' });
   }
 
-  const image = req.file ? `/uploads/${req.file.filename}` : (image_url || '/images/logo.jpg');
+  const image = req.file ? await saveUploadedFile(req.file) : (image_url || '/images/logo.jpg');
   const slug = await uniqueSlug(name, 'products');
 
   await run(
@@ -123,7 +124,7 @@ router.post('/admin/san-pham/:id/sua', upload.single('image_file'), asyncHandler
     return res.render('admin/product-form', { product, categories, error: 'Vui lòng điền tên sản phẩm và chọn danh mục.' });
   }
 
-  const image = req.file ? `/uploads/${req.file.filename}` : (image_url || product.image);
+  const image = req.file ? await saveUploadedFile(req.file) : (image_url || product.image);
 
   await run(
     `UPDATE products SET category_id=?, name=?, price=?, image=?, description=?, is_hot=?, is_new=?, is_export=? WHERE id=?`,
@@ -179,7 +180,7 @@ router.post('/admin/tin-tuc/them', upload.single('image_file'), asyncHandler(asy
   if (!title || !summary || !content) {
     return res.render('admin/news-form', { news: null, error: 'Vui lòng điền đầy đủ thông tin bài viết.' });
   }
-  const thumbnail = req.file ? `/uploads/${req.file.filename}` : (image_url || '/images/logo.jpg');
+  const thumbnail = req.file ? await saveUploadedFile(req.file) : (image_url || '/images/logo.jpg');
   const slug = await uniqueSlug(title, 'news');
   await run(
     'INSERT INTO news (title, slug, thumbnail, summary, content, is_featured) VALUES (?, ?, ?, ?, ?, ?)',
@@ -201,7 +202,7 @@ router.post('/admin/tin-tuc/:id/sua', upload.single('image_file'), asyncHandler(
   if (!title || !summary || !content) {
     return res.render('admin/news-form', { news, error: 'Vui lòng điền đầy đủ thông tin bài viết.' });
   }
-  const thumbnail = req.file ? `/uploads/${req.file.filename}` : (image_url || news.thumbnail);
+  const thumbnail = req.file ? await saveUploadedFile(req.file) : (image_url || news.thumbnail);
   await run(
     'UPDATE news SET title=?, thumbnail=?, summary=?, content=?, is_featured=? WHERE id=?',
     [title, thumbnail, summary, content, req.body.is_featured ? 1 : 0, req.params.id]
