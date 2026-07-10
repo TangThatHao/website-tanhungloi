@@ -18,6 +18,71 @@
 })();
 
 (function () {
+  const results = document.getElementById('productResults');
+  const chips = document.getElementById('categoryChips');
+  if (!results) return;
+
+  function syncBreadcrumb(url) {
+    const breadcrumb = document.getElementById('productsBreadcrumb');
+    if (!breadcrumb) return;
+    let extra = document.getElementById('breadcrumbExtra');
+    const hasCategory = url.includes('category=');
+    if (hasCategory) {
+      const title = results.querySelector('.section-title');
+      const text = title ? title.textContent : '';
+      if (!extra) {
+        extra = document.createElement('span');
+        extra.id = 'breadcrumbExtra';
+        breadcrumb.appendChild(document.createTextNode(' / '));
+        breadcrumb.appendChild(extra);
+      }
+      extra.textContent = text;
+    } else if (extra) {
+      extra.previousSibling && extra.previousSibling.remove();
+      extra.remove();
+    }
+  }
+
+  async function loadCategory(url, pushState) {
+    try {
+      const res = await fetch(url, { headers: { 'X-Requested-With': 'fetch' } });
+      if (!res.ok) throw new Error('bad response');
+      results.innerHTML = await res.text();
+      syncBreadcrumb(url);
+      if (pushState) history.pushState({ productsUrl: url }, '', url);
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      window.location.href = url;
+    }
+  }
+
+  function setActiveChip(url) {
+    if (!chips) return;
+    const links = chips.querySelectorAll('a');
+    links.forEach((a) => a.classList.remove('active'));
+    const target = Array.from(links).find((a) => a.getAttribute('href') === url) || links[0];
+    if (target) target.classList.add('active');
+  }
+
+  document.querySelectorAll('#categoryChips a, .cat-list a').forEach((link) => {
+    link.addEventListener('click', (e) => {
+      const url = link.getAttribute('href');
+      if (!url || !url.startsWith('/san-pham')) return;
+      e.preventDefault();
+      setActiveChip(url);
+      loadCategory(url, true);
+    });
+  });
+
+  window.addEventListener('popstate', (e) => {
+    if (e.state && e.state.productsUrl) {
+      setActiveChip(e.state.productsUrl);
+      loadCategory(e.state.productsUrl, false);
+    }
+  });
+})();
+
+(function () {
   const slider = document.getElementById('topBanner');
   if (!slider) return;
 

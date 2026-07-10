@@ -22,6 +22,14 @@ router.get('/san-pham', asyncHandler(async (req, res) => {
     products = await all('SELECT * FROM products ORDER BY id DESC');
   }
 
+  if (req.get('X-Requested-With') === 'fetch') {
+    return res.render('partials/product-results', {
+      products,
+      categoryName,
+      searchQuery: search || ''
+    });
+  }
+
   res.render('products-list', {
     products,
     categoryName,

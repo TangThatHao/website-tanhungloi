@@ -1,0 +1,8 @@
+<div class="section-title"><%= categoryName || (searchQuery ? 'Kết quả tìm kiếm: "' + searchQuery + '"' : 'Tất cả sản phẩm') %></div>
+<% if (products.length === 0) { %>
+  <div class="empty-state">Không tìm thấy sản phẩm nào.</div>
+<% } else { %>
+  <div class="product-grid">
+    <% products.forEach(p => { %><%- include('product-card', { p, currentPath: '/san-pham' }) %><% }) %>
+  </div>
+<% } %>
