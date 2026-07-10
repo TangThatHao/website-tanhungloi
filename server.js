@@ -4,11 +4,12 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 
-const { initSchema } = require('./db');
+const { pool, initSchema } = require('./db');
 const { seedIfEmpty } = require('./db/seed');
 const { formatPrice, categoryIcon } = require('./utils/format');
 const { loadUser } = require('./middleware/auth');
 const { ensureBucket, isSupabaseConfigured } = require('./utils/storage');
+const pgSession = require('connect-pg-simple')(session);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,6 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(
   session({
+    store: new pgSession({ pool, tableName: 'session', createTableIfMissing: true }),
     secret: process.env.SESSION_SECRET || 'tanhungloi-demo-secret-key',
     resave: false,
     saveUninitialized: false,

@@ -15,9 +15,14 @@
     </div>
     <div class="field"><label>Giá (VNĐ, để trống nếu "Liên hệ")</label><input type="number" name="price" value="<%= product && product.price !== null ? product.price : '' %>" /></div>
     <div class="field">
-      <label>Ảnh đại diện (tải file lên)</label>
+      <label>Ảnh đại diện (tải file lên để thay thế)</label>
       <input type="file" name="image_file" accept="image/*" />
-      <% if (product && product.image) { %><img src="<%= product.image %>" style="width:80px; margin-top:8px; border-radius:6px;" /><% } %>
+      <% if (product && product.image) { %>
+        <div style="margin-top:8px;">
+          <img src="<%= product.image %>" style="width:80px; display:block; border-radius:6px; margin-bottom:4px;" />
+          <label style="font-size:12px; color:var(--color-muted); font-weight:400;"><input type="checkbox" name="delete_image" value="1" style="width:auto;" /> Xóa ảnh đại diện hiện tại</label>
+        </div>
+      <% } %>
     </div>
     <div class="field"><label>Hoặc dán URL ảnh</label><input type="text" name="image_url" placeholder="/images/products/... hoặc https://..." /></div>
     <div class="field">
