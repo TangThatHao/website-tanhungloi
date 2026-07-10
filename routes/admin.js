@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { run, get, all } = require('../db');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdmin, loginRateLimit, clearLoginAttempts } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const { slugify } = require('../utils/format');
 const { asyncHandler } = require('../utils/asyncHandler');
@@ -33,12 +33,13 @@ router.get('/admin/dang-nhap', (req, res) => {
   res.render('admin/login', { error: null });
 });
 
-router.post('/admin/dang-nhap', asyncHandler(async (req, res) => {
+router.post('/admin/dang-nhap', loginRateLimit, asyncHandler(async (req, res) => {
   const { username, password } = req.body;
   const user = await get("SELECT * FROM users WHERE username = ? AND role = 'admin'", [username]);
   if (!user || !bcrypt.compareSync(password || '', user.password_hash)) {
     return res.render('admin/login', { error: 'Tên đăng nhập hoặc mật khẩu không đúng.' });
   }
+  clearLoginAttempts(req);
   req.session.adminId = user.id;
   req.session.userId = user.id;
   res.redirect('/admin');

@@ -4,3 +4,4 @@ data/
 db/data.sqlite
 public/uploads/
 *.log
+pass.txt

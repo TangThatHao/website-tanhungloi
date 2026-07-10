@@ -37,4 +37,30 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { loadUser, requireMember, requireAdmin };
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const loginAttempts = new Map();
+
+function loginRateLimit(req, res, next) {
+  const key = req.ip;
+  const now = Date.now();
+  const entry = loginAttempts.get(key);
+
+  if (entry && now - entry.firstAttempt < LOGIN_WINDOW_MS) {
+    if (entry.count >= LOGIN_MAX_ATTEMPTS) {
+      return res.status(429).render('admin/login', {
+        error: 'Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.'
+      });
+    }
+    entry.count++;
+  } else {
+    loginAttempts.set(key, { count: 1, firstAttempt: now });
+  }
+  next();
+}
+
+function clearLoginAttempts(req) {
+  loginAttempts.delete(req.ip);
+}
+
+module.exports = { loadUser, requireMember, requireAdmin, loginRateLimit, clearLoginAttempts };
