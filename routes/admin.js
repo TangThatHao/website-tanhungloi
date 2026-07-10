@@ -151,9 +151,7 @@ router.post('/admin/san-pham/:id/sua', productUpload, asyncHandler(async (req, r
   }
 
   const coverFile = req.files && req.files.image_file ? req.files.image_file[0] : null;
-  const image = coverFile
-    ? await saveUploadedFile(coverFile)
-    : image_url || (req.body.delete_image ? '/images/logo.jpg' : product.image);
+  const image = coverFile ? await saveUploadedFile(coverFile) : (image_url || product.image);
 
   await run(
     `UPDATE products SET category_id=?, name=?, price=?, image=?, description=?, is_hot=?, is_new=?, is_export=? WHERE id=?`,
