@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { get, run } = require('../db');
+const { get, run, all } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
 
 async function getCartWithDetails(req) {
@@ -90,6 +90,22 @@ router.post('/thanh-toan', asyncHandler(async (req, res) => {
   req.session.cart = [];
   res.locals.cartCount = 0;
   res.render('order-success', { orderId, total });
+}));
+
+router.get('/tra-cuu-don-hang', (req, res) => {
+  res.render('order-lookup', { phone: '', orders: null });
+});
+
+router.post('/tra-cuu-don-hang', asyncHandler(async (req, res) => {
+  const phone = (req.body.phone || '').trim();
+  let orders = [];
+  if (phone) {
+    orders = await all('SELECT * FROM orders WHERE phone = ? ORDER BY created_at DESC', [phone]);
+    for (const o of orders) {
+      o.items = await all('SELECT * FROM order_items WHERE order_id = ?', [o.id]);
+    }
+  }
+  res.render('order-lookup', { phone, orders });
 }));
 
 module.exports = router;

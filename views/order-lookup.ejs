@@ -1,0 +1,48 @@
+<%- include('partials/header', { pageTitle: 'Tra cứu đơn hàng - Tân Hưng Lợi', activeNav: '' }) %>
+
+<div class="container">
+  <div class="breadcrumb"><a href="/">Trang chủ</a> / Tra cứu đơn hàng</div>
+  <div class="page-body single">
+    <main>
+      <div class="box" style="max-width:600px; margin:0 auto 24px;">
+        <div class="box-title">TRA CỨU ĐƠN HÀNG</div>
+        <div class="box-body">
+          <p style="color:var(--color-muted); font-size:13.5px; margin-top:0;">Không cần đăng nhập — chỉ cần nhập đúng số điện thoại đã dùng lúc đặt hàng để xem lại đơn.</p>
+          <form action="/tra-cuu-don-hang" method="post" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <input type="text" name="phone" placeholder="Số điện thoại lúc đặt hàng" value="<%= phone %>" required style="flex:1; min-width:180px; padding:10px 13px; border:1px solid var(--color-border); border-radius:6px; font-size:14px;" />
+            <button type="submit" class="btn btn-primary">Tra cứu</button>
+          </form>
+        </div>
+      </div>
+
+      <% if (orders !== null) { %>
+        <div class="box" style="max-width:800px; margin:0 auto;">
+          <div class="box-title">KẾT QUẢ (<%= orders.length %> đơn)</div>
+          <div class="box-body">
+            <% if (orders.length === 0) { %>
+              <p style="color:var(--color-muted);">Không tìm thấy đơn hàng nào với số điện thoại này. Kiểm tra lại số điện thoại đã dùng lúc đặt hàng.</p>
+            <% } else { %>
+              <% orders.forEach(o => { %>
+                <div style="border-bottom:1px solid var(--color-border); padding:16px 0;">
+                  <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; align-items:center;">
+                    <strong style="font-family:var(--font-serif); font-size:15px;">Đơn #<%= o.id %></strong>
+                    <span class="status-pill status-<%= o.status %>"><%= ({moi:'Mới', dang_xu_ly:'Đang xử lý', hoan_thanh:'Hoàn thành', huy:'Đã hủy'})[o.status] %></span>
+                  </div>
+                  <div style="font-size:12.5px; color:var(--color-muted); margin:4px 0 10px;"><%= new Date(o.created_at).toLocaleString('vi-VN') %> — Giao tới: <%= o.address %></div>
+                  <ul style="font-size:13px; padding-left:18px; margin:8px 0; line-height:1.8;">
+                    <% o.items.forEach(it => { %>
+                      <li><%= it.product_name %> x<%= it.qty %> — <%= formatPrice(it.price * it.qty) %></li>
+                    <% }) %>
+                  </ul>
+                  <div style="font-weight:700; color:var(--color-primary); font-family:var(--font-serif); font-size:15px;">Tổng: <%= formatPrice(o.total) %></div>
+                </div>
+              <% }) %>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    </main>
+  </div>
+</div>
+
+<%- include('partials/footer') %>
