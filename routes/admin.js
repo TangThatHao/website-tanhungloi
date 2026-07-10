@@ -7,6 +7,7 @@ const upload = require('../middleware/upload');
 const { saveUploadedFile } = require('../utils/storage');
 const { slugify } = require('../utils/format');
 const { asyncHandler } = require('../utils/asyncHandler');
+const { moveItem } = require('../utils/reorder');
 
 async function uniqueSlug(base, table) {
   const slug = slugify(base);
@@ -77,7 +78,7 @@ router.get('/admin/san-pham', asyncHandler(async (req, res) => {
   const products = await all(`
     SELECT p.*, c.name AS category_name FROM products p
     LEFT JOIN categories c ON c.id = p.category_id
-    ORDER BY p.id DESC
+    ORDER BY p.sort_order ASC
   `);
   res.render('admin/products', { products });
 }));
@@ -97,11 +98,12 @@ router.post('/admin/san-pham/them', upload.single('image_file'), asyncHandler(as
 
   const image = req.file ? await saveUploadedFile(req.file) : (image_url || '/images/logo.jpg');
   const slug = await uniqueSlug(name, 'products');
+  const maxOrder = Number((await get('SELECT COALESCE(MAX(sort_order),0) m FROM products')).m);
 
   await run(
-    `INSERT INTO products (category_id, name, slug, price, image, description, is_hot, is_new, is_export, stock)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [category_id, name, slug, price ? Number(price) : null, image, description || '', req.body.is_hot ? 1 : 0, req.body.is_new ? 1 : 0, req.body.is_export ? 1 : 0, 100]
+    `INSERT INTO products (category_id, name, slug, price, image, description, is_hot, is_new, is_export, stock, sort_order)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [category_id, name, slug, price ? Number(price) : null, image, description || '', req.body.is_hot ? 1 : 0, req.body.is_new ? 1 : 0, req.body.is_export ? 1 : 0, 100, maxOrder + 1]
   );
 
   res.redirect('/admin/san-pham');
@@ -140,6 +142,16 @@ router.post('/admin/san-pham/:id/xoa', asyncHandler(async (req, res) => {
   res.redirect('/admin/san-pham');
 }));
 
+router.post('/admin/san-pham/:id/len', asyncHandler(async (req, res) => {
+  await moveItem('products', req.params.id, 'up');
+  res.redirect('/admin/san-pham');
+}));
+
+router.post('/admin/san-pham/:id/xuong', asyncHandler(async (req, res) => {
+  await moveItem('products', req.params.id, 'down');
+  res.redirect('/admin/san-pham');
+}));
+
 // ---------- Categories ----------
 router.get('/admin/danh-muc', asyncHandler(async (req, res) => {
   const categories = await categoriesWithCounts();
@@ -162,6 +174,16 @@ router.post('/admin/danh-muc/:id/xoa', asyncHandler(async (req, res) => {
     return res.render('admin/categories', { categories, error: 'Không thể xóa danh mục đang có sản phẩm.' });
   }
   await run('DELETE FROM categories WHERE id = ?', [req.params.id]);
+  res.redirect('/admin/danh-muc');
+}));
+
+router.post('/admin/danh-muc/:id/len', asyncHandler(async (req, res) => {
+  await moveItem('categories', req.params.id, 'up');
+  res.redirect('/admin/danh-muc');
+}));
+
+router.post('/admin/danh-muc/:id/xuong', asyncHandler(async (req, res) => {
+  await moveItem('categories', req.params.id, 'down');
   res.redirect('/admin/danh-muc');
 }));
 

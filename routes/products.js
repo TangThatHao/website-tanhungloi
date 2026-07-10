@@ -12,14 +12,14 @@ router.get('/san-pham', asyncHandler(async (req, res) => {
     const cat = await get('SELECT * FROM categories WHERE slug = ?', [category]);
     if (cat) {
       categoryName = cat.name;
-      products = await all('SELECT * FROM products WHERE category_id = ? ORDER BY id DESC', [cat.id]);
+      products = await all('SELECT * FROM products WHERE category_id = ? ORDER BY sort_order ASC', [cat.id]);
     } else {
       products = [];
     }
   } else if (search) {
-    products = await all('SELECT * FROM products WHERE name LIKE ? ORDER BY id DESC', [`%${search}%`]);
+    products = await all('SELECT * FROM products WHERE name LIKE ? ORDER BY sort_order ASC', [`%${search}%`]);
   } else {
-    products = await all('SELECT * FROM products ORDER BY id DESC');
+    products = await all('SELECT * FROM products ORDER BY sort_order ASC');
   }
 
   if (req.get('X-Requested-With') === 'fetch') {

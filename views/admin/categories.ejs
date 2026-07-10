@@ -12,10 +12,14 @@
 <div class="admin-card">
   <h3 style="margin-top:0;">Danh sách danh mục (<%= categories.length %>)</h3>
   <table class="admin-table">
-    <thead><tr><th>Tên danh mục</th><th>Slug</th><th>Số sản phẩm</th><th></th></tr></thead>
+    <thead><tr><th>Thứ tự</th><th>Tên danh mục</th><th>Slug</th><th>Số sản phẩm</th><th></th></tr></thead>
     <tbody>
-      <% categories.forEach(c => { %>
+      <% categories.forEach((c, i) => { %>
         <tr>
+          <td class="admin-actions">
+            <form action="/admin/danh-muc/<%= c.id %>/len" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === 0 ? 'disabled' : '' %>>▲</button></form>
+            <form action="/admin/danh-muc/<%= c.id %>/xuong" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === categories.length - 1 ? 'disabled' : '' %>>▼</button></form>
+          </td>
           <td><%= c.name %></td>
           <td><%= c.slug %></td>
           <td><%= c.productCount %></td>

@@ -6,10 +6,14 @@
     <a href="/admin/san-pham/them" class="btn btn-primary">+ Thêm sản phẩm</a>
   </div>
   <table class="admin-table">
-    <thead><tr><th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Giá</th><th>Nhãn</th><th></th></tr></thead>
+    <thead><tr><th>Thứ tự</th><th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Giá</th><th>Nhãn</th><th></th></tr></thead>
     <tbody>
-      <% products.forEach(p => { %>
+      <% products.forEach((p, i) => { %>
         <tr>
+          <td class="admin-actions">
+            <form action="/admin/san-pham/<%= p.id %>/len" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === 0 ? 'disabled' : '' %>>▲</button></form>
+            <form action="/admin/san-pham/<%= p.id %>/xuong" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === products.length - 1 ? 'disabled' : '' %>>▼</button></form>
+          </td>
           <td><img src="<%= p.image %>" alt="" /></td>
           <td><%= p.name %></td>
           <td><%= p.category_name || '-' %></td>

@@ -12,9 +12,9 @@ const loadUser = asyncHandler(async (req, res, next) => {
 
   const [navCategories, sidebarHotProducts, sidebarNews, sidebarExportProducts] = await Promise.all([
     all('SELECT * FROM categories ORDER BY sort_order ASC'),
-    all('SELECT * FROM products WHERE is_hot = 1 ORDER BY id DESC LIMIT 3'),
+    all('SELECT * FROM products WHERE is_hot = 1 ORDER BY sort_order ASC LIMIT 3'),
     all('SELECT * FROM news ORDER BY created_at DESC LIMIT 3'),
-    all('SELECT * FROM products WHERE is_export = 1 ORDER BY id DESC LIMIT 5')
+    all('SELECT * FROM products WHERE is_export = 1 ORDER BY sort_order ASC LIMIT 5')
   ]);
   res.locals.navCategories = navCategories;
   res.locals.sidebarHotProducts = sidebarHotProducts;
