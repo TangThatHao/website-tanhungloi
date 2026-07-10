@@ -41,7 +41,16 @@ async function seedIfEmpty() {
     { name: 'Pía đậu sầu riêng không trứng 500gram (MSP: P5_KT)', slug: 'pia-dau-sau-rieng-khong-trung-500gram-p5kt', price: 50000, image: '/images/products/pia-dau-khong-trung-500g.jpg', cat: 'pia-sau-rieng-khong-trung', newp: 1 },
     { name: 'Pía môn sầu riêng trứng 500gram', slug: 'pia-mon-sau-rieng-trung-500gram', price: 60000, image: '/images/products/pia-dau-500g.jpg', cat: 'pia-mon-sau-rieng-trung' },
     { name: 'Bánh Pía Đậu dừa sầu riêng', slug: 'banh-pia-dau-dua-sau-rieng', price: null, image: '/images/products/banh-pia-dau-dua.jpg', cat: 'banh-xuat-khau', exp: 1 },
-    { name: 'Bánh in nhân (500gram)', slug: 'banh-in-nhan-500gram', price: 45000, image: '/images/products/banh-in-nhan.jpg', cat: 'banh-in', exp: 1 }
+    { name: 'Bánh in nhân (500gram)', slug: 'banh-in-nhan-500gram', price: 45000, image: '/images/products/banh-in-nhan.jpg', cat: 'banh-in', exp: 1 },
+    { name: 'Bánh pía đậu sầu riêng trứng', slug: 'banh-pia-dau-sau-rieng-trung', price: 40000, image: '/images/products/pia-dau-trung.jpg', cat: 'pia-dau-sau-rieng-trung' },
+    { name: 'Pía đậu sầu riêng trứng 400gram (MSP: P4L)', slug: 'pia-dau-sau-rieng-trung-400gram-p4l', price: 55000, image: '/images/products/pia-dau-trung-400g-p4l.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1 },
+    { name: 'Pía môn sầu riêng 300gram (MSP: P3_M)', slug: 'pia-mon-sau-rieng-300gram-p3m', price: 40000, image: '/images/products/pia-mon-300g.jpg', cat: 'pia-mon-sau-rieng-trung' },
+    { name: 'Hộp quà bánh pía sầu riêng đặc biệt không trứng', slug: 'hop-qua-banh-pia-sau-rieng-dac-biet-khong-trung', price: 120000, image: '/images/products/hop-qua-khong-trung-dat-biet.png', cat: 'pia-sau-rieng-khong-trung', newp: 1 },
+    { name: 'Bánh in nhân hình chữ nhật', slug: 'banh-in-nhan-hinh-chu-nhat', price: 45000, image: '/images/products/banh-in-nhan-chu-nhat.jpg', cat: 'banh-in' },
+    { name: 'Bánh chay xuất khẩu 400gram', slug: 'banh-chay-xuat-khau-400gram', price: 50000, image: '/images/products/banh-chay-xuat-khau-400g.jpg', cat: 'banh-xuat-khau' },
+    { name: 'Bánh pía sầu riêng không trứng (xuất khẩu)', slug: 'banh-pia-sau-rieng-khong-trung-xuat-khau', price: null, image: '/images/products/banh-pia-khong-trung-xk.jpg', cat: 'banh-xuat-khau', exp: 1 },
+    { name: 'Bánh pía khoai môn sầu riêng đặc biệt thơm ngon', slug: 'banh-pia-khoai-mon-sau-rieng-dac-biet-thom-ngon', price: null, image: '/images/products/banh-pia-khoai-mon-dac-biet.jpg', cat: 'banh-xuat-khau', exp: 1 },
+    { name: 'Pía đậu sầu riêng 450gram (MSP: P_H450)', slug: 'pia-dau-sau-rieng-450gram-ph450', price: null, image: '/images/products/pia-dau-450g-ph450.jpg', cat: 'banh-xuat-khau', exp: 1 }
   ];
 
   for (const p of products) {
