@@ -286,7 +286,7 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 .news-list-item img { width: 190px; height: 128px; object-fit: cover; border-radius: var(--radius); flex-shrink: 0; }
 .news-list-item h3 { font-size: 17px; color: var(--color-dark); }
 .news-list-item h3:hover { color: var(--color-primary); }
-.news-detail-content { font-size: 15px; line-height: 1.9; margin-top: 18px; color: var(--color-text); }
+.news-detail-content { font-size: 15px; line-height: 1.9; margin-top: 18px; color: var(--color-text); white-space: pre-line; }
 .news-detail-content img { border-radius: var(--radius); margin: 16px 0; }
 
 /* ---------- Static content pages ---------- */
