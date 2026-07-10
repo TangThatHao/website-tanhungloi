@@ -16,6 +16,7 @@
     <div class="container">
       <div class="topbar-lang">Tiếng Việt</div>
       <div class="topbar-links">
+        <a href="/tra-cuu-don-hang">Tra cứu đơn hàng</a>
         <% if (currentUser) { %>
           <a href="/tai-khoan">Xin chào, <%= currentUser.full_name || currentUser.username %></a>
           <% if (currentUser.role === 'admin') { %><a href="/admin">Trang quản trị</a><% } %>
