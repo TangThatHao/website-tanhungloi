@@ -55,11 +55,11 @@ router.get('/dich-vu', (req, res) => {
       <p>Tân Hưng Lợi cung cấp các dịch vụ:</p>
       <ul style="padding-left:20px; line-height:2;">
         <li>Đặt bánh pía sỉ và lẻ cho các dịp lễ, tết, quà biếu</li>
-        <li>Giao hàng tận nơi trong nội thành Sóc Trăng và các khu vực lân cận</li>
+        <li>Giao hàng tận nơi trong nội thành Sóc Trăng và nội thành TPHCM</li>
         <li>Sản xuất theo đơn đặt hàng số lượng lớn, xuất khẩu</li>
         <li>Đóng gói hộp quà tặng theo yêu cầu</li>
       </ul>
-      <p>Liên hệ hotline <strong>0908 409 788</strong> để được tư vấn chi tiết.</p>
+      <p>Liên hệ hotline <strong>0919 454 484</strong> để được tư vấn chi tiết.</p>
     `
   });
 });
