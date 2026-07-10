@@ -15,9 +15,9 @@
 
     <main>
       <div class="category-chips">
-        <a href="/san-pham">Tất cả</a>
+        <a href="/san-pham"><span class="chip-icon">🍱</span>Tất cả</a>
         <% navCategories.forEach(cat => { %>
-          <a href="/san-pham?category=<%= cat.slug %>"><%= cat.name %></a>
+          <a href="/san-pham?category=<%= cat.slug %>"><span class="chip-icon"><%= categoryIcon(cat.name) %></span><%= cat.name %></a>
         <% }) %>
       </div>
       <div class="section-title">🔥 Sản phẩm bán chạy</div>

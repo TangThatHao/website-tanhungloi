@@ -6,7 +6,7 @@ const path = require('path');
 
 const { initSchema } = require('./db');
 const { seedIfEmpty } = require('./db/seed');
-const { formatPrice } = require('./utils/format');
+const { formatPrice, categoryIcon } = require('./utils/format');
 const { loadUser } = require('./middleware/auth');
 const { ensureBucket, isSupabaseConfigured } = require('./utils/storage');
 
@@ -18,6 +18,7 @@ app.set('trust proxy', 1);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.locals.formatPrice = formatPrice;
+app.locals.categoryIcon = categoryIcon;
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));

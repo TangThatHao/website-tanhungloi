@@ -16,4 +16,20 @@ function slugify(str) {
     .replace(/(^-|-$)/g, '');
 }
 
-module.exports = { formatPrice, slugify };
+const CATEGORY_ICON_RULES = [
+  [/xuất khẩu/i, '📦'],
+  [/sầu riêng/i, '🌰'],
+  [/môn/i, '🍠'],
+  [/không trứng|chay/i, '🌿'],
+  [/trứng/i, '🥚'],
+  [/in\b/i, '🍪'],
+  [/gạo/i, '🌾'],
+  [/đặc sản/i, '⭐']
+];
+
+function categoryIcon(name) {
+  const match = CATEGORY_ICON_RULES.find(([re]) => re.test(name));
+  return match ? match[1] : '🥮';
+}
+
+module.exports = { formatPrice, slugify, categoryIcon };
