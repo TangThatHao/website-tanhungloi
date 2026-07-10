@@ -31,7 +31,7 @@ async function seedIfEmpty() {
     { name: 'Mè láo', slug: 'me-lao', price: 30000, image: '/images/products/me-lao.jpg', cat: 'dac-san-khac', hot: 1 },
     { name: 'Pía đậu sầu riêng 400gram (MSP: P4)', slug: 'pia-dau-sau-rieng-400gram-p4', price: 45000, image: '/images/products/pia-dau-400g.jpg', cat: 'pia-dau-sau-rieng-trung', hot: 1 },
     { name: 'Pía đậu sầu riêng 500gram (MSP: P5)', slug: 'pia-dau-sau-rieng-500gram-p5', price: 60000, image: '/images/products/pia-dau-500g.jpg', cat: 'pia-dau-sau-rieng-trung', hot: 1 },
-    { name: 'Hộp quà tặng 2 gói bánh pía đặc biệt Tân Hưng Lợi', slug: 'hop-qua-tang-2-goi-banh-pia-dat-biet', price: 130000, image: '/images/products/hop-qua-2-goi.jpg', cat: 'dac-san-khac', newp: 1 },
+    { name: 'Hộp quà tặng 2 gói bánh pía đặc biệt Tân Hưng Lợi', slug: 'hop-qua-tang-2-goi-banh-pia-dat-biet', price: 130000, image: '/images/products/hop-qua-2-goi.jpg', cat: 'pia-dau-sau-rieng-trung', newp: 1 },
     { name: 'Hộp quà bánh pía không trứng', slug: 'hop-qua-banh-pia-khong-trung', price: 120000, image: '/images/products/hop-qua-khong-trung.png', cat: 'pia-sau-rieng-khong-trung', newp: 1 },
     { name: 'Pía đậu sầu riêng trứng 550gram (MSP: P6L)', slug: 'pia-dau-sau-rieng-trung-550gram-p6l', price: 75000, image: '/images/products/pia-dau-trung-550g.png', cat: 'pia-dau-sau-rieng-trung', hot: 1, newp: 1 },
     { name: 'Pía chay đậu sầu riêng 400gram (P4_CC)', slug: 'pia-chay-dau-sau-rieng-400gram-p4cc', price: 50000, image: '/images/products/pia-chay-400g.jpg', cat: 'banh-chay' },
