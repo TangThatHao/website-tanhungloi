@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { run, get, all } = require('../db');
-const { requireMember } = require('../middleware/auth');
+const { requireMember, memberLoginRateLimit, clearMemberLoginAttempts } = require('../middleware/auth');
 const { asyncHandler } = require('../utils/asyncHandler');
 
 router.get('/dang-nhap', (req, res) => {
@@ -10,7 +10,13 @@ router.get('/dang-nhap', (req, res) => {
   res.render('login', { error: null, next: req.query.next || '/' });
 });
 
-router.post('/dang-nhap', asyncHandler(async (req, res) => {
+// Chỉ cho redirect nội bộ (bắt đầu bằng "/" nhưng không phải "//..." hay chứa
+// "://") để tránh open-redirect qua tham số next.
+function isSafeRedirect(url) {
+  return typeof url === 'string' && url.startsWith('/') && !url.startsWith('//') && !url.includes('://');
+}
+
+router.post('/dang-nhap', memberLoginRateLimit, asyncHandler(async (req, res) => {
   const { username, password, next } = req.body;
   const user = await get('SELECT * FROM users WHERE username = ?', [username]);
 
@@ -18,8 +24,9 @@ router.post('/dang-nhap', asyncHandler(async (req, res) => {
     return res.render('login', { error: 'Tên đăng nhập hoặc mật khẩu không đúng.', next: next || '/' });
   }
 
+  clearMemberLoginAttempts(req);
   req.session.userId = user.id;
-  res.redirect(next && next.startsWith('/') ? next : '/');
+  res.redirect(isSafeRedirect(next) ? next : '/');
 }));
 
 router.get('/dang-ky', (req, res) => {

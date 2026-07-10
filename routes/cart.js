@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { get, run, all } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
+const { orderLookupRateLimit } = require('../middleware/auth');
 
 async function getCartWithDetails(req) {
   const cart = req.session.cart || [];
@@ -93,10 +94,10 @@ router.post('/thanh-toan', asyncHandler(async (req, res) => {
 }));
 
 router.get('/tra-cuu-don-hang', (req, res) => {
-  res.render('order-lookup', { phone: '', orders: null });
+  res.render('order-lookup', { phone: '', orders: null, error: null });
 });
 
-router.post('/tra-cuu-don-hang', asyncHandler(async (req, res) => {
+router.post('/tra-cuu-don-hang', orderLookupRateLimit, asyncHandler(async (req, res) => {
   const phone = (req.body.phone || '').trim();
   let orders = [];
   if (phone) {
@@ -105,7 +106,7 @@ router.post('/tra-cuu-don-hang', asyncHandler(async (req, res) => {
       o.items = await all('SELECT * FROM order_items WHERE order_id = ?', [o.id]);
     }
   }
-  res.render('order-lookup', { phone, orders });
+  res.render('order-lookup', { phone, orders, error: null });
 }));
 
 module.exports = router;

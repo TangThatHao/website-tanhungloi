@@ -1,5 +1,6 @@
 const { get, all } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
+const { createRateLimiter } = require('../utils/rateLimit');
 
 const loadUser = asyncHandler(async (req, res, next) => {
   res.locals.currentUser = null;
@@ -37,30 +38,41 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-const LOGIN_MAX_ATTEMPTS = 5;
-const LOGIN_WINDOW_MS = 15 * 60 * 1000;
-const loginAttempts = new Map();
+const adminLoginLimiter = createRateLimiter({
+  onLimited: (req, res) =>
+    res.status(429).render('admin/login', { error: 'Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.' })
+});
+const loginRateLimit = adminLoginLimiter.middleware;
+const clearLoginAttempts = (req) => adminLoginLimiter.clear(req);
 
-function loginRateLimit(req, res, next) {
-  const key = req.ip;
-  const now = Date.now();
-  const entry = loginAttempts.get(key);
+const memberLoginLimiter = createRateLimiter({
+  onLimited: (req, res) =>
+    res.status(429).render('login', {
+      error: 'Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.',
+      next: (req.body && req.body.next) || '/'
+    })
+});
+const memberLoginRateLimit = memberLoginLimiter.middleware;
+const clearMemberLoginAttempts = (req) => memberLoginLimiter.clear(req);
 
-  if (entry && now - entry.firstAttempt < LOGIN_WINDOW_MS) {
-    if (entry.count >= LOGIN_MAX_ATTEMPTS) {
-      return res.status(429).render('admin/login', {
-        error: 'Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.'
-      });
-    }
-    entry.count++;
-  } else {
-    loginAttempts.set(key, { count: 1, firstAttempt: now });
-  }
-  next();
-}
+const orderLookupLimiter = createRateLimiter({
+  max: 10,
+  onLimited: (req, res) =>
+    res.status(429).render('order-lookup', {
+      phone: (req.body && req.body.phone) || '',
+      orders: null,
+      error: 'Bạn đã tra cứu quá nhiều lần. Vui lòng thử lại sau ít phút.'
+    })
+});
+const orderLookupRateLimit = orderLookupLimiter.middleware;
 
-function clearLoginAttempts(req) {
-  loginAttempts.delete(req.ip);
-}
-
-module.exports = { loadUser, requireMember, requireAdmin, loginRateLimit, clearLoginAttempts };
+module.exports = {
+  loadUser,
+  requireMember,
+  requireAdmin,
+  loginRateLimit,
+  clearLoginAttempts,
+  memberLoginRateLimit,
+  clearMemberLoginAttempts,
+  orderLookupRateLimit
+};

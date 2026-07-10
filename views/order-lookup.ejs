@@ -8,6 +8,7 @@
         <div class="box-title">TRA CỨU ĐƠN HÀNG</div>
         <div class="box-body">
           <p style="color:var(--color-muted); font-size:13.5px; margin-top:0;">Không cần đăng nhập — chỉ cần nhập đúng số điện thoại đã dùng lúc đặt hàng để xem lại đơn.</p>
+          <% if (typeof error !== 'undefined' && error) { %><div class="alert alert-error"><%= error %></div><% } %>
           <form action="/tra-cuu-don-hang" method="post" style="display:flex; gap:10px; flex-wrap:wrap;">
             <input type="text" name="phone" placeholder="Số điện thoại lúc đặt hàng" value="<%= phone %>" required style="flex:1; min-width:180px; padding:10px 13px; border:1px solid var(--color-border); border-radius:6px; font-size:14px;" />
             <button type="submit" class="btn btn-primary">Tra cứu</button>
