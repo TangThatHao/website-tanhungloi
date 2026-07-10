@@ -62,11 +62,11 @@ async function seedIfEmpty() {
       featured: 1
     },
     {
-      title: 'Khuyến mãi áp dụng cho khách hàng đặt bánh qua website tanhungloi.com',
+      title: 'Khuyến mãi áp dụng cho khách hàng đặt bánh qua website banhpiasoctrang.onrender.com',
       slug: 'khuyen-mai-ap-dung-cho-khach-hang-dat-banh-qua-website',
       thumbnail: '/images/news/khuyen-mai.jpg',
       summary: 'Ưu đãi đặc biệt dành cho khách hàng đặt bánh trực tuyến qua website chính thức của Tân Hưng Lợi.',
-      content: 'Với thịt sầu riêng nguyên chất, vị ngọt dịu không gắt, bánh pía Tân Hưng Lợi luôn là lựa chọn hàng đầu của người dân Sóc Trăng và du khách. Nhằm tri ân khách hàng, chúng tôi áp dụng chương trình khuyến mãi đặc biệt cho các đơn hàng đặt qua website tanhungloi.com.',
+      content: 'Với thịt sầu riêng nguyên chất, vị ngọt dịu không gắt, bánh pía Tân Hưng Lợi luôn là lựa chọn hàng đầu của người dân Sóc Trăng và du khách. Nhằm tri ân khách hàng, chúng tôi áp dụng chương trình khuyến mãi đặc biệt cho các đơn hàng đặt qua website banhpiasoctrang.onrender.com.',
       featured: 0
     },
     {
