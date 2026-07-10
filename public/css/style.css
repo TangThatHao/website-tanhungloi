@@ -378,14 +378,16 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .page-body > aside:first-child { order: 2; }
   .page-body > aside:last-child { order: 3; }
 
-  /* Chip danh mục để đổi danh mục nhanh mà không cần lướt xuống sidebar - tự xuống dòng, không cuộn ngang */
+  /* Chip danh mục dạng lưới đều 2 cột - gọn, thẳng hàng, không cuộn ngang. "Tất cả" chiếm trọn hàng đầu. */
   .category-chips {
-    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 18px;
   }
   .category-chips a {
-    padding: 7px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    padding: 10px 8px; border-radius: 8px; font-size: 12.5px; font-weight: 600; line-height: 1.3;
     background: #fff; border: 1px solid var(--color-border); color: var(--color-text);
   }
+  .category-chips a:first-child { grid-column: 1 / -1; background: var(--color-bg); font-weight: 700; }
   .category-chips a.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
 
   .news-list-item { flex-direction: column; }
