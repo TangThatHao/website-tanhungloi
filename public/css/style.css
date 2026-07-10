@@ -371,8 +371,7 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .nav-toggle { display: flex; position: relative; z-index: 101; }
   .nav-toggle.open { position: fixed; top: 20px; left: 20px; z-index: 102; }
   .promo-strip { flex: 1; min-width: 0; display: flex; align-items: center; }
-  .promo-strip-inner { flex-wrap: nowrap; justify-content: flex-start; padding: 8px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; }
-  .promo-strip-inner span:nth-child(2), .promo-strip-inner span:nth-child(3) { display: none; }
+  .promo-strip-inner { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; padding: 6px 10px; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   /* Menu mở ra toàn màn hình thay vì bị bóp nhỏ trong hàng gộp */
   .nav-collapse { display: none; flex-direction: column; align-items: stretch; justify-content: flex-start; }
