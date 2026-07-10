@@ -1,4 +1,23 @@
 (function () {
+  const navToggle = document.getElementById('navToggle');
+  const navCollapse = document.getElementById('navCollapse');
+  if (navToggle && navCollapse) {
+    navToggle.addEventListener('click', () => {
+      const isOpen = navCollapse.classList.toggle('open');
+      navToggle.classList.toggle('open', isOpen);
+      navToggle.setAttribute('aria-expanded', String(isOpen));
+    });
+    navCollapse.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', () => {
+        navCollapse.classList.remove('open');
+        navToggle.classList.remove('open');
+        navToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+})();
+
+(function () {
   const slider = document.getElementById('topBanner');
   if (!slider) return;
 

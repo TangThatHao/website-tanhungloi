@@ -58,18 +58,23 @@
 
   <nav class="main-nav">
     <div class="container">
-      <ul class="nav-menu">
-        <li><a href="/" class="<%= activeNav === 'home' ? 'active' : '' %>">TRANG CHỦ</a></li>
-        <li><a href="/san-pham" class="<%= activeNav === 'products' ? 'active' : '' %>">SẢN PHẨM</a></li>
-        <li><a href="/tin-tuc" class="<%= activeNav === 'news' ? 'active' : '' %>">TIN TỨC</a></li>
-        <li><a href="/gioi-thieu" class="<%= activeNav === 'about' ? 'active' : '' %>">GIỚI THIỆU</a></li>
-        <li><a href="/dich-vu" class="<%= activeNav === 'service' ? 'active' : '' %>">DỊCH VỤ</a></li>
-        <li><a href="/lien-he" class="<%= activeNav === 'contact' ? 'active' : '' %>">LIÊN HỆ</a></li>
-      </ul>
-      <form class="nav-search" action="/san-pham" method="get">
-        <input type="text" name="search" placeholder="Sản phẩm cần tìm..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" />
-        <button type="submit">Tìm kiếm</button>
-      </form>
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="Mở menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-collapse" id="navCollapse">
+        <ul class="nav-menu">
+          <li><a href="/" class="<%= activeNav === 'home' ? 'active' : '' %>">TRANG CHỦ</a></li>
+          <li><a href="/san-pham" class="<%= activeNav === 'products' ? 'active' : '' %>">SẢN PHẨM</a></li>
+          <li><a href="/tin-tuc" class="<%= activeNav === 'news' ? 'active' : '' %>">TIN TỨC</a></li>
+          <li><a href="/gioi-thieu" class="<%= activeNav === 'about' ? 'active' : '' %>">GIỚI THIỆU</a></li>
+          <li><a href="/dich-vu" class="<%= activeNav === 'service' ? 'active' : '' %>">DỊCH VỤ</a></li>
+          <li><a href="/lien-he" class="<%= activeNav === 'contact' ? 'active' : '' %>">LIÊN HỆ</a></li>
+        </ul>
+        <form class="nav-search" action="/san-pham" method="get">
+          <input type="text" name="search" placeholder="Sản phẩm cần tìm..." value="<%= typeof searchQuery !== 'undefined' ? searchQuery : '' %>" />
+          <button type="submit">Tìm kiếm</button>
+        </form>
+      </div>
     </div>
   </nav>
 
