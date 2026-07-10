@@ -1,4 +1,23 @@
 (function () {
+  const toggle = document.getElementById('adminSidebarToggle');
+  const sidebar = document.getElementById('adminSidebar');
+  const backdrop = document.getElementById('adminSidebarBackdrop');
+  if (!toggle || !sidebar) return;
+
+  function close() {
+    sidebar.classList.remove('open');
+    if (backdrop) backdrop.classList.remove('open');
+  }
+
+  toggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    if (backdrop) backdrop.classList.toggle('open');
+  });
+  if (backdrop) backdrop.addEventListener('click', close);
+  sidebar.querySelectorAll('a').forEach((link) => link.addEventListener('click', close));
+})();
+
+(function () {
   const navToggle = document.getElementById('navToggle');
   const navCollapse = document.getElementById('navCollapse');
   if (navToggle && navCollapse) {

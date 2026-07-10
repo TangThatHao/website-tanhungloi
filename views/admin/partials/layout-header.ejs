@@ -12,7 +12,8 @@
 </head>
 <body>
   <div class="admin-body">
-    <aside class="admin-sidebar">
+    <div class="admin-sidebar-backdrop" id="adminSidebarBackdrop"></div>
+    <aside class="admin-sidebar" id="adminSidebar">
       <div class="brand">🥮 TÂN HƯNG LỢI<br/><small style="font-weight:400; color:#cbb996;">Trang quản trị</small></div>
       <nav>
         <a href="/admin" class="<%= activeAdminNav === 'dashboard' ? 'active' : '' %>">📊 Tổng quan</a>
@@ -27,6 +28,7 @@
     </aside>
     <div class="admin-main">
       <div class="admin-topbar">
+        <button type="button" class="admin-nav-toggle" id="adminSidebarToggle" aria-label="Mở menu quản trị">☰</button>
         <strong><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Quản trị' %></strong>
         <span>Xin chào, <%= currentUser ? (currentUser.full_name || currentUser.username) : '' %></span>
       </div>
