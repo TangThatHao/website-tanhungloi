@@ -62,7 +62,7 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 }
 .header-main { display: flex; align-items: center; justify-content: space-between; padding-top: 20px; padding-bottom: 20px; gap: 24px; }
 .brand { display: flex; align-items: center; gap: 14px; }
-.brand img { height: 60px; width: 60px; object-fit: cover; border-radius: 50%; border: 2px solid var(--color-accent); box-shadow: 0 2px 8px rgba(46,18,14,.15); }
+.brand img { height: 74px; width: auto; object-fit: contain; }
 .brand-text h1 { font-family: var(--font-serif); font-size: 22px; color: var(--color-primary); letter-spacing: 1px; margin: 0; }
 .brand-text span { font-size: 12.5px; color: var(--color-muted); letter-spacing: .4px; }
 
@@ -357,7 +357,7 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   /* Header gọn cho di động: logo/tên nhỏ lại, giỏ hàng chỉ còn icon + số */
   .header-main { padding-top: 12px; padding-bottom: 12px; gap: 10px; }
   .brand { gap: 9px; min-width: 0; }
-  .brand img { height: 42px; width: 42px; flex-shrink: 0; }
+  .brand img { height: 56px; width: auto; flex-shrink: 0; }
   .brand-text { min-width: 0; }
   .brand-text h1 { font-size: 15.5px; letter-spacing: .2px; white-space: nowrap; }
   .brand-text span { font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
