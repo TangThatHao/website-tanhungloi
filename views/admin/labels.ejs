@@ -1,0 +1,54 @@
+<%- include('partials/layout-header', { pageTitle: 'Nhãn sản phẩm', activeAdminNav: 'labels' }) %>
+
+<%
+  const sections = [
+    { type: 'hot', title: '🔥 ' + labels.hot.name, list: hotList },
+    { type: 'new', title: '✨ ' + labels.new.name, list: newList },
+    { type: 'export', title: '🌏 ' + labels.export.name, list: exportList }
+  ];
+%>
+
+<% sections.forEach(section => { %>
+  <div class="admin-card">
+    <h3 style="margin-top:0;"><%= section.title %> (<%= section.list.length %>)</h3>
+
+    <form action="/admin/nhan/<%= section.type %>/them" method="post" style="display:flex; gap:10px; margin-bottom:16px;">
+      <select name="product_id" required style="flex:1; padding:10px; border:1px solid var(--color-border); border-radius:6px;">
+        <option value="">-- Chọn sản phẩm để thêm vào nhãn --</option>
+        <% allProducts.forEach(p => { %>
+          <% if (!section.list.find(x => x.id === p.id)) { %>
+            <option value="<%= p.id %>"><%= p.name %></option>
+          <% } %>
+        <% }) %>
+      </select>
+      <button type="submit" class="btn btn-primary">Thêm</button>
+    </form>
+
+    <% if (section.list.length) { %>
+      <table class="admin-table">
+        <thead><tr><th>Thứ tự</th><th>Ảnh</th><th>Tên sản phẩm</th><th></th></tr></thead>
+        <tbody>
+          <% section.list.forEach((p, i) => { %>
+            <tr>
+              <td class="admin-actions">
+                <form action="/admin/nhan/<%= section.type %>/<%= p.id %>/len" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === 0 ? 'disabled' : '' %>>▲</button></form>
+                <form action="/admin/nhan/<%= section.type %>/<%= p.id %>/xuong" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === section.list.length - 1 ? 'disabled' : '' %>>▼</button></form>
+              </td>
+              <td><img src="<%= p.image %>" style="width:44px; height:44px; object-fit:cover; border-radius:6px;" /></td>
+              <td><%= p.name %></td>
+              <td class="admin-actions">
+                <form action="/admin/nhan/<%= section.type %>/<%= p.id %>/xoa" method="post">
+                  <button type="submit" class="btn btn-primary btn-sm">Bỏ khỏi nhãn</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } else { %>
+      <p style="color:var(--color-muted); font-size:13px;">Chưa có sản phẩm nào trong nhãn này.</p>
+    <% } %>
+  </div>
+<% }) %>
+
+<%- include('partials/layout-footer') %>

@@ -8,6 +8,7 @@ const { saveUploadedFile } = require('../utils/storage');
 const { slugify } = require('../utils/format');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { moveItem } = require('../utils/reorder');
+const { LABELS, syncLabelOrder, addToLabel, removeFromLabel, moveLabelItem, labelProducts } = require('../utils/labels');
 
 async function uniqueSlug(base, table) {
   const slug = slugify(base);
@@ -126,6 +127,10 @@ router.post('/admin/san-pham/them', productUpload, asyncHandler(async (req, res)
     [category_id, name, slug, price ? Number(price) : null, image, description || '', req.body.is_hot ? 1 : 0, req.body.is_new ? 1 : 0, req.body.is_export ? 1 : 0, 100, maxOrder + 1]
   );
 
+  if (req.body.is_hot) await syncLabelOrder(inserted.id, 'hot');
+  if (req.body.is_new) await syncLabelOrder(inserted.id, 'new');
+  if (req.body.is_export) await syncLabelOrder(inserted.id, 'export');
+
   await addGalleryImages(inserted.id, req.files && req.files.gallery_files);
 
   res.redirect('/admin/san-pham');
@@ -158,6 +163,10 @@ router.post('/admin/san-pham/:id/sua', productUpload, asyncHandler(async (req, r
     [category_id, name, price ? Number(price) : null, image, description || '', req.body.is_hot ? 1 : 0, req.body.is_new ? 1 : 0, req.body.is_export ? 1 : 0, req.params.id]
   );
 
+  if (req.body.is_hot) await syncLabelOrder(req.params.id, 'hot');
+  if (req.body.is_new) await syncLabelOrder(req.params.id, 'new');
+  if (req.body.is_export) await syncLabelOrder(req.params.id, 'export');
+
   const deleteIds = [].concat(req.body.delete_images || []);
   for (const imgId of deleteIds) {
     await run('DELETE FROM product_images WHERE id = ? AND product_id = ?', [imgId, req.params.id]);
@@ -182,6 +191,39 @@ router.post('/admin/san-pham/:id/len', asyncHandler(async (req, res) => {
 router.post('/admin/san-pham/:id/xuong', asyncHandler(async (req, res) => {
   await moveItem('products', req.params.id, 'down');
   res.redirect(req.body.category ? `/admin/san-pham?category=${encodeURIComponent(req.body.category)}` : '/admin/san-pham');
+}));
+
+// ---------- Nhãn sản phẩm (HOT / mới / xuất khẩu) ----------
+router.get('/admin/nhan', asyncHandler(async (req, res) => {
+  const [hotList, newList, exportList, allProducts] = await Promise.all([
+    labelProducts('hot'),
+    labelProducts('new'),
+    labelProducts('export'),
+    all('SELECT id, name FROM products ORDER BY name ASC')
+  ]);
+  res.render('admin/labels', { labels: LABELS, hotList, newList, exportList, allProducts });
+}));
+
+router.post('/admin/nhan/:type/them', asyncHandler(async (req, res) => {
+  if (LABELS[req.params.type] && req.body.product_id) {
+    await addToLabel(req.params.type, req.body.product_id);
+  }
+  res.redirect('/admin/nhan');
+}));
+
+router.post('/admin/nhan/:type/:id/xoa', asyncHandler(async (req, res) => {
+  if (LABELS[req.params.type]) await removeFromLabel(req.params.type, req.params.id);
+  res.redirect('/admin/nhan');
+}));
+
+router.post('/admin/nhan/:type/:id/len', asyncHandler(async (req, res) => {
+  if (LABELS[req.params.type]) await moveLabelItem(req.params.type, req.params.id, 'up');
+  res.redirect('/admin/nhan');
+}));
+
+router.post('/admin/nhan/:type/:id/xuong', asyncHandler(async (req, res) => {
+  if (LABELS[req.params.type]) await moveLabelItem(req.params.type, req.params.id, 'down');
+  res.redirect('/admin/nhan');
 }));
 
 // ---------- Categories ----------

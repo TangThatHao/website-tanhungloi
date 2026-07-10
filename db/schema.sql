@@ -24,6 +24,16 @@ CREATE TABLE IF NOT EXISTS products (
 ALTER TABLE products ADD COLUMN IF NOT EXISTS sort_order INTEGER DEFAULT 0;
 UPDATE products SET sort_order = id WHERE sort_order = 0;
 
+-- Thứ tự hiển thị riêng cho từng nhãn (HOT / mới / xuất khẩu), độc lập với
+-- sort_order dùng cho trang danh mục, để trang quản trị có thể sắp xếp lên
+-- xuống riêng trong từng nhãn.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS hot_order INTEGER DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS new_order INTEGER DEFAULT 0;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS export_order INTEGER DEFAULT 0;
+UPDATE products SET hot_order = sort_order WHERE hot_order = 0 AND is_hot = 1;
+UPDATE products SET new_order = sort_order WHERE new_order = 0 AND is_new = 1;
+UPDATE products SET export_order = sort_order WHERE export_order = 0 AND is_export = 1;
+
 CREATE TABLE IF NOT EXISTS product_images (
   id SERIAL PRIMARY KEY,
   product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
