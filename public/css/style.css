@@ -368,13 +368,12 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .page-body > aside:first-child { order: 2; }
   .page-body > aside:last-child { order: 3; }
 
-  /* Chip danh mục cuộn ngang để đổi danh mục nhanh mà không cần lướt xuống sidebar */
+  /* Chip danh mục để đổi danh mục nhanh mà không cần lướt xuống sidebar - tự xuống dòng, không cuộn ngang */
   .category-chips {
-    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 4px;
-    white-space: nowrap; -webkit-overflow-scrolling: touch;
+    display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;
   }
   .category-chips a {
-    flex: 0 0 auto; padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    padding: 7px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 600;
     background: #fff; border: 1px solid var(--color-border); color: var(--color-text);
   }
   .category-chips a.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
