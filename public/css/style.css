@@ -429,6 +429,12 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .page-body > aside:last-child { order: 3; }
   #categoryBox { display: none; }
 
+  /* Breadcrumb gọn lại, cắt ngắn 1 dòng thay vì xuống dòng dài dòng */
+  .breadcrumb {
+    padding: 8px 0; font-size: 11px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
   /* Chip danh mục dạng lưới 3 cột, có icon, bo tròn kiểu pill - sinh động, không cuộn ngang. */
   .category-chips {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 18px;
