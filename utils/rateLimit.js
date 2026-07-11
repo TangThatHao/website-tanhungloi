@@ -4,6 +4,16 @@
 function createRateLimiter({ max = 5, windowMs = 15 * 60 * 1000, onLimited }) {
   const attempts = new Map();
 
+  // Dọn định kỳ các entry đã hết hạn cửa sổ, tránh Map phình to vô hạn khi
+  // có nhiều IP khác nhau truy cập trong thời gian server chạy dài.
+  const cleanupTimer = setInterval(() => {
+    const now = Date.now();
+    for (const [key, entry] of attempts) {
+      if (now - entry.firstAttempt >= windowMs) attempts.delete(key);
+    }
+  }, windowMs);
+  cleanupTimer.unref();
+
   function middleware(req, res, next) {
     const key = req.ip;
     const now = Date.now();

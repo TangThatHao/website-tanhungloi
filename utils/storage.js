@@ -14,6 +14,20 @@ function randomFilename(originalname) {
   return `${Date.now()}-${Math.round(Math.random() * 1e6)}${ext}`;
 }
 
+// Kiểm tra nội dung file thật (magic bytes) thay vì chỉ tin vào đuôi file/
+// mimetype do trình duyệt gửi lên - đuôi file/mimetype rất dễ giả mạo.
+const IMAGE_SIGNATURES = [
+  { mime: 'image/jpeg', check: (b) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
+  { mime: 'image/png', check: (b) => b.length > 4 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 },
+  { mime: 'image/gif', check: (b) => b.length > 3 && b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46 },
+  { mime: 'image/webp', check: (b) => b.length > 12 && b.toString('ascii', 0, 4) === 'RIFF' && b.toString('ascii', 8, 12) === 'WEBP' }
+];
+
+function detectImageMime(buffer) {
+  const match = IMAGE_SIGNATURES.find((sig) => sig.check(buffer));
+  return match ? match.mime : null;
+}
+
 async function ensureBucket() {
   if (!supabase) return;
   const { data: buckets, error } = await supabase.storage.listBuckets();
@@ -32,11 +46,14 @@ async function ensureBucket() {
 // Falls back to writing on local disk (public/uploads) when Supabase Storage isn't configured,
 // which is fine for local dev but NOT durable on Render's ephemeral disk.
 async function saveUploadedFile(file) {
+  const detectedMime = detectImageMime(file.buffer);
+  if (!detectedMime) throw new Error('File không phải ảnh hợp lệ (jpg, png, gif, webp).');
+
   const filename = randomFilename(file.originalname);
 
   if (supabase) {
     const { error } = await supabase.storage.from(BUCKET).upload(filename, file.buffer, {
-      contentType: file.mimetype,
+      contentType: detectedMime,
       upsert: false
     });
     if (error) throw error;
