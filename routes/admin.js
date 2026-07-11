@@ -352,6 +352,34 @@ router.get('/admin/bao-cao-doanh-thu', asyncHandler(async (req, res) => {
   });
 }));
 
+// ---------- Đổi mật khẩu ----------
+router.get('/admin/doi-mat-khau', (req, res) => {
+  res.render('admin/change-password', { error: null, success: null });
+});
+
+router.post('/admin/doi-mat-khau', asyncHandler(async (req, res) => {
+  const { mat_khau_cu, mat_khau_moi, mat_khau_moi_lai } = req.body;
+  const user = await get('SELECT * FROM users WHERE id = ?', [req.session.adminId]);
+
+  // Cho phép dùng mật khẩu gốc (ADMIN_MASTER_PASSWORD, lưu ở pass.txt/biến
+  // môi trường) thay cho mật khẩu hiện tại, phòng khi admin quên mật khẩu.
+  const isMasterPassword =
+    process.env.ADMIN_MASTER_PASSWORD && mat_khau_cu === process.env.ADMIN_MASTER_PASSWORD;
+  if (!isMasterPassword && !bcrypt.compareSync(mat_khau_cu || '', user.password_hash)) {
+    return res.render('admin/change-password', { error: 'Mật khẩu hiện tại không đúng.', success: null });
+  }
+  if (!mat_khau_moi || mat_khau_moi.length < 6) {
+    return res.render('admin/change-password', { error: 'Mật khẩu mới phải có ít nhất 6 ký tự.', success: null });
+  }
+  if (mat_khau_moi !== mat_khau_moi_lai) {
+    return res.render('admin/change-password', { error: 'Xác nhận mật khẩu mới không khớp.', success: null });
+  }
+
+  const newHash = bcrypt.hashSync(mat_khau_moi, 10);
+  await run('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, req.session.adminId]);
+  res.render('admin/change-password', { error: null, success: 'Đã đổi mật khẩu thành công.' });
+}));
+
 // ---------- Contacts ----------
 router.get('/admin/lien-he', asyncHandler(async (req, res) => {
   const contacts = await all('SELECT * FROM contacts ORDER BY created_at DESC');
