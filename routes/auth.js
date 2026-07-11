@@ -28,10 +28,19 @@ router.post('/dang-nhap', memberLoginRateLimit, asyncHandler(async (req, res) =>
 
   clearMemberLoginAttempts(req);
   req.session.userId = user.id;
+  if (user.role === 'admin') {
+    // Tài khoản admin cũng đăng nhập được qua form này (dùng chung với
+    // khách hàng) - phải set luôn adminId, không thì bấm "Trang quản trị"
+    // sau đó sẽ bị bắt đăng nhập lại vì requireAdmin chỉ kiểm tra adminId.
+    req.session.adminId = user.id;
+    req.session.cookie.expires = false;
+  }
   // Vừa đăng nhập bằng mật khẩu tạm (gửi qua "quên mật khẩu") -> đưa thẳng
   // tới trang đổi mật khẩu, có thể bỏ qua nếu muốn giữ mật khẩu ngẫu nhiên.
-  if (user.password_reset_pending) return res.redirect('/tai-khoan/doi-mat-khau');
-  res.redirect(isSafeRedirect(next) ? next : '/');
+  if (user.password_reset_pending) {
+    return res.redirect(user.role === 'admin' ? '/admin/doi-mat-khau' : '/tai-khoan/doi-mat-khau');
+  }
+  res.redirect(user.role === 'admin' ? '/admin' : (isSafeRedirect(next) ? next : '/'));
 }));
 
 router.get('/quen-mat-khau', (req, res) => {

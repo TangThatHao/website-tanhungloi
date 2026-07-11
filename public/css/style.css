@@ -291,6 +291,14 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   transition: border-color .15s;
 }
 .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--color-accent); box-shadow: 0 0 0 3px rgba(201,162,75,.22); }
+.pw-toggle-wrap { position: relative; display: block; }
+.pw-toggle-wrap input { padding-right: 40px !important; }
+.pw-toggle-btn {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; font-size: 16px; line-height: 1;
+  padding: 6px; color: var(--color-muted);
+}
+.pw-toggle-btn:hover { color: var(--color-dark); }
 .form-alt { text-align: center; font-size: 13px; margin-top: 14px; color: var(--color-muted); }
 .alert { padding: 11px 15px; border-radius: 6px; font-size: 13.5px; margin-bottom: 16px; }
 .alert-error { background: #fbe9e7; color: var(--color-primary-dark); border: 1px solid #f0c3bd; }

@@ -296,3 +296,26 @@
 
   viewport.addEventListener('touchend', () => { dragging = false; });
 })();
+
+// Thêm icon con mắt cho mọi ô nhập mật khẩu để bấm xem/ẩn nội dung.
+(function () {
+  document.querySelectorAll('input[type="password"]').forEach((input) => {
+    const wrap = document.createElement('span');
+    wrap.className = 'pw-toggle-wrap';
+    input.parentNode.insertBefore(wrap, input);
+    wrap.appendChild(input);
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pw-toggle-btn';
+    btn.textContent = '👁';
+    btn.setAttribute('aria-label', 'Hiện/ẩn mật khẩu');
+    wrap.appendChild(btn);
+
+    btn.addEventListener('click', () => {
+      const showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.textContent = showing ? '👁' : '🙈';
+    });
+  });
+})();
