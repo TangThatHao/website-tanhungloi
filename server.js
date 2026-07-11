@@ -11,6 +11,14 @@ const { loadUser } = require('./middleware/auth');
 const { ensureBucket, isSupabaseConfigured } = require('./utils/storage');
 const pgSession = require('connect-pg-simple')(session);
 
+// Repo này là public trên GitHub - không được phép có secret dự phòng "cứng"
+// trong code cho session, vì ai cũng đọc được. Nếu thiếu biến môi trường
+// SESSION_SECRET thì dừng khởi động luôn thay vì âm thầm chạy với secret yếu.
+if (!process.env.SESSION_SECRET) {
+  console.error('Thiếu biến môi trường SESSION_SECRET - dừng khởi động để tránh dùng secret yếu, không an toàn.');
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -27,7 +35,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(
   session({
     store: new pgSession({ pool, tableName: 'session', createTableIfMissing: true }),
-    secret: process.env.SESSION_SECRET || 'tanhungloi-demo-secret-key',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 1000 * 60 * 60 * 24 * 7, sameSite: 'lax', secure: 'auto' }
