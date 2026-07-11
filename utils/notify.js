@@ -49,6 +49,27 @@ async function sendEmail(subject, html) {
   }
 }
 
+const ADMIN_RECOVERY_EMAILS = ['khathohao0208@gmail.com', 'tholan.kha@gmail.com'];
+
+// Trả về true/false để route biết có gửi được không (khác notifyNewOrder,
+// vì ở đây người dùng đang chờ mật khẩu nên cần biết ngay nếu gửi thất bại).
+async function sendAdminPasswordReset(newPassword) {
+  const t = getTransporter();
+  if (!t) return false;
+  try {
+    await t.sendMail({
+      from: `"Tân Hưng Lợi - Quản trị" <${process.env.SMTP_USER}>`,
+      to: ADMIN_RECOVERY_EMAILS.join(', '),
+      subject: 'Mật khẩu admin mới - Tân Hưng Lợi',
+      html: `<p>Mật khẩu đăng nhập trang quản trị vừa được đặt lại.</p><p><b>Mật khẩu mới:</b> ${escapeHtml(newPassword)}</p><p>Vui lòng đăng nhập và đổi lại mật khẩu khác nếu muốn.</p>`
+    });
+    return true;
+  } catch (err) {
+    console.error('[notify] Gui email mat khau moi that bai:', err.message);
+    return false;
+  }
+}
+
 // Gọi sau khi tạo đơn hàng thành công. Không throw lỗi ra ngoài - nếu gửi
 // thông báo thất bại (chưa cấu hình, hoặc lỗi mạng) thì đơn hàng vẫn được
 // tạo bình thường, chỉ ghi log lỗi ở server.
@@ -76,4 +97,4 @@ async function notifyNewOrder(order, items) {
   await Promise.all([sendTelegram(telegramText), sendEmail(`Đơn hàng mới #${order.id} - ${total}`, emailHtml)]);
 }
 
-module.exports = { notifyNewOrder };
+module.exports = { notifyNewOrder, sendAdminPasswordReset };

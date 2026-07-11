@@ -1,10 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const router = express.Router();
 const { run, get, all } = require('../db');
-const { requireAdmin, loginRateLimit, clearLoginAttempts } = require('../middleware/auth');
+const { requireAdmin, loginRateLimit, clearLoginAttempts, forgotPasswordRateLimit } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const { saveUploadedFile } = require('../utils/storage');
+const { sendAdminPasswordReset } = require('../utils/notify');
 const { slugify } = require('../utils/format');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { moveItem } = require('../utils/reorder');
@@ -56,6 +58,39 @@ router.get('/admin/dang-xuat', (req, res) => {
   req.session.userId = null;
   res.redirect('/admin/dang-nhap');
 });
+
+// ---------- Quên mật khẩu (gửi mật khẩu mới qua email, không cần đăng nhập) ----------
+router.get('/admin/quen-mat-khau', (req, res) => {
+  res.render('admin/forgot-password', { error: null, success: null });
+});
+
+router.post('/admin/quen-mat-khau', forgotPasswordRateLimit, asyncHandler(async (req, res) => {
+  const admin = await get("SELECT * FROM users WHERE role = 'admin' LIMIT 1");
+  if (!admin) {
+    return res.render('admin/forgot-password', { error: 'Không tìm thấy tài khoản admin.', success: null });
+  }
+
+  const newPassword = crypto.randomBytes(6).toString('base64').replace(/[+/=]/g, '').slice(0, 10);
+
+  // Gửi email trước, chỉ đổi mật khẩu trong DB nếu gửi thành công - tránh
+  // trường hợp gửi email lỗi mà mật khẩu đã đổi, khiến admin bị khóa ngoài
+  // và không biết mật khẩu mới là gì.
+  const sent = await sendAdminPasswordReset(newPassword);
+  if (!sent) {
+    return res.render('admin/forgot-password', {
+      error: 'Chưa cấu hình gửi email trên server, không thể gửi mật khẩu mới. Vui lòng liên hệ kỹ thuật.',
+      success: null
+    });
+  }
+
+  const newHash = bcrypt.hashSync(newPassword, 10);
+  await run('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, admin.id]);
+
+  res.render('admin/forgot-password', {
+    error: null,
+    success: 'Mật khẩu mới đã được gửi tới email đã đăng ký.'
+  });
+}));
 
 router.use('/admin', requireAdmin);
 
@@ -361,11 +396,7 @@ router.post('/admin/doi-mat-khau', asyncHandler(async (req, res) => {
   const { mat_khau_cu, mat_khau_moi, mat_khau_moi_lai } = req.body;
   const user = await get('SELECT * FROM users WHERE id = ?', [req.session.adminId]);
 
-  // Cho phép dùng mật khẩu gốc (ADMIN_MASTER_PASSWORD, lưu ở pass.txt/biến
-  // môi trường) thay cho mật khẩu hiện tại, phòng khi admin quên mật khẩu.
-  const isMasterPassword =
-    process.env.ADMIN_MASTER_PASSWORD && mat_khau_cu === process.env.ADMIN_MASTER_PASSWORD;
-  if (!isMasterPassword && !bcrypt.compareSync(mat_khau_cu || '', user.password_hash)) {
+  if (!bcrypt.compareSync(mat_khau_cu || '', user.password_hash)) {
     return res.render('admin/change-password', { error: 'Mật khẩu hiện tại không đúng.', success: null });
   }
   if (!mat_khau_moi || mat_khau_moi.length < 6) {
