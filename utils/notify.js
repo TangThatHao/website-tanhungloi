@@ -1,7 +1,8 @@
-const nodemailer = require('nodemailer');
-
 const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const BREVO_SENDER_EMAIL = process.env.BREVO_SENDER_EMAIL || 'khathohao0208@gmail.com';
+const BREVO_SENDER_NAME = 'Tân Hưng Lợi';
 
 function escapeHtml(str) {
   return String(str || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -21,54 +22,45 @@ async function sendTelegram(text) {
   }
 }
 
-let transporter = null;
-function getTransporter() {
-  if (transporter) return transporter;
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
-  transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    requireTLS: true,
-    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-  });
-  return transporter;
-}
-
-async function sendEmail(subject, html) {
-  const t = getTransporter();
-  if (!t) return;
+// Gửi qua Brevo API (HTTPS) thay vì SMTP - Render free tier chặn SMTP
+// (cổng 465 và 587 đều timeout) nhưng vẫn cho gọi HTTPS API bình thường.
+// Trả về true/false để caller biết có gửi được không.
+async function sendViaBrevo(toList, subject, html) {
+  if (!BREVO_API_KEY) return false;
   try {
-    await t.sendMail({
-      from: `"Tân Hưng Lợi - Đơn hàng" <${process.env.SMTP_USER}>`,
-      to: process.env.NOTIFY_EMAIL || process.env.SMTP_USER,
-      subject,
-      html
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'api-key': BREVO_API_KEY
+      },
+      body: JSON.stringify({
+        sender: { name: BREVO_SENDER_NAME, email: BREVO_SENDER_EMAIL },
+        to: toList.map((email) => ({ email })),
+        subject,
+        htmlContent: html
+      })
     });
+    if (!res.ok) {
+      console.error('[notify] Brevo API tra ve loi:', await res.text());
+      return false;
+    }
+    return true;
   } catch (err) {
-    console.error('[notify] Gui email that bai:', err.message);
+    console.error('[notify] Gui email qua Brevo that bai:', err.message);
+    return false;
   }
 }
 
 const ADMIN_RECOVERY_EMAILS = ['khathohao0208@gmail.com', 'tholan.kha@gmail.com'];
 
-// Trả về true/false để route biết có gửi được không (khác notifyNewOrder,
-// vì ở đây người dùng đang chờ mật khẩu nên cần biết ngay nếu gửi thất bại).
 async function sendAdminPasswordReset(newPassword) {
-  const t = getTransporter();
-  if (!t) return false;
-  try {
-    await t.sendMail({
-      from: `"Tân Hưng Lợi - Quản trị" <${process.env.SMTP_USER}>`,
-      to: ADMIN_RECOVERY_EMAILS.join(', '),
-      subject: 'Mật khẩu admin mới - Tân Hưng Lợi',
-      html: `<p>Mật khẩu đăng nhập trang quản trị vừa được đặt lại.</p><p><b>Mật khẩu mới:</b> ${escapeHtml(newPassword)}</p><p>Vui lòng đăng nhập và đổi lại mật khẩu khác nếu muốn.</p>`
-    });
-    return true;
-  } catch (err) {
-    console.error('[notify] Gui email mat khau moi that bai:', err.message);
-    return false;
-  }
+  return sendViaBrevo(
+    ADMIN_RECOVERY_EMAILS,
+    'Mật khẩu admin mới - Tân Hưng Lợi',
+    `<p>Mật khẩu đăng nhập trang quản trị vừa được đặt lại.</p><p><b>Mật khẩu mới:</b> ${escapeHtml(newPassword)}</p><p>Vui lòng đăng nhập và đổi lại mật khẩu khác nếu muốn.</p>`
+  );
 }
 
 // Gọi sau khi tạo đơn hàng thành công. Không throw lỗi ra ngoài - nếu gửi
@@ -95,7 +87,11 @@ async function notifyNewOrder(order, items) {
     `<p><b>Sản phẩm:</b></p><ul>${itemsHtml}</ul>` +
     `<p><b>Tổng:</b> ${total}</p>`;
 
-  await Promise.all([sendTelegram(telegramText), sendEmail(`Đơn hàng mới #${order.id} - ${total}`, emailHtml)]);
+  const notifyEmails = process.env.NOTIFY_EMAIL ? [process.env.NOTIFY_EMAIL] : ADMIN_RECOVERY_EMAILS;
+  await Promise.all([
+    sendTelegram(telegramText),
+    sendViaBrevo(notifyEmails, `Đơn hàng mới #${order.id} - ${total}`, emailHtml)
+  ]);
 }
 
 module.exports = { notifyNewOrder, sendAdminPasswordReset };
