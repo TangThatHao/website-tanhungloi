@@ -50,7 +50,9 @@ router.post('/admin/dang-nhap', loginRateLimit, asyncHandler(async (req, res) =>
   // Cookie phiên (không có Expires/Max-Age) -> trình duyệt tự xóa khi đóng,
   // admin phải đăng nhập lại ở lần mở trình duyệt tiếp theo.
   req.session.cookie.expires = false;
-  res.redirect('/admin');
+  // Vừa đăng nhập bằng mật khẩu tạm (gửi qua "quên mật khẩu") -> đưa thẳng
+  // tới trang đổi mật khẩu, có thể bỏ qua nếu muốn giữ mật khẩu ngẫu nhiên.
+  res.redirect(user.password_reset_pending ? '/admin/doi-mat-khau' : '/admin');
 }));
 
 router.get('/admin/dang-xuat', (req, res) => {
@@ -84,7 +86,7 @@ router.post('/admin/quen-mat-khau', forgotPasswordRateLimit, asyncHandler(async 
   }
 
   const newHash = bcrypt.hashSync(newPassword, 10);
-  await run('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, admin.id]);
+  await run('UPDATE users SET password_hash = ?, password_reset_pending = 1 WHERE id = ?', [newHash, admin.id]);
 
   res.render('admin/forgot-password', {
     error: null,
@@ -388,27 +390,34 @@ router.get('/admin/bao-cao-doanh-thu', asyncHandler(async (req, res) => {
 }));
 
 // ---------- Đổi mật khẩu ----------
-router.get('/admin/doi-mat-khau', (req, res) => {
-  res.render('admin/change-password', { error: null, success: null });
-});
+router.get('/admin/doi-mat-khau', asyncHandler(async (req, res) => {
+  const user = await get('SELECT password_reset_pending FROM users WHERE id = ?', [req.session.adminId]);
+  res.render('admin/change-password', { error: null, success: null, pending: !!user.password_reset_pending });
+}));
 
 router.post('/admin/doi-mat-khau', asyncHandler(async (req, res) => {
   const { mat_khau_cu, mat_khau_moi, mat_khau_moi_lai } = req.body;
   const user = await get('SELECT * FROM users WHERE id = ?', [req.session.adminId]);
+  const pending = !!user.password_reset_pending;
 
   if (!bcrypt.compareSync(mat_khau_cu || '', user.password_hash)) {
-    return res.render('admin/change-password', { error: 'Mật khẩu hiện tại không đúng.', success: null });
+    return res.render('admin/change-password', { error: 'Mật khẩu hiện tại không đúng.', success: null, pending });
   }
   if (!mat_khau_moi || mat_khau_moi.length < 6) {
-    return res.render('admin/change-password', { error: 'Mật khẩu mới phải có ít nhất 6 ký tự.', success: null });
+    return res.render('admin/change-password', { error: 'Mật khẩu mới phải có ít nhất 6 ký tự.', success: null, pending });
   }
   if (mat_khau_moi !== mat_khau_moi_lai) {
-    return res.render('admin/change-password', { error: 'Xác nhận mật khẩu mới không khớp.', success: null });
+    return res.render('admin/change-password', { error: 'Xác nhận mật khẩu mới không khớp.', success: null, pending });
   }
 
   const newHash = bcrypt.hashSync(mat_khau_moi, 10);
-  await run('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, req.session.adminId]);
-  res.render('admin/change-password', { error: null, success: 'Đã đổi mật khẩu thành công.' });
+  await run('UPDATE users SET password_hash = ?, password_reset_pending = 0 WHERE id = ?', [newHash, req.session.adminId]);
+  res.render('admin/change-password', { error: null, success: 'Đã đổi mật khẩu thành công.', pending: false });
+}));
+
+router.post('/admin/doi-mat-khau/bo-qua', asyncHandler(async (req, res) => {
+  await run('UPDATE users SET password_reset_pending = 0 WHERE id = ?', [req.session.adminId]);
+  res.redirect('/admin');
 }));
 
 // ---------- Contacts ----------

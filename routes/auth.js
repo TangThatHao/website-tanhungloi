@@ -28,6 +28,9 @@ router.post('/dang-nhap', memberLoginRateLimit, asyncHandler(async (req, res) =>
 
   clearMemberLoginAttempts(req);
   req.session.userId = user.id;
+  // Vừa đăng nhập bằng mật khẩu tạm (gửi qua "quên mật khẩu") -> đưa thẳng
+  // tới trang đổi mật khẩu, có thể bỏ qua nếu muốn giữ mật khẩu ngẫu nhiên.
+  if (user.password_reset_pending) return res.redirect('/tai-khoan/doi-mat-khau');
   res.redirect(isSafeRedirect(next) ? next : '/');
 }));
 
@@ -64,7 +67,7 @@ router.post('/quen-mat-khau', memberForgotPasswordRateLimit, asyncHandler(async 
   }
 
   const newHash = bcrypt.hashSync(newPassword, 10);
-  await run('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, user.id]);
+  await run('UPDATE users SET password_hash = ?, password_reset_pending = 1 WHERE id = ?', [newHash, user.id]);
 
   res.render('forgot-password', { error: null, success: genericSuccess });
 }));
@@ -117,6 +120,36 @@ router.post('/tai-khoan', requirePersonalMember, asyncHandler(async (req, res) =
   await run('UPDATE users SET full_name = ?, phone = ? WHERE id = ?', [full_name, phone, req.session.userId]);
   const orders = await all('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [req.session.userId]);
   res.render('account', { orders, successMsg: 'Cập nhật thông tin thành công.' });
+}));
+
+router.get('/tai-khoan/doi-mat-khau', requirePersonalMember, asyncHandler(async (req, res) => {
+  const user = await get('SELECT password_reset_pending FROM users WHERE id = ?', [req.session.userId]);
+  res.render('account-change-password', { error: null, success: null, pending: !!user.password_reset_pending });
+}));
+
+router.post('/tai-khoan/doi-mat-khau', requirePersonalMember, asyncHandler(async (req, res) => {
+  const { mat_khau_cu, mat_khau_moi, mat_khau_moi_lai } = req.body;
+  const user = await get('SELECT * FROM users WHERE id = ?', [req.session.userId]);
+  const pending = !!user.password_reset_pending;
+
+  if (!bcrypt.compareSync(mat_khau_cu || '', user.password_hash)) {
+    return res.render('account-change-password', { error: 'Mật khẩu hiện tại không đúng.', success: null, pending });
+  }
+  if (!mat_khau_moi || mat_khau_moi.length < 6) {
+    return res.render('account-change-password', { error: 'Mật khẩu mới phải có ít nhất 6 ký tự.', success: null, pending });
+  }
+  if (mat_khau_moi !== mat_khau_moi_lai) {
+    return res.render('account-change-password', { error: 'Xác nhận mật khẩu mới không khớp.', success: null, pending });
+  }
+
+  const newHash = bcrypt.hashSync(mat_khau_moi, 10);
+  await run('UPDATE users SET password_hash = ?, password_reset_pending = 0 WHERE id = ?', [newHash, req.session.userId]);
+  res.render('account-change-password', { error: null, success: 'Đã đổi mật khẩu thành công.', pending: false });
+}));
+
+router.post('/tai-khoan/doi-mat-khau/bo-qua', requirePersonalMember, asyncHandler(async (req, res) => {
+  await run('UPDATE users SET password_reset_pending = 0 WHERE id = ?', [req.session.userId]);
+  res.redirect('/tai-khoan');
 }));
 
 router.get('/tai-khoan/don-hang/:id/sua', requirePersonalMember, asyncHandler(async (req, res) => {
