@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { run, get, all } = require('../db');
 const { requireMember, requirePersonalMember, memberLoginRateLimit, clearMemberLoginAttempts, memberForgotPasswordRateLimit } = require('../middleware/auth');
-const { sendMemberPasswordReset } = require('../utils/notify');
+const { sendMemberPasswordReset, sendAdminPasswordReset } = require('../utils/notify');
 const { asyncHandler } = require('../utils/asyncHandler');
 const crypto = require('crypto');
 
@@ -40,19 +40,22 @@ router.post('/quen-mat-khau', memberForgotPasswordRateLimit, asyncHandler(async 
   const genericSuccess = 'Nếu tài khoản tồn tại, mật khẩu mới đã được gửi tới email đã đăng ký.';
 
   const user = await get(
-    "SELECT * FROM users WHERE role = 'member' AND (username = ? OR email = ?)",
+    "SELECT * FROM users WHERE role IN ('member', 'admin') AND (username = ? OR email = ?)",
     [tai_khoan || '', tai_khoan || '']
   );
 
   // Không tiết lộ tài khoản có tồn tại hay không (tránh dò username/email),
   // và tài khoản dùng chung không có email cá nhân nên không đổi qua đây -
   // khách dùng chung tra cứu đơn qua /tra-cuu-don-hang thay vì đăng nhập.
-  if (!user || user.is_shared_guest || !user.email) {
+  if (!user || user.is_shared_guest || (user.role === 'member' && !user.email)) {
     return res.render('forgot-password', { error: null, success: genericSuccess });
   }
 
   const newPassword = crypto.randomBytes(6).toString('base64').replace(/[+/=]/g, '').slice(0, 10);
-  const sent = await sendMemberPasswordReset(user.email, newPassword);
+  // Admin không có email cá nhân riêng trong hệ thống này - gửi tới 2 email
+  // khôi phục cố định thay vì user.email (giống /admin/quen-mat-khau).
+  const sent =
+    user.role === 'admin' ? await sendAdminPasswordReset(newPassword) : await sendMemberPasswordReset(user.email, newPassword);
   if (!sent) {
     return res.render('forgot-password', {
       error: 'Không thể gửi email lúc này, vui lòng thử lại sau.',
