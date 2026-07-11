@@ -79,6 +79,16 @@ const forgotPasswordLimiter = createRateLimiter({
 });
 const forgotPasswordRateLimit = forgotPasswordLimiter.middleware;
 
+const memberForgotPasswordLimiter = createRateLimiter({
+  max: 3,
+  onLimited: (req, res) =>
+    res.status(429).render('forgot-password', {
+      error: 'Bạn đã yêu cầu quá nhiều lần. Vui lòng thử lại sau 15 phút.',
+      success: null
+    })
+});
+const memberForgotPasswordRateLimit = memberForgotPasswordLimiter.middleware;
+
 const orderLookupLimiter = createRateLimiter({
   max: 10,
   onLimited: (req, res) =>
@@ -100,5 +110,6 @@ module.exports = {
   memberLoginRateLimit,
   clearMemberLoginAttempts,
   orderLookupRateLimit,
-  forgotPasswordRateLimit
+  forgotPasswordRateLimit,
+  memberForgotPasswordRateLimit
 };

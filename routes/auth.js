@@ -2,8 +2,10 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const router = express.Router();
 const { run, get, all } = require('../db');
-const { requireMember, requirePersonalMember, memberLoginRateLimit, clearMemberLoginAttempts } = require('../middleware/auth');
+const { requireMember, requirePersonalMember, memberLoginRateLimit, clearMemberLoginAttempts, memberForgotPasswordRateLimit } = require('../middleware/auth');
+const { sendMemberPasswordReset } = require('../utils/notify');
 const { asyncHandler } = require('../utils/asyncHandler');
+const crypto = require('crypto');
 
 router.get('/dang-nhap', (req, res) => {
   if (req.session.userId) return res.redirect('/tai-khoan');
@@ -27,6 +29,41 @@ router.post('/dang-nhap', memberLoginRateLimit, asyncHandler(async (req, res) =>
   clearMemberLoginAttempts(req);
   req.session.userId = user.id;
   res.redirect(isSafeRedirect(next) ? next : '/');
+}));
+
+router.get('/quen-mat-khau', (req, res) => {
+  res.render('forgot-password', { error: null, success: null });
+});
+
+router.post('/quen-mat-khau', memberForgotPasswordRateLimit, asyncHandler(async (req, res) => {
+  const { tai_khoan } = req.body;
+  const genericSuccess = 'Nếu tài khoản tồn tại, mật khẩu mới đã được gửi tới email đã đăng ký.';
+
+  const user = await get(
+    "SELECT * FROM users WHERE role = 'member' AND (username = ? OR email = ?)",
+    [tai_khoan || '', tai_khoan || '']
+  );
+
+  // Không tiết lộ tài khoản có tồn tại hay không (tránh dò username/email),
+  // và tài khoản dùng chung không có email cá nhân nên không đổi qua đây -
+  // khách dùng chung tra cứu đơn qua /tra-cuu-don-hang thay vì đăng nhập.
+  if (!user || user.is_shared_guest || !user.email) {
+    return res.render('forgot-password', { error: null, success: genericSuccess });
+  }
+
+  const newPassword = crypto.randomBytes(6).toString('base64').replace(/[+/=]/g, '').slice(0, 10);
+  const sent = await sendMemberPasswordReset(user.email, newPassword);
+  if (!sent) {
+    return res.render('forgot-password', {
+      error: 'Không thể gửi email lúc này, vui lòng thử lại sau.',
+      success: null
+    });
+  }
+
+  const newHash = bcrypt.hashSync(newPassword, 10);
+  await run('UPDATE users SET password_hash = ? WHERE id = ?', [newHash, user.id]);
+
+  res.render('forgot-password', { error: null, success: genericSuccess });
 }));
 
 router.get('/dang-ky', (req, res) => {

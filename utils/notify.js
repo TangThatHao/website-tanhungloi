@@ -63,6 +63,14 @@ async function sendAdminPasswordReset(newPassword) {
   );
 }
 
+async function sendMemberPasswordReset(email, newPassword) {
+  return sendViaBrevo(
+    [email],
+    'Mật khẩu mới cho tài khoản Tân Hưng Lợi',
+    `<p>Mật khẩu đăng nhập tài khoản của bạn trên website Tân Hưng Lợi vừa được đặt lại.</p><p><b>Mật khẩu mới:</b> ${escapeHtml(newPassword)}</p><p>Vui lòng đăng nhập và đổi lại mật khẩu khác nếu muốn.</p>`
+  );
+}
+
 // Gọi sau khi tạo đơn hàng thành công. Không throw lỗi ra ngoài - nếu gửi
 // thông báo thất bại (chưa cấu hình, hoặc lỗi mạng) thì đơn hàng vẫn được
 // tạo bình thường, chỉ ghi log lỗi ở server.
@@ -94,4 +102,4 @@ async function notifyNewOrder(order, items) {
   ]);
 }
 
-module.exports = { notifyNewOrder, sendAdminPasswordReset };
+module.exports = { notifyNewOrder, sendAdminPasswordReset, sendMemberPasswordReset };
