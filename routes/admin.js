@@ -45,6 +45,9 @@ router.post('/admin/dang-nhap', loginRateLimit, asyncHandler(async (req, res) =>
   clearLoginAttempts(req);
   req.session.adminId = user.id;
   req.session.userId = user.id;
+  // Cookie phiên (không có Expires/Max-Age) -> trình duyệt tự xóa khi đóng,
+  // admin phải đăng nhập lại ở lần mở trình duyệt tiếp theo.
+  req.session.cookie.expires = false;
   res.redirect('/admin');
 }));
 
