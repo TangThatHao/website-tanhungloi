@@ -29,6 +29,18 @@ app.set('views', path.join(__dirname, 'views'));
 app.locals.formatPrice = formatPrice;
 app.locals.categoryIcon = categoryIcon;
 
+// Vài header bảo mật cơ bản (không cần cài thêm package như helmet):
+// - X-Content-Type-Options: trình duyệt không tự đoán loại file khác với
+//   Content-Type khai báo (chống 1 số kiểu tấn công qua file upload).
+// - X-Frame-Options: trang không bị nhúng trong <iframe> ở site khác (chống clickjacking).
+// - Referrer-Policy: không gửi URL đầy đủ (có thể chứa token) sang site khác khi bấm link ra ngoài.
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
