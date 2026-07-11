@@ -55,16 +55,22 @@ app.use(
 );
 
 // Đếm lượt truy cập, lưu vào DB (bảng site_stats) để không bị mất mỗi khi
-// Render deploy lại. Giữ 1 biến đếm trong RAM để hiển thị ngay không phải
-// chờ DB, và ghi xuống DB ở chế độ "fire-and-forget" (không await) để
-// không làm chậm request của khách.
+// Render deploy lại. Tăng biến đếm trong RAM ở mỗi request (rẻ, hiển thị
+// ngay), nhưng chỉ ghi xuống DB định kỳ mỗi 30s (nếu có thay đổi) thay vì
+// ghi ở từng request - đỡ tốn 1 lượt UPDATE DB cho mỗi lượt xem trang.
 let visitCount = 0;
+let lastSavedVisitCount = 0;
+setInterval(() => {
+  if (visitCount === lastSavedVisitCount) return;
+  const toSave = visitCount;
+  run('UPDATE site_stats SET visit_count = ? WHERE id = 1', [toSave])
+    .then(() => { lastSavedVisitCount = toSave; })
+    .catch((err) => console.error('[visitCount] Loi luu luot truy cap:', err.message));
+}, 30 * 1000).unref();
+
 app.use((req, res, next) => {
   if (req.method === 'GET' && !req.path.startsWith('/admin') && !req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico)$/)) {
     visitCount++;
-    run('UPDATE site_stats SET visit_count = ? WHERE id = 1', [visitCount]).catch((err) =>
-      console.error('[visitCount] Loi luu luot truy cap:', err.message)
-    );
   }
   res.locals.visitCount = visitCount;
   next();
