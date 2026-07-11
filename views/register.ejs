@@ -5,6 +5,7 @@
     <h2>ĐĂNG KÝ THÀNH VIÊN</h2>
     <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
     <form action="/dang-ky" method="post">
+      <input type="hidden" name="next" value="<%= next %>" />
       <div class="field"><label>Họ và tên</label><input type="text" name="full_name" value="<%= form.full_name || '' %>" required /></div>
       <div class="field"><label>Email</label><input type="email" name="email" value="<%= form.email || '' %>" required /></div>
       <div class="field"><label>Số điện thoại</label><input type="text" name="phone" value="<%= form.phone || '' %>" required /></div>

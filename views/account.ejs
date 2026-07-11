@@ -30,7 +30,7 @@
             <p style="color:var(--color-muted);">Bạn chưa có đơn hàng nào.</p>
           <% } else { %>
             <table class="order-table">
-              <thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead>
+              <thead><tr><th>Mã đơn</th><th>Ngày đặt</th><th>Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead>
               <tbody>
                 <% orders.forEach(o => { %>
                   <tr>
@@ -38,6 +38,14 @@
                     <td><%= new Date(o.created_at).toLocaleString('vi-VN') %></td>
                     <td><%= formatPrice(o.total) %></td>
                     <td><span class="status-pill status-<%= o.status %>"><%= ({moi:'Mới', dang_xu_ly:'Đang xử lý', hoan_thanh:'Hoàn thành', huy:'Đã hủy'})[o.status] %></span></td>
+                    <td>
+                      <% if (o.status === 'moi') { %>
+                        <a href="/tai-khoan/don-hang/<%= o.id %>/sua" class="btn btn-outline btn-sm">Sửa</a>
+                        <form action="/tai-khoan/don-hang/<%= o.id %>/xoa" method="post" style="display:inline;">
+                          <button type="submit" class="btn btn-outline btn-sm">Xóa</button>
+                        </form>
+                      <% } %>
+                    </td>
                   </tr>
                 <% }) %>
               </tbody>

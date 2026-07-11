@@ -139,7 +139,17 @@ async function seedIfEmpty() {
     ['Khách hàng demo', 'khachhang@example.com', '0908409788', 'khachhang', memberHash, 'member']
   );
 
-  console.log('[seed] Xong. Tai khoan admin: admin / admin123 -- Tai khoan thanh vien demo: khachhang / 123456');
+  // Tài khoản đặt nhanh dùng chung, đăng công khai ở bước thanh toán cho
+  // khách không muốn tạo tài khoản riêng. Vì mật khẩu vốn công khai, trang
+  // /tai-khoan bị chặn với tài khoản này (xem middleware/auth.js) để tránh
+  // lộ đơn hàng của người khác - khách tra cứu đơn qua /tra-cuu-don-hang.
+  const guestHash = bcrypt.hashSync('0919454484', 10);
+  await run(
+    `INSERT INTO users (full_name, email, phone, username, password_hash, role, is_shared_guest) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    ['Khách đặt nhanh', null, '0919454484', '0919454484', guestHash, 'guest', 1]
+  );
+
+  console.log('[seed] Xong. Tai khoan admin: admin / admin123 -- Tai khoan thanh vien demo: khachhang / 123456 -- Tai khoan dat nhanh dung chung: 0919454484 / 0919454484');
 }
 
 module.exports = { seedIfEmpty };

@@ -329,6 +329,26 @@ router.post('/admin/don-hang/:id/trang-thai', asyncHandler(async (req, res) => {
   res.redirect('/admin/don-hang/' + req.params.id);
 }));
 
+router.get('/admin/bao-cao-doanh-thu', asyncHandler(async (req, res) => {
+  const { tu_ngay, den_ngay, khach } = req.query;
+  const conditions = ["status != 'huy'"];
+  const params = [];
+  if (tu_ngay) { conditions.push('created_at >= ?'); params.push(tu_ngay); }
+  if (den_ngay) { conditions.push("created_at < (?::date + interval '1 day')"); params.push(den_ngay); }
+  if (khach) { conditions.push('(phone ILIKE ? OR customer_name ILIKE ?)'); params.push(`%${khach}%`, `%${khach}%`); }
+  const where = 'WHERE ' + conditions.join(' AND ');
+
+  const orders = await all(`SELECT * FROM orders ${where} ORDER BY created_at DESC`, params);
+  const revenue = orders.reduce((sum, o) => sum + Number(o.total), 0);
+
+  res.render('admin/revenue', {
+    orders,
+    revenue,
+    orderCount: orders.length,
+    filters: { tu_ngay: tu_ngay || '', den_ngay: den_ngay || '', khach: khach || '' }
+  });
+}));
+
 // ---------- Contacts ----------
 router.get('/admin/lien-he', asyncHandler(async (req, res) => {
   const contacts = await all('SELECT * FROM contacts ORDER BY created_at DESC');

@@ -1,0 +1,26 @@
+<%- include('partials/header', { pageTitle: 'Sửa đơn hàng #' + order.id + ' - Tân Hưng Lợi', activeNav: '' }) %>
+
+<div class="container">
+  <div class="breadcrumb"><a href="/">Trang chủ</a> / <a href="/tai-khoan">Tài khoản của tôi</a> / Sửa đơn hàng #<%= order.id %></div>
+  <div class="section-title">Sửa đơn hàng #<%= order.id %></div>
+
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+  <div class="box" style="max-width:600px;">
+    <div class="box-body">
+      <form action="/tai-khoan/don-hang/<%= order.id %>/sua" method="post">
+        <div class="field"><label>Họ tên người nhận</label><input type="text" name="customer_name" value="<%= order.customer_name || '' %>" required /></div>
+        <div class="field"><label>Số điện thoại</label><input type="text" name="phone" value="<%= order.phone || '' %>" required /></div>
+        <div class="field"><label>Email</label><input type="email" name="email" value="<%= order.email || '' %>" /></div>
+        <div class="field"><label>Địa chỉ giao hàng</label><textarea name="address" rows="3" required><%= order.address || '' %></textarea></div>
+        <div class="field"><label>Ghi chú</label><textarea name="note" rows="2"><%= order.note || '' %></textarea></div>
+        <button type="submit" class="btn btn-primary btn-block">Lưu thay đổi</button>
+      </form>
+      <form action="/tai-khoan/don-hang/<%= order.id %>/xoa" method="post" style="margin-top:12px;">
+        <button type="submit" class="btn btn-outline btn-block">Xóa đơn hàng</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

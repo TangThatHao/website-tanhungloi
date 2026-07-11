@@ -63,6 +63,8 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_shared_guest INTEGER DEFAULT 0;
+
 CREATE TABLE IF NOT EXISTS orders (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
@@ -84,6 +86,14 @@ CREATE TABLE IF NOT EXISTS order_items (
   price INTEGER,
   qty INTEGER
 );
+
+-- Một dòng duy nhất lưu số lượt truy cập, để không bị reset về 0 mỗi khi
+-- Render deploy lại (biến đếm trong RAM trước đây bị mất lúc restart server).
+CREATE TABLE IF NOT EXISTS site_stats (
+  id INTEGER PRIMARY KEY,
+  visit_count INTEGER NOT NULL DEFAULT 0
+);
+INSERT INTO site_stats (id, visit_count) VALUES (1, 0) ON CONFLICT (id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS contacts (
   id SERIAL PRIMARY KEY,

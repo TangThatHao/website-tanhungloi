@@ -64,7 +64,18 @@ router.post('/gio-hang/xoa', (req, res) => {
 router.get('/thanh-toan', asyncHandler(async (req, res) => {
   const { items, total } = await getCartWithDetails(req);
   if (items.length === 0) return res.redirect('/gio-hang');
+  if (!req.session.userId) return res.render('checkout-choice', { items, total });
   res.render('checkout', { items, total, error: null, form: {} });
+}));
+
+router.post('/thanh-toan/dat-nhanh', asyncHandler(async (req, res) => {
+  const { items } = await getCartWithDetails(req);
+  if (items.length === 0) return res.redirect('/gio-hang');
+  if (!req.session.userId) {
+    const guest = await get('SELECT id FROM users WHERE is_shared_guest = 1 LIMIT 1');
+    if (guest) req.session.userId = guest.id;
+  }
+  res.redirect('/thanh-toan');
 }));
 
 router.post('/thanh-toan', asyncHandler(async (req, res) => {
@@ -100,7 +111,7 @@ router.post('/thanh-toan', asyncHandler(async (req, res) => {
 }));
 
 router.get('/tra-cuu-don-hang', (req, res) => {
-  res.render('order-lookup', { phone: '', orders: null, error: null });
+  res.render('order-lookup', { phone: '', orders: null, error: null, sharedAccountNotice: req.query.tk === 'chung' });
 });
 
 router.post('/tra-cuu-don-hang', orderLookupRateLimit, asyncHandler(async (req, res) => {
@@ -112,7 +123,7 @@ router.post('/tra-cuu-don-hang', orderLookupRateLimit, asyncHandler(async (req, 
       o.items = await all('SELECT * FROM order_items WHERE order_id = ?', [o.id]);
     }
   }
-  res.render('order-lookup', { phone, orders, error: null });
+  res.render('order-lookup', { phone, orders, error: null, sharedAccountNotice: false });
 }));
 
 module.exports = router;

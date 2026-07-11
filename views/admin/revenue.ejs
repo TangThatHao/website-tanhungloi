@@ -1,0 +1,49 @@
+<%- include('partials/layout-header', { pageTitle: 'Báo cáo doanh thu', activeAdminNav: 'revenue' }) %>
+
+<div class="admin-card">
+  <h3 style="margin-top:0;">Bộ lọc</h3>
+  <form method="get" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+    <div class="field" style="margin:0;">
+      <label>Từ ngày</label>
+      <input type="date" name="tu_ngay" value="<%= filters.tu_ngay %>" />
+    </div>
+    <div class="field" style="margin:0;">
+      <label>Đến ngày</label>
+      <input type="date" name="den_ngay" value="<%= filters.den_ngay %>" />
+    </div>
+    <div class="field" style="margin:0; flex:1; min-width:200px;">
+      <label>Khách hàng (tên hoặc số điện thoại)</label>
+      <input type="text" name="khach" value="<%= filters.khach %>" placeholder="VD: Nguyễn Văn A hoặc 0919..." />
+    </div>
+    <button type="submit" class="btn btn-primary">Lọc</button>
+    <a href="/admin/bao-cao-doanh-thu" class="btn btn-outline">Bỏ lọc</a>
+  </form>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card"><div class="num"><%= formatPrice(revenue) %></div><div class="label">Doanh thu (không tính đơn đã hủy)</div></div>
+  <div class="stat-card"><div class="num"><%= orderCount %></div><div class="label">Số đơn hàng</div></div>
+</div>
+
+<div class="admin-card">
+  <h3 style="margin-top:0;">Chi tiết đơn hàng (<%= orders.length %>)</h3>
+  <table class="admin-table">
+    <thead><tr><th>Mã</th><th>Khách hàng</th><th>Điện thoại</th><th>Tổng tiền</th><th>Trạng thái</th><th>Ngày đặt</th><th></th></tr></thead>
+    <tbody>
+      <% orders.forEach(o => { %>
+        <tr>
+          <td>#<%= o.id %></td>
+          <td><%= o.customer_name %></td>
+          <td><%= o.phone %></td>
+          <td><%= formatPrice(o.total) %></td>
+          <td><span class="status-pill status-<%= o.status %>"><%= ({moi:'Mới', dang_xu_ly:'Đang xử lý', hoan_thanh:'Hoàn thành', huy:'Đã hủy'})[o.status] %></span></td>
+          <td><%= new Date(o.created_at).toLocaleString('vi-VN') %></td>
+          <td><a href="/admin/don-hang/<%= o.id %>" class="btn btn-outline btn-sm">Chi tiết</a></td>
+        </tr>
+      <% }) %>
+      <% if (orders.length === 0) { %><tr><td colspan="7">Không có đơn hàng nào khớp bộ lọc.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/layout-footer') %>

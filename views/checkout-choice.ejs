@@ -1,0 +1,56 @@
+<%- include('partials/header', { pageTitle: 'Đặt hàng - Tân Hưng Lợi', activeNav: '' }) %>
+
+<div class="container">
+  <div class="breadcrumb"><a href="/">Trang chủ</a> / <a href="/gio-hang">Giỏ hàng</a> / Đặt hàng</div>
+  <div class="section-title">Bạn muốn đặt hàng như thế nào?</div>
+
+  <div class="page-body no-right">
+    <main>
+      <div class="box" style="margin-bottom:20px;">
+        <div class="box-title">ĐẶT NHANH, KHÔNG CẦN TÀI KHOẢN</div>
+        <div class="box-body">
+          <p style="color:var(--color-muted); font-size:13.5px; margin-top:0;">
+            Không muốn lưu thông tin? Đặt hàng ngay, sau này tra cứu lại đơn bằng đúng số điện thoại đã đặt tại trang
+            <a href="/tra-cuu-don-hang">Tra cứu đơn hàng</a>.
+          </p>
+          <form action="/thanh-toan/dat-nhanh" method="post">
+            <button type="submit" class="btn btn-outline btn-block">Đặt nhanh, không lưu thông tin</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="box-title">LƯU THÔNG TIN ĐỂ NHẬN ƯU ĐÃI THÂN THIẾT</div>
+        <div class="box-body">
+          <p style="color:var(--color-muted); font-size:13.5px; margin-top:0;">
+            Đăng ký hoặc đăng nhập để lưu lịch sử đơn hàng, xem/sửa/hủy đơn của riêng bạn và nhận các ưu đãi dành cho khách hàng thân thiết.
+          </p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="/dang-nhap?next=/thanh-toan" class="btn btn-primary">Đăng nhập</a>
+            <a href="/dang-ky?next=/thanh-toan" class="btn btn-primary">Đăng ký</a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="box" style="max-width:500px; margin:24px auto 0;">
+    <div class="box-title">ĐƠN HÀNG CỦA BẠN</div>
+    <div class="box-body">
+      <% items.forEach(item => { %>
+        <div class="mini-product">
+          <img src="<%= item.product.image %>" alt="<%= item.product.name %>" />
+          <div>
+            <div class="name"><%= item.product.name %> x<%= item.qty %></div>
+            <div class="price"><%= formatPrice(item.lineTotal) %></div>
+          </div>
+        </div>
+      <% }) %>
+      <div class="row total" style="display:flex; justify-content:space-between; margin-top:10px;">
+        <span>Tổng cộng</span><span><%= formatPrice(total) %></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/footer') %>

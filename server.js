@@ -4,7 +4,7 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 
-const { pool, initSchema } = require('./db');
+const { pool, initSchema, get, run } = require('./db');
 const { seedIfEmpty } = require('./db/seed');
 const { formatPrice, categoryIcon } = require('./utils/format');
 const { loadUser } = require('./middleware/auth');
@@ -34,10 +34,17 @@ app.use(
   })
 );
 
+// Đếm lượt truy cập, lưu vào DB (bảng site_stats) để không bị mất mỗi khi
+// Render deploy lại. Giữ 1 biến đếm trong RAM để hiển thị ngay không phải
+// chờ DB, và ghi xuống DB ở chế độ "fire-and-forget" (không await) để
+// không làm chậm request của khách.
 let visitCount = 0;
 app.use((req, res, next) => {
   if (req.method === 'GET' && !req.path.startsWith('/admin') && !req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico)$/)) {
     visitCount++;
+    run('UPDATE site_stats SET visit_count = ? WHERE id = 1', [visitCount]).catch((err) =>
+      console.error('[visitCount] Loi luu luot truy cap:', err.message)
+    );
   }
   res.locals.visitCount = visitCount;
   next();
@@ -65,6 +72,8 @@ app.use((err, req, res, next) => {
 async function main() {
   await initSchema();
   await seedIfEmpty();
+  const stats = await get('SELECT visit_count FROM site_stats WHERE id = 1');
+  if (stats) visitCount = Number(stats.visit_count);
   if (isSupabaseConfigured) {
     await ensureBucket();
   } else {

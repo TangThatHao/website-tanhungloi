@@ -11,9 +11,10 @@
       <div class="box">
         <div class="box-body">
           <form action="/thanh-toan" method="post">
-            <div class="field"><label>Họ tên người nhận</label><input type="text" name="customer_name" value="<%= form.customer_name || (currentUser ? currentUser.full_name : '') || '' %>" required /></div>
-            <div class="field"><label>Số điện thoại</label><input type="text" name="phone" value="<%= form.phone || (currentUser ? currentUser.phone : '') || '' %>" required /></div>
-            <div class="field"><label>Email</label><input type="email" name="email" value="<%= form.email || (currentUser ? currentUser.email : '') || '' %>" /></div>
+            <% const prefillUser = currentUser && !currentUser.is_shared_guest ? currentUser : null; %>
+            <div class="field"><label>Họ tên người nhận</label><input type="text" name="customer_name" value="<%= form.customer_name || (prefillUser ? prefillUser.full_name : '') || '' %>" required /></div>
+            <div class="field"><label>Số điện thoại</label><input type="text" name="phone" value="<%= form.phone || (prefillUser ? prefillUser.phone : '') || '' %>" required /></div>
+            <div class="field"><label>Email</label><input type="email" name="email" value="<%= form.email || (prefillUser ? prefillUser.email : '') || '' %>" /></div>
             <div class="field"><label>Địa chỉ giao hàng</label><textarea name="address" rows="3" required><%= form.address || '' %></textarea></div>
             <div class="field"><label>Ghi chú</label><textarea name="note" rows="2"><%= form.note || '' %></textarea></div>
             <button type="submit" class="btn btn-primary btn-block">Xác nhận đặt hàng</button>
