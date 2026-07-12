@@ -47,10 +47,9 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   font-size: 12.5px;
   letter-spacing: .2px;
 }
-.topbar .container { display: flex; justify-content: space-between; align-items: center; height: 38px; }
+.topbar .container { display: flex; justify-content: flex-end; align-items: center; height: 38px; }
 .topbar-links a { margin-left: 16px; color: #cbbfa9; }
 .topbar-links a:hover { color: var(--color-accent-light); }
-.topbar-lang { color: #a89a83; }
 
 /* ---------- Header ---------- */
 .site-header {
@@ -210,6 +209,9 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 .view-all-link { font-size: 12.5px; font-weight: 700; color: var(--color-accent-dark); white-space: nowrap; flex-shrink: 0; }
 .view-all-link:hover { color: var(--color-primary); }
 
+/* Khối "Danh mục sản phẩm" ở đầu nội dung trang chủ chỉ dành cho di động -
+   trên PC đã có sẵn danh sách danh mục ở sidebar trái, hiện thêm ở đây bị dư. */
+.category-section-mobile { display: none; }
 .category-chips { display: none; }
 
 .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
@@ -478,6 +480,8 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
     padding: 8px 0; font-size: 11px;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+
+  .category-section-mobile { display: block; }
 
   /* Chip danh mục dạng ảnh tròn + tên bên dưới, kiểu app bán hàng - đi cùng nút "Xem tất cả" ở tiêu đề section. */
   .category-chips {

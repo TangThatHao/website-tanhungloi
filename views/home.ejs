@@ -14,14 +14,16 @@
     <aside><%- include('partials/sidebar-left') %></aside>
 
     <main>
-      <div class="section-title">📦 Danh mục sản phẩm</div>
-      <div class="category-chips">
-        <% navCategories.forEach(cat => { %>
-          <a href="/san-pham?category=<%= cat.slug %>">
-            <span class="chip-thumb"><% if (cat.image) { %><img src="<%= cat.image %>" alt="<%= cat.name %>" /><% } else { %><span class="chip-icon"><%= categoryIcon(cat.name) %></span><% } %></span>
-            <span><%= cat.name %></span>
-          </a>
-        <% }) %>
+      <div class="category-section-mobile">
+        <div class="section-title">📦 Danh mục sản phẩm</div>
+        <div class="category-chips">
+          <% navCategories.forEach(cat => { %>
+            <a href="/san-pham?category=<%= cat.slug %>">
+              <span class="chip-thumb"><% if (cat.image) { %><img src="<%= cat.image %>" alt="<%= cat.name %>" /><% } else { %><span class="chip-icon"><%= categoryIcon(cat.name) %></span><% } %></span>
+              <span><%= cat.name %></span>
+            </a>
+          <% }) %>
+        </div>
       </div>
       <div class="section-title-bar">
         <div class="section-title">🔥 Sản phẩm bán chạy</div>
