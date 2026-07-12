@@ -1,12 +1,12 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
 const router = express.Router();
 const { run, get, all } = require('../db');
 const { requireAdmin, loginRateLimit, clearLoginAttempts, forgotPasswordRateLimit } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const { saveUploadedFile } = require('../utils/storage');
 const { sendAdminPasswordReset } = require('../utils/notify');
+const { createResetToken, clearResetToken } = require('../utils/passwordReset');
 const { slugify } = require('../utils/format');
 const { asyncHandler } = require('../utils/asyncHandler');
 const { moveItem } = require('../utils/reorder');
@@ -72,25 +72,23 @@ router.post('/admin/quen-mat-khau', forgotPasswordRateLimit, asyncHandler(async 
     return res.render('admin/forgot-password', { error: 'Không tìm thấy tài khoản admin.', success: null });
   }
 
-  const newPassword = crypto.randomBytes(6).toString('base64').replace(/[+/=]/g, '').slice(0, 10);
+  const token = await createResetToken(admin.id);
+  const resetLink = `${req.protocol}://${req.get('host')}/dat-lai-mat-khau/${token}`;
 
-  // Gửi email trước, chỉ đổi mật khẩu trong DB nếu gửi thành công - tránh
-  // trường hợp gửi email lỗi mà mật khẩu đã đổi, khiến admin bị khóa ngoài
-  // và không biết mật khẩu mới là gì.
-  const sent = await sendAdminPasswordReset(newPassword);
+  // Gửi email trước, chỉ lưu token nếu gửi thành công không phụ thuộc gì
+  // thêm - nhưng vẫn dọn token nếu gửi lỗi để không để lại token treo.
+  const sent = await sendAdminPasswordReset(resetLink);
   if (!sent) {
+    await clearResetToken(admin.id);
     return res.render('admin/forgot-password', {
-      error: 'Chưa cấu hình gửi email trên server, không thể gửi mật khẩu mới. Vui lòng liên hệ kỹ thuật.',
+      error: 'Chưa cấu hình gửi email trên server, không thể gửi liên kết đặt lại mật khẩu. Vui lòng liên hệ kỹ thuật.',
       success: null
     });
   }
 
-  const newHash = bcrypt.hashSync(newPassword, 10);
-  await run('UPDATE users SET password_hash = ?, password_reset_pending = 1 WHERE id = ?', [newHash, admin.id]);
-
   res.render('admin/forgot-password', {
     error: null,
-    success: 'Mật khẩu mới đã được gửi tới email đã đăng ký.'
+    success: 'Liên kết đặt lại mật khẩu đã được gửi tới email khôi phục.'
   });
 }));
 

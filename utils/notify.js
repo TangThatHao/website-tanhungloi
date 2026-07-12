@@ -55,19 +55,19 @@ async function sendViaBrevo(toList, subject, html) {
 
 const ADMIN_RECOVERY_EMAILS = ['khathohao0208@gmail.com', 'tholan.kha@gmail.com'];
 
-async function sendAdminPasswordReset(newPassword) {
+async function sendAdminPasswordReset(resetLink) {
   return sendViaBrevo(
     ADMIN_RECOVERY_EMAILS,
-    'Mật khẩu admin mới - Tân Hưng Lợi',
-    `<p>Mật khẩu đăng nhập trang quản trị vừa được đặt lại.</p><p><b>Mật khẩu mới:</b> ${escapeHtml(newPassword)}</p><p>Vui lòng đăng nhập và đổi lại mật khẩu khác nếu muốn.</p>`
+    'Yêu cầu đặt lại mật khẩu admin - Tân Hưng Lợi',
+    `<p>Có yêu cầu đặt lại mật khẩu đăng nhập trang quản trị.</p><p><a href="${escapeHtml(resetLink)}">Bấm vào đây để đặt mật khẩu mới</a></p><p>Liên kết có hiệu lực trong 30 phút. Nếu không phải bạn yêu cầu, hãy bỏ qua email này - mật khẩu hiện tại vẫn giữ nguyên.</p>`
   );
 }
 
-async function sendMemberPasswordReset(email, newPassword) {
+async function sendMemberPasswordReset(email, resetLink) {
   return sendViaBrevo(
     [email],
-    'Mật khẩu mới cho tài khoản Tân Hưng Lợi',
-    `<p>Mật khẩu đăng nhập tài khoản của bạn trên website Tân Hưng Lợi vừa được đặt lại.</p><p><b>Mật khẩu mới:</b> ${escapeHtml(newPassword)}</p><p>Vui lòng đăng nhập và đổi lại mật khẩu khác nếu muốn.</p>`
+    'Yêu cầu đặt lại mật khẩu - Tân Hưng Lợi',
+    `<p>Có yêu cầu đặt lại mật khẩu cho tài khoản của bạn trên website Tân Hưng Lợi.</p><p><a href="${escapeHtml(resetLink)}">Bấm vào đây để đặt mật khẩu mới</a></p><p>Liên kết có hiệu lực trong 30 phút. Nếu không phải bạn yêu cầu, hãy bỏ qua email này - mật khẩu hiện tại vẫn giữ nguyên.</p>`
   );
 }
 

@@ -5,7 +5,7 @@ const { run, get, all } = require('../db');
 const { requireMember, requirePersonalMember, memberLoginRateLimit, clearMemberLoginAttempts, memberForgotPasswordRateLimit } = require('../middleware/auth');
 const { sendMemberPasswordReset, sendAdminPasswordReset } = require('../utils/notify');
 const { asyncHandler } = require('../utils/asyncHandler');
-const crypto = require('crypto');
+const { createResetToken, getUserByResetToken, clearResetToken } = require('../utils/passwordReset');
 
 router.get('/dang-nhap', (req, res) => {
   if (req.session.userId) return res.redirect('/tai-khoan');
@@ -49,7 +49,7 @@ router.get('/quen-mat-khau', (req, res) => {
 
 router.post('/quen-mat-khau', memberForgotPasswordRateLimit, asyncHandler(async (req, res) => {
   const { tai_khoan } = req.body;
-  const genericSuccess = 'Nếu tài khoản tồn tại, mật khẩu mới đã được gửi tới email đã đăng ký.';
+  const genericSuccess = 'Nếu tài khoản tồn tại, một liên kết đặt lại mật khẩu đã được gửi tới email đã đăng ký.';
 
   const user = await get(
     "SELECT * FROM users WHERE role IN ('member', 'admin') AND (username = ? OR email = ?)",
@@ -63,22 +63,47 @@ router.post('/quen-mat-khau', memberForgotPasswordRateLimit, asyncHandler(async 
     return res.render('forgot-password', { error: null, success: genericSuccess });
   }
 
-  const newPassword = crypto.randomBytes(6).toString('base64').replace(/[+/=]/g, '').slice(0, 10);
+  const token = await createResetToken(user.id);
+  const resetLink = `${req.protocol}://${req.get('host')}/dat-lai-mat-khau/${token}`;
   // Admin không có email cá nhân riêng trong hệ thống này - gửi tới 2 email
   // khôi phục cố định thay vì user.email (giống /admin/quen-mat-khau).
   const sent =
-    user.role === 'admin' ? await sendAdminPasswordReset(newPassword) : await sendMemberPasswordReset(user.email, newPassword);
+    user.role === 'admin' ? await sendAdminPasswordReset(resetLink) : await sendMemberPasswordReset(user.email, resetLink);
   if (!sent) {
+    await clearResetToken(user.id);
     return res.render('forgot-password', {
       error: 'Không thể gửi email lúc này, vui lòng thử lại sau.',
       success: null
     });
   }
 
-  const newHash = bcrypt.hashSync(newPassword, 10);
-  await run('UPDATE users SET password_hash = ?, password_reset_pending = 1 WHERE id = ?', [newHash, user.id]);
-
   res.render('forgot-password', { error: null, success: genericSuccess });
+}));
+
+router.get('/dat-lai-mat-khau/:token', asyncHandler(async (req, res) => {
+  const user = await getUserByResetToken(req.params.token);
+  res.render('reset-password', { valid: !!user, token: req.params.token, error: null, success: false });
+}));
+
+router.post('/dat-lai-mat-khau/:token', asyncHandler(async (req, res) => {
+  const user = await getUserByResetToken(req.params.token);
+  if (!user) {
+    return res.render('reset-password', { valid: false, token: req.params.token, error: null, success: false });
+  }
+
+  const { mat_khau_moi, mat_khau_moi_lai } = req.body;
+  if (!mat_khau_moi || mat_khau_moi.length < 6) {
+    return res.render('reset-password', { valid: true, token: req.params.token, error: 'Mật khẩu mới phải có ít nhất 6 ký tự.', success: false });
+  }
+  if (mat_khau_moi !== mat_khau_moi_lai) {
+    return res.render('reset-password', { valid: true, token: req.params.token, error: 'Mật khẩu xác nhận không khớp.', success: false });
+  }
+
+  const newHash = bcrypt.hashSync(mat_khau_moi, 10);
+  await run('UPDATE users SET password_hash = ?, password_reset_pending = 0 WHERE id = ?', [newHash, user.id]);
+  await clearResetToken(user.id);
+
+  res.render('reset-password', { valid: false, token: req.params.token, error: null, success: true });
 }));
 
 router.get('/dang-ky', (req, res) => {
