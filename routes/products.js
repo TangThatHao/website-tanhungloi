@@ -3,8 +3,13 @@ const router = express.Router();
 const { all, get } = require('../db');
 const { asyncHandler } = require('../utils/asyncHandler');
 
+const LABELS = {
+  hot: { name: 'Sản phẩm bán chạy', column: 'is_hot', order: 'hot_order' },
+  new: { name: 'Sản phẩm mới', column: 'is_new', order: 'new_order' }
+};
+
 router.get('/san-pham', asyncHandler(async (req, res) => {
-  const { category, search } = req.query;
+  const { category, search, label } = req.query;
   let products;
   let categoryName = null;
 
@@ -18,6 +23,10 @@ router.get('/san-pham', asyncHandler(async (req, res) => {
     }
   } else if (search) {
     products = await all('SELECT * FROM products WHERE name LIKE ? ORDER BY sort_order ASC', [`%${search}%`]);
+  } else if (label && LABELS[label]) {
+    const { name, column, order } = LABELS[label];
+    categoryName = name;
+    products = await all(`SELECT * FROM products WHERE ${column} = 1 ORDER BY ${order} ASC`);
   } else {
     products = await all('SELECT * FROM products ORDER BY sort_order ASC');
   }

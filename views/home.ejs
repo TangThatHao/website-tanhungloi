@@ -26,12 +26,18 @@
           </a>
         <% }) %>
       </div>
-      <div class="section-title">🔥 Sản phẩm bán chạy</div>
+      <div class="section-title-bar">
+        <div class="section-title">🔥 Sản phẩm bán chạy</div>
+        <a href="/san-pham?label=hot" class="view-all-link">Xem tất cả →</a>
+      </div>
       <div class="product-grid">
         <% bestSellers.forEach(p => { %><%- include('partials/product-card', { p, currentPath: '/' }) %><% }) %>
       </div>
 
-      <div class="section-title" style="margin-top:24px;">✨ Sản phẩm mới</div>
+      <div class="section-title-bar" style="margin-top:24px;">
+        <div class="section-title">✨ Sản phẩm mới</div>
+        <a href="/san-pham?label=new" class="view-all-link">Xem tất cả →</a>
+      </div>
       <div class="product-grid">
         <% newProducts.forEach(p => { %><%- include('partials/product-card', { p, currentPath: '/' }) %><% }) %>
       </div>
