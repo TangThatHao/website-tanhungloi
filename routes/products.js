@@ -5,7 +5,8 @@ const { asyncHandler } = require('../utils/asyncHandler');
 
 const LABELS = {
   hot: { name: 'Sản phẩm bán chạy', column: 'is_hot', order: 'hot_order' },
-  new: { name: 'Sản phẩm mới', column: 'is_new', order: 'new_order' }
+  new: { name: 'Sản phẩm mới', column: 'is_new', order: 'new_order' },
+  export: { name: 'Sản phẩm xuất khẩu', column: 'is_export', order: 'export_order' }
 };
 
 router.get('/san-pham', asyncHandler(async (req, res) => {

@@ -173,7 +173,9 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 .box-title {
   background: var(--color-bg); color: var(--color-dark); font-family: var(--font-serif); font-weight: 700;
   font-size: 14.5px; padding: 14px 18px; letter-spacing: .3px; border-bottom: 2px solid var(--color-accent);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
 }
+.box-title .view-all-link { font-family: var(--font-sans); font-size: 11.5px; }
 .box-body { padding: 14px 18px; }
 
 .cat-list li a { display: flex; align-items: center; gap: 8px; padding: 10px 4px; font-size: 13.5px; border-bottom: 1px solid var(--color-border); transition: padding-left .15s, color .15s; }

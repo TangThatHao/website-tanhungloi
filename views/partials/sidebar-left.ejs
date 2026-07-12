@@ -11,7 +11,7 @@
 </div>
 
 <div class="box">
-  <div class="box-title">🔥 SẢN PHẨM HOT</div>
+  <div class="box-title">🔥 SẢN PHẨM HOT <a href="/san-pham?label=hot" class="view-all-link">Xem tất cả →</a></div>
   <div class="box-body">
     <% sidebarHotProducts.forEach(p => { %>
       <a href="/san-pham/<%= p.slug %>" class="mini-product">
@@ -26,7 +26,7 @@
 </div>
 
 <div class="box">
-  <div class="box-title">📰 BÀI VIẾT HAY</div>
+  <div class="box-title">📰 BÀI VIẾT HAY <a href="/tin-tuc" class="view-all-link">Xem tất cả →</a></div>
   <div class="box-body">
     <ul class="news-ticker">
       <% sidebarNews.forEach(n => { %>
