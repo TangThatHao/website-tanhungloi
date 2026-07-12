@@ -85,6 +85,7 @@ app.use(require('./routes/cart'));
 app.use(require('./routes/products'));
 app.use(require('./routes/news'));
 app.use(require('./routes/pages'));
+app.use(require('./routes/chat'));
 app.use(require('./routes/index'));
 
 app.use((req, res) => {

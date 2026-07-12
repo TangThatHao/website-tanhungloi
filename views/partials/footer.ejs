@@ -35,6 +35,21 @@
       &copy; <%= new Date().getFullYear() %> Bánh Pía Tân Hưng Lợi. Website demo được xây dựng lại phục vụ mục đích tham khảo.
     </div>
   </footer>
+
+  <button type="button" id="chatFab" class="chat-fab" aria-label="Chat tư vấn với Chị Lan">💬</button>
+  <div id="chatWindow" class="chat-window" hidden>
+    <div class="chat-window-header">
+      <span>💬 Chị Lan tư vấn</span>
+      <button type="button" id="chatCloseBtn" aria-label="Đóng">✕</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <form id="chatForm" class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Nhắn cho Chị Lan..." autocomplete="off" />
+      <button type="submit" class="btn btn-primary btn-sm">Gửi</button>
+    </form>
+  </div>
+
   <script src="/js/main.js"></script>
+  <script src="/js/chat-widget.js"></script>
 </body>
 </html>
