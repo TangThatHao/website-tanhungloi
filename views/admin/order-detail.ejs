@@ -1,5 +1,19 @@
 <%- include('partials/layout-header', { pageTitle: 'Chi tiết đơn hàng #' + order.id, activeAdminNav: 'orders' }) %>
 
+<style>
+  .oi-table input.oi-input { width: 100%; border: 1px solid transparent; background: transparent; font: inherit; padding: 4px 6px; border-radius: 4px; }
+  .oi-table input.oi-input:focus { border-color: var(--color-border); background: #fff8ec; outline: none; }
+  .oi-table td.oi-num input { text-align: right; }
+  .oi-remove-row { border: none; background: #eee; border-radius: 4px; cursor: pointer; padding: 3px 9px; font-size: 12px; }
+  .oi-remove-row:hover { background: #e2b2b6; }
+  .oi-add-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 0; }
+  .oi-shipping { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin: 14px 0; padding: 12px 14px; background: #faf6ee; border-radius: var(--radius); }
+  .oi-totals { text-align: right; font-size: 14px; line-height: 2; margin-top: 6px; }
+  .oi-totals .oi-grand { font-size: 17px; font-weight: 700; color: var(--color-primary); }
+  .oi-actions { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+  #saveStatus { font-size: 13px; color: var(--color-muted); }
+</style>
+
 <div class="admin-card">
   <h3 style="margin-top:0;">Đơn hàng #<%= order.id %></h3>
   <p><strong>Khách hàng:</strong> <%= order.customer_name %></p>
@@ -20,23 +34,59 @@
     <button type="submit" class="btn btn-primary btn-sm">Cập nhật</button>
   </form>
 
-  <table class="admin-table">
-    <thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead>
-    <tbody>
-      <% items.forEach(i => { %>
-        <tr>
-          <td><%= i.product_name %></td>
-          <td><%= formatPrice(i.price) %></td>
-          <td><%= i.qty %></td>
-          <td><%= formatPrice(i.price * i.qty) %></td>
-        </tr>
-      <% }) %>
-    </tbody>
-    <tfoot>
-      <tr><td colspan="3" style="text-align:right;"><strong>Tổng cộng</strong></td><td><strong><%= formatPrice(order.total) %></strong></td></tr>
-    </tfoot>
+  <table class="admin-table oi-table" id="oiTable">
+    <thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th><th></th></tr></thead>
+    <tbody id="oiBody"></tbody>
   </table>
-  <a href="/admin/don-hang" class="btn btn-outline" style="margin-top:14px;">← Quay lại danh sách</a>
+
+  <div class="oi-add-row">
+    <select id="oiProductPicker">
+      <option value="">— Chọn sản phẩm để thêm —</option>
+      <% categories.forEach(cat => { %>
+        <optgroup label="<%= cat.name %>">
+          <% products.filter(p => p.category_id === cat.id).forEach(p => { %>
+            <option value="<%= p.id %>" data-name="<%= p.name %>" data-price="<%= p.price %>"><%= p.name %></option>
+          <% }) %>
+        </optgroup>
+      <% }) %>
+    </select>
+    <button type="button" id="oiAddProduct" class="btn btn-outline btn-sm">+ Thêm sản phẩm</button>
+  </div>
+
+  <div class="oi-shipping">
+    <label style="display:flex; align-items:center; gap:6px;">
+      <input type="checkbox" id="oiFreeShip" /> Miễn phí ship
+    </label>
+    <label style="display:flex; align-items:center; gap:6px;">
+      Phí ship:
+      <input type="number" id="oiShippingFee" min="0" step="1000" style="width:120px; padding:6px 8px; border:1px solid var(--color-border); border-radius:6px;" />
+    </label>
+  </div>
+
+  <div class="oi-totals">
+    <div>Tạm tính: <span id="oiSubtotal"></span></div>
+    <div>Phí ship: <span id="oiShipDisplay"></span></div>
+    <div class="oi-grand">Tổng cộng: <span id="oiGrandTotal"></span></div>
+  </div>
+
+  <div class="oi-actions">
+    <a href="/admin/don-hang" class="btn btn-outline">← Quay lại danh sách</a>
+    <button type="button" id="oiSaveBtn" class="btn btn-primary" disabled>💾 Lưu thay đổi</button>
+    <a href="/admin/don-hang/<%= order.id %>/phieu-giao-hang" id="oiExportLink" class="btn btn-primary" target="_blank">🧾 Xuất PDF phiếu giao hàng</a>
+    <span id="saveStatus"></span>
+  </div>
 </div>
+
+<script>
+  window.__OI_ORDER_ID__ = <%= order.id %>;
+  window.__OI_ITEMS__ = <%- JSON.stringify(items.map(i => ({
+    product_id: i.product_id,
+    product_name: i.product_name,
+    price: i.price,
+    qty: i.qty
+  }))).replace(/</g, '\\u003c') %>;
+  window.__OI_SHIPPING_FEE__ = <%= Number(order.shipping_fee) || 0 %>;
+</script>
+<script src="/js/order-detail.js"></script>
 
 <%- include('partials/layout-footer') %>

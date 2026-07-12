@@ -1,0 +1,155 @@
+<%- include('partials/layout-header', { pageTitle: 'Phiếu giao hàng - Đơn #' + order.id, activeAdminNav: 'orders' }) %>
+
+<style>
+  .pgh-toolbar { display: flex; gap: 14px; align-items: center; margin-bottom: 18px; flex-wrap: wrap; }
+  #pghPreviewWrap { overflow: auto; padding: 24px; background: #e9e4da; border-radius: var(--radius); }
+  #pghScaleBox { margin: 0 auto; }
+  .pgh-page {
+    width: 210mm; height: 297mm; padding: 14mm 16mm;
+    background: #fff; color: #1a1a1a; box-sizing: border-box;
+    font-family: 'Inter', Arial, sans-serif; box-shadow: 0 2px 18px rgba(0,0,0,.18);
+    display: flex; flex-direction: column;
+  }
+  .pgh-page.pgh-a5 { width: 148mm; height: 210mm; padding: 10mm 12mm; font-size: 12px; }
+  .pgh-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #d21f2d; padding-bottom: 10px; margin-bottom: 14px; }
+  .pgh-company { font-size: 11px; line-height: 1.55; max-width: 62%; }
+  .pgh-company strong { display: block; font-size: 14px; margin-bottom: 2px; }
+  .pgh-a5 .pgh-company { font-size: 9.5px; }
+  .pgh-a5 .pgh-company strong { font-size: 12px; }
+  .pgh-title { text-align: right; white-space: nowrap; }
+  .pgh-title h2 { margin: 0; font-size: 20px; color: #d21f2d; letter-spacing: 1px; }
+  .pgh-a5 .pgh-title h2 { font-size: 16px; }
+  .pgh-title div { font-size: 12px; color: #555; margin-top: 4px; }
+  .pgh-customer { margin-bottom: 14px; font-size: 13px; line-height: 1.9; }
+  .pgh-a5 .pgh-customer { font-size: 11px; line-height: 1.7; }
+  .pgh-items-wrap { overflow-x: auto; }
+  .pgh-items-table { border-collapse: collapse; font-size: 12.5px; table-layout: fixed; margin: 0 auto; }
+  .pgh-a5 .pgh-items-table { font-size: 10.5px; }
+  .pgh-items-table th, .pgh-items-table td { border: 1px solid #333; padding: 7px 9px; vertical-align: middle; }
+  .pgh-a5 .pgh-items-table th, .pgh-a5 .pgh-items-table td { padding: 4px 6px; }
+  .pgh-items-table thead th { background: #f6ecd9; text-align: center; }
+  .pgh-idx { text-align: center; white-space: nowrap; width: 32px; }
+  .pgh-price, .pgh-qty, .pgh-subtotal { text-align: right; }
+  .pgh-qty { width: 48px; }
+  .pgh-price { width: 82px; }
+  .pgh-subtotal { width: 100px; }
+  .pgh-name-cell { width: 320px; white-space: normal; word-break: break-word; }
+  .pgh-a5 .pgh-name-cell { width: 200px; }
+  .pgh-phone { white-space: nowrap; }
+  .pgh-resizable { position: relative; }
+  .pgh-resize-handle { position: absolute; right: -6px; top: 0; width: 12px; height: 100%; cursor: col-resize; touch-action: none; z-index: 2; }
+  .pgh-resize-handle:hover, .pgh-resize-handle.pgh-resizing { background: rgba(210, 31, 45, .25); }
+  .pgh-footer { padding-top: 22px; }
+  .pgh-date { text-align: right; font-style: italic; margin-bottom: 34px; }
+  .pgh-a5 .pgh-date { margin-bottom: 22px; }
+  .pgh-signatures { display: flex; justify-content: space-between; text-align: center; }
+  .pgh-signatures > div { width: 44%; }
+  .pgh-signatures strong { display: block; margin-bottom: 45px; }
+  .pgh-a5 .pgh-signatures strong { margin-bottom: 28px; }
+  .pgh-signatures em { font-size: 11px; color: #666; }
+  .pgh-capturing .no-print { display: none; }
+  #pghStatus { font-size: 13px; color: var(--color-muted); }
+</style>
+
+<div class="admin-card">
+  <h3 style="margin-top:0;">Phiếu giao hàng - Đơn #<%= order.id %></h3>
+
+  <div class="pgh-toolbar">
+    <label>Khổ giấy:
+      <select id="pghPaperSize">
+        <option value="A4">A4 (210 x 297 mm)</option>
+        <option value="A5">A5 (148 x 210 mm)</option>
+      </select>
+    </label>
+    <button type="button" id="pghExportPdf" class="btn btn-primary btn-sm">Xuất PDF &amp; Chia sẻ</button>
+    <a href="/admin/don-hang/<%= order.id %>" class="btn btn-outline btn-sm">← Quay lại đơn hàng</a>
+    <span id="pghStatus"></span>
+  </div>
+
+  <div id="pghPreviewWrap">
+    <div id="pghScaleBox">
+    <div id="pghPage" class="pgh-page pgh-a4">
+      <div class="pgh-header">
+        <div class="pgh-company">
+          <strong>DOANH NGHIỆP TƯ NHÂN YẾN LINH</strong>
+          <div>Thương hiệu: Bánh Pía Tân Hưng Lợi</div>
+          <div>MST: 2200225364</div>
+          <div>Cửa hàng Sóc Trăng: 122 Lý Thường Kiệt, TP Sóc Trăng</div>
+          <div>Chi nhánh Sài Gòn: 418/45 Hồng Bàng, P. Minh Phụng, TP.HCM</div>
+          <div class="pgh-phone">Hotline: 0919 454 484</div>
+        </div>
+        <div class="pgh-title">
+          <h2>PHIẾU GIAO HÀNG</h2>
+          <div>Số đơn: #<%= order.id %></div>
+          <div>Ngày đặt: <%= new Date(order.created_at).toLocaleDateString('vi-VN') %></div>
+        </div>
+      </div>
+
+      <div class="pgh-customer">
+        <div><strong>Khách hàng:</strong> <%= order.customer_name %></div>
+        <div><strong>Điện thoại:</strong> <%= order.phone %></div>
+        <div><strong>Địa chỉ giao hàng:</strong> <%= order.address %></div>
+        <div><strong>Ghi chú:</strong> <%= order.note || '(không có)' %></div>
+      </div>
+
+      <div class="pgh-items-wrap">
+        <table class="pgh-items-table" id="pghItemsTable">
+          <thead>
+            <tr>
+              <th class="pgh-idx">#</th>
+              <th class="pgh-name-cell pgh-resizable">Tên sản phẩm<span class="pgh-resize-handle no-print"></span></th>
+              <th class="pgh-qty pgh-resizable">SL<span class="pgh-resize-handle no-print"></span></th>
+              <th class="pgh-price pgh-resizable">Đơn giá<span class="pgh-resize-handle no-print"></span></th>
+              <th class="pgh-subtotal pgh-resizable">Thành tiền<span class="pgh-resize-handle no-print"></span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% items.forEach((it, idx) => { %>
+              <tr>
+                <td class="pgh-idx"><%= idx + 1 %></td>
+                <td class="pgh-name-cell"><%= it.product_name %></td>
+                <td class="pgh-qty"><%= it.qty %></td>
+                <td class="pgh-price"><%= formatPrice(it.price) %></td>
+                <td class="pgh-subtotal"><%= formatPrice(it.price * it.qty) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4" style="text-align:right;">Tạm tính</td>
+              <td class="pgh-subtotal"><%= formatPrice(itemsTotal) %></td>
+            </tr>
+            <tr>
+              <td colspan="4" style="text-align:right;">Phí ship</td>
+              <td class="pgh-subtotal"><%= order.shipping_fee > 0 ? formatPrice(order.shipping_fee) : 'Miễn phí' %></td>
+            </tr>
+            <tr>
+              <td colspan="4" style="text-align:right;"><strong>Tổng cộng</strong></td>
+              <td class="pgh-subtotal"><strong><%= formatPrice(order.total) %></strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="pgh-footer">
+        <div class="pgh-date"><%
+          const d = new Date();
+        %>Ngày <%= String(d.getDate()).padStart(2, '0') %> tháng <%= String(d.getMonth() + 1).padStart(2, '0') %> năm <%= d.getFullYear() %></div>
+        <div class="pgh-signatures">
+          <div><strong>Người giao hàng</strong><em>(Ký, ghi rõ họ tên)</em></div>
+          <div><strong>Người nhận hàng</strong><em>(Ký, ghi rõ họ tên)</em></div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.__PGH_ORDER_ID__ = <%= order.id %>;
+</script>
+<script src="/vendor/html2canvas.min.js"></script>
+<script src="/vendor/jspdf.umd.min.js"></script>
+<script src="/js/delivery-note.js"></script>
+
+<%- include('partials/layout-footer') %>

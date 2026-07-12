@@ -406,12 +406,53 @@ router.get('/admin/don-hang/:id', asyncHandler(async (req, res) => {
   const order = await get('SELECT * FROM orders WHERE id = ?', [req.params.id]);
   if (!order) return res.status(404).send('Không tìm thấy đơn hàng.');
   const items = await all('SELECT * FROM order_items WHERE order_id = ?', [req.params.id]);
-  res.render('admin/order-detail', { order, items });
+  const categories = await all('SELECT id, name FROM categories ORDER BY sort_order ASC');
+  const products = await all('SELECT id, name, price, category_id FROM products ORDER BY name ASC');
+  res.render('admin/order-detail', { order, items, categories, products });
 }));
 
 router.post('/admin/don-hang/:id/trang-thai', asyncHandler(async (req, res) => {
   await run('UPDATE orders SET status = ? WHERE id = ?', [req.body.status, req.params.id]);
   res.redirect('/admin/don-hang/' + req.params.id);
+}));
+
+router.post('/admin/don-hang/:id/luu', asyncHandler(async (req, res) => {
+  const order = await get('SELECT id FROM orders WHERE id = ?', [req.params.id]);
+  if (!order) return res.status(404).json({ error: 'Không tìm thấy đơn hàng.' });
+
+  const items = Array.isArray(req.body.items) ? req.body.items : [];
+  const shippingFee = Math.max(0, Math.round(Number(req.body.shipping_fee) || 0));
+
+  const cleanItems = items
+    .map((it) => ({
+      product_id: it.product_id ? Number(it.product_id) : null,
+      product_name: String(it.product_name || '').trim().slice(0, 200),
+      price: Math.max(0, Math.round(Number(it.price) || 0)),
+      qty: Math.max(1, Math.round(Number(it.qty) || 1))
+    }))
+    .filter((it) => it.product_name);
+
+  const itemsTotal = cleanItems.reduce((sum, it) => sum + it.price * it.qty, 0);
+  const total = itemsTotal + shippingFee;
+
+  await run('DELETE FROM order_items WHERE order_id = ?', [req.params.id]);
+  for (const it of cleanItems) {
+    await run(
+      'INSERT INTO order_items (order_id, product_id, product_name, price, qty) VALUES (?, ?, ?, ?, ?)',
+      [req.params.id, it.product_id, it.product_name, it.price, it.qty]
+    );
+  }
+  await run('UPDATE orders SET total = ?, shipping_fee = ? WHERE id = ?', [total, shippingFee, req.params.id]);
+
+  res.json({ success: true, total, shippingFee, itemsTotal });
+}));
+
+router.get('/admin/don-hang/:id/phieu-giao-hang', asyncHandler(async (req, res) => {
+  const order = await get('SELECT * FROM orders WHERE id = ?', [req.params.id]);
+  if (!order) return res.status(404).send('Không tìm thấy đơn hàng.');
+  const items = await all('SELECT * FROM order_items WHERE order_id = ?', [req.params.id]);
+  const itemsTotal = items.reduce((sum, it) => sum + it.price * it.qty, 0);
+  res.render('admin/delivery-note', { order, items, itemsTotal });
 }));
 
 router.get('/admin/bao-cao-doanh-thu', asyncHandler(async (req, res) => {
