@@ -193,13 +193,13 @@ router.post('/tai-khoan/doi-mat-khau/bo-qua', requirePersonalMember, asyncHandle
 
 router.get('/tai-khoan/don-hang/:id/sua', requirePersonalMember, asyncHandler(async (req, res) => {
   const order = await get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [req.params.id, req.session.userId]);
-  if (!order || order.status === 'hoan_thanh') return res.redirect('/tai-khoan');
+  if (!order || order.status !== 'moi') return res.redirect('/tai-khoan');
   res.render('account-order-edit', { order, error: null });
 }));
 
 router.post('/tai-khoan/don-hang/:id/sua', requirePersonalMember, asyncHandler(async (req, res) => {
   const order = await get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [req.params.id, req.session.userId]);
-  if (!order || order.status === 'hoan_thanh') return res.redirect('/tai-khoan');
+  if (!order || order.status !== 'moi') return res.redirect('/tai-khoan');
 
   const { customer_name, phone, email, address, note } = req.body;
   if (!customer_name || !phone || !address) {
@@ -211,7 +211,7 @@ router.post('/tai-khoan/don-hang/:id/sua', requirePersonalMember, asyncHandler(a
 
   await run(
     `UPDATE orders SET customer_name = ?, phone = ?, email = ?, address = ?, note = ?
-     WHERE id = ? AND user_id = ? AND status != 'hoan_thanh'`,
+     WHERE id = ? AND user_id = ? AND status = 'moi'`,
     [customer_name, phone, email || null, address, note || null, req.params.id, req.session.userId]
   );
   res.redirect('/tai-khoan');
@@ -219,9 +219,9 @@ router.post('/tai-khoan/don-hang/:id/sua', requirePersonalMember, asyncHandler(a
 
 router.post('/tai-khoan/don-hang/:id/xoa', requirePersonalMember, asyncHandler(async (req, res) => {
   const order = await get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [req.params.id, req.session.userId]);
-  if (order && order.status !== 'hoan_thanh') {
+  if (order && order.status === 'moi') {
     await run('DELETE FROM order_items WHERE order_id = ?', [req.params.id]);
-    await run(`DELETE FROM orders WHERE id = ? AND user_id = ? AND status != 'hoan_thanh'`, [req.params.id, req.session.userId]);
+    await run(`DELETE FROM orders WHERE id = ? AND user_id = ? AND status = 'moi'`, [req.params.id, req.session.userId]);
   }
   res.redirect('/tai-khoan');
 }));
