@@ -194,35 +194,62 @@ router.post('/tai-khoan/doi-mat-khau/bo-qua', requirePersonalMember, asyncHandle
 router.get('/tai-khoan/don-hang/:id/sua', requirePersonalMember, asyncHandler(async (req, res) => {
   const order = await get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [req.params.id, req.session.userId]);
   if (!order || order.status !== 'moi') return res.redirect('/tai-khoan');
-  res.render('account-order-edit', { order, error: null });
+  const items = await all('SELECT * FROM order_items WHERE order_id = ?', [req.params.id]);
+  const categories = await all('SELECT id, name FROM categories ORDER BY sort_order ASC');
+  const products = await all('SELECT id, name, price, category_id FROM products ORDER BY name ASC');
+  res.render('account-order-edit', { order, items, categories, products, error: null });
 }));
 
-router.post('/tai-khoan/don-hang/:id/sua', requirePersonalMember, asyncHandler(async (req, res) => {
+router.post('/tai-khoan/don-hang/:id/luu', requirePersonalMember, asyncHandler(async (req, res) => {
   const order = await get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [req.params.id, req.session.userId]);
-  if (!order || order.status !== 'moi') return res.redirect('/tai-khoan');
+  if (!order || order.status !== 'moi') {
+    return res.status(400).json({ error: 'Đơn hàng không còn ở trạng thái Mới nên không thể chỉnh sửa.' });
+  }
 
   const { customer_name, phone, email, address, note } = req.body;
   if (!customer_name || !phone || !address) {
-    return res.render('account-order-edit', {
-      order: { ...order, customer_name, phone, email, address, note },
-      error: 'Vui lòng điền đầy đủ họ tên, số điện thoại và địa chỉ giao hàng.'
-    });
+    return res.status(400).json({ error: 'Vui lòng điền đầy đủ họ tên, số điện thoại và địa chỉ giao hàng.' });
   }
 
+  const items = Array.isArray(req.body.items) ? req.body.items : [];
+  const cleanItems = items
+    .map((it) => ({
+      product_id: it.product_id ? Number(it.product_id) : null,
+      product_name: String(it.product_name || '').trim().slice(0, 200),
+      price: Math.max(0, Math.round(Number(it.price) || 0)),
+      qty: Math.max(1, Math.round(Number(it.qty) || 1))
+    }))
+    .filter((it) => it.product_name);
+
+  if (cleanItems.length === 0) {
+    return res.status(400).json({ error: 'Đơn hàng phải có ít nhất một sản phẩm.' });
+  }
+
+  const itemsTotal = cleanItems.reduce((sum, it) => sum + it.price * it.qty, 0);
+  const shippingFee = Number(order.shipping_fee) || 0;
+  const total = itemsTotal + shippingFee;
+
+  await run('DELETE FROM order_items WHERE order_id = ?', [req.params.id]);
+  for (const it of cleanItems) {
+    await run(
+      'INSERT INTO order_items (order_id, product_id, product_name, price, qty) VALUES (?, ?, ?, ?, ?)',
+      [req.params.id, it.product_id, it.product_name, it.price, it.qty]
+    );
+  }
   await run(
-    `UPDATE orders SET customer_name = ?, phone = ?, email = ?, address = ?, note = ?
+    `UPDATE orders SET customer_name = ?, phone = ?, email = ?, address = ?, note = ?, total = ?
      WHERE id = ? AND user_id = ? AND status = 'moi'`,
-    [customer_name, phone, email || null, address, note || null, req.params.id, req.session.userId]
+    [customer_name, phone, email || null, address, note || null, total, req.params.id, req.session.userId]
   );
-  res.redirect('/tai-khoan');
+
+  res.json({ success: true, total });
 }));
 
-router.post('/tai-khoan/don-hang/:id/xoa', requirePersonalMember, asyncHandler(async (req, res) => {
-  const order = await get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [req.params.id, req.session.userId]);
-  if (order && order.status === 'moi') {
-    await run('DELETE FROM order_items WHERE order_id = ?', [req.params.id]);
-    await run(`DELETE FROM orders WHERE id = ? AND user_id = ? AND status = 'moi'`, [req.params.id, req.session.userId]);
-  }
+router.post('/tai-khoan/don-hang/:id/huy', requirePersonalMember, asyncHandler(async (req, res) => {
+  await run(
+    `UPDATE orders SET status = 'huy' WHERE id = ? AND user_id = ? AND status = 'moi'`,
+    [req.params.id, req.session.userId]
+  );
   res.redirect('/tai-khoan');
 }));
 

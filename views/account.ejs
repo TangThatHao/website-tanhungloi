@@ -42,8 +42,8 @@
                     <td>
                       <% if (o.status === 'moi') { %>
                         <a href="/tai-khoan/don-hang/<%= o.id %>/sua" class="btn btn-outline btn-sm">Sửa</a>
-                        <form action="/tai-khoan/don-hang/<%= o.id %>/xoa" method="post" style="display:inline;">
-                          <button type="submit" class="btn btn-outline btn-sm">Xóa</button>
+                        <form action="/tai-khoan/don-hang/<%= o.id %>/huy" method="post" style="display:inline;" onsubmit="return confirm('Hủy đơn hàng #<%= o.id %>?');">
+                          <button type="submit" class="btn btn-outline btn-sm">Hủy đơn</button>
                         </form>
                       <% } %>
                     </td>

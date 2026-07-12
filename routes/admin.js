@@ -398,13 +398,19 @@ router.post('/admin/tin-tuc/:id/xoa', asyncHandler(async (req, res) => {
 
 // ---------- Orders ----------
 router.get('/admin/don-hang', asyncHandler(async (req, res) => {
-  const orders = await all('SELECT * FROM orders ORDER BY created_at DESC');
+  const orders = await all(`SELECT * FROM orders ORDER BY
+    CASE status WHEN 'moi' THEN 1 WHEN 'dang_xu_ly' THEN 2 WHEN 'hoan_thanh' THEN 3 WHEN 'huy' THEN 4 ELSE 5 END,
+    created_at DESC`);
   res.render('admin/orders', { orders });
 }));
 
 router.get('/admin/don-hang/:id', asyncHandler(async (req, res) => {
   const order = await get('SELECT * FROM orders WHERE id = ?', [req.params.id]);
   if (!order) return res.status(404).send('Không tìm thấy đơn hàng.');
+  if (order.status === 'moi') {
+    await run("UPDATE orders SET status = 'dang_xu_ly' WHERE id = ?", [req.params.id]);
+    order.status = 'dang_xu_ly';
+  }
   const items = await all('SELECT * FROM order_items WHERE order_id = ?', [req.params.id]);
   const categories = await all('SELECT id, name FROM categories ORDER BY sort_order ASC');
   const products = await all('SELECT id, name, price, category_id FROM products ORDER BY name ASC');

@@ -1,26 +1,83 @@
 <%- include('partials/header', { pageTitle: 'Sửa đơn hàng #' + order.id + ' - Tân Hưng Lợi', activeNav: '' }) %>
 
+<style>
+  .oi-table input.oi-input { width: 100%; border: 1px solid transparent; background: transparent; font: inherit; padding: 4px 6px; border-radius: 4px; }
+  .oi-table input.oi-input:focus { border-color: var(--color-border); background: #fff8ec; outline: none; }
+  .oi-table td.oi-num input { text-align: right; }
+  .oi-remove-row { border: none; background: #eee; border-radius: 4px; cursor: pointer; padding: 3px 9px; font-size: 12px; }
+  .oi-remove-row:hover { background: #e2b2b6; }
+  .oi-add-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin: 14px 0; }
+  .oi-totals { text-align: right; font-size: 14px; line-height: 2; margin-top: 6px; }
+  .oi-totals .oi-grand { font-size: 17px; font-weight: 700; color: var(--color-primary); }
+  .oi-actions { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+  #saveStatus { font-size: 13px; color: var(--color-muted); }
+</style>
+
 <div class="container">
   <div class="breadcrumb"><a href="/">Trang chủ</a> / <a href="/tai-khoan">Tài khoản của tôi</a> / Sửa đơn hàng #<%= order.id %></div>
   <div class="section-title">Sửa đơn hàng #<%= order.id %></div>
 
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
 
-  <div class="box" style="max-width:600px;">
+  <div class="box" style="max-width:800px;">
     <div class="box-body">
-      <form action="/tai-khoan/don-hang/<%= order.id %>/sua" method="post">
-        <div class="field"><label>Họ tên người nhận</label><input type="text" name="customer_name" value="<%= order.customer_name || '' %>" required /></div>
-        <div class="field"><label>Số điện thoại</label><input type="text" name="phone" value="<%= order.phone || '' %>" required /></div>
-        <div class="field"><label>Email</label><input type="email" name="email" value="<%= order.email || '' %>" /></div>
-        <div class="field"><label>Địa chỉ giao hàng</label><textarea name="address" rows="3" required><%= order.address || '' %></textarea></div>
-        <div class="field"><label>Ghi chú</label><textarea name="note" rows="2"><%= order.note || '' %></textarea></div>
-        <button type="submit" class="btn btn-primary btn-block">Lưu thay đổi</button>
-      </form>
-      <form action="/tai-khoan/don-hang/<%= order.id %>/xoa" method="post" style="margin-top:12px;">
-        <button type="submit" class="btn btn-outline btn-block">Xóa đơn hàng</button>
-      </form>
+      <div class="field"><label>Họ tên người nhận</label><input type="text" id="oiCustomerName" value="<%= order.customer_name || '' %>" required /></div>
+      <div class="field"><label>Số điện thoại</label><input type="text" id="oiPhone" value="<%= order.phone || '' %>" required /></div>
+      <div class="field"><label>Email</label><input type="email" id="oiEmail" value="<%= order.email || '' %>" /></div>
+      <div class="field"><label>Địa chỉ giao hàng</label><textarea id="oiAddress" rows="3" required><%= order.address || '' %></textarea></div>
+      <div class="field"><label>Ghi chú</label><textarea id="oiNote" rows="2"><%= order.note || '' %></textarea></div>
+
+      <h4 style="margin:20px 0 8px;">Sản phẩm</h4>
+      <table class="admin-table oi-table" id="oiTable">
+        <thead><tr><th>Sản phẩm</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th><th></th></tr></thead>
+        <tbody id="oiBody"></tbody>
+      </table>
+
+      <div class="oi-add-row">
+        <select id="oiProductPicker">
+          <option value="">— Chọn sản phẩm để thêm —</option>
+          <% categories.forEach(cat => { %>
+            <optgroup label="<%= cat.name %>">
+              <% products.filter(p => p.category_id === cat.id).forEach(p => { %>
+                <option value="<%= p.id %>" data-name="<%= p.name %>" data-price="<%= p.price %>"><%= p.name %></option>
+              <% }) %>
+            </optgroup>
+          <% }) %>
+        </select>
+        <button type="button" id="oiAddProduct" class="btn btn-outline btn-sm">+ Thêm sản phẩm</button>
+      </div>
+
+      <div class="oi-totals">
+        <div>Tạm tính: <span id="oiSubtotal"></span></div>
+        <div>Phí ship: <span id="oiShipDisplay"></span></div>
+        <div class="oi-grand">Tổng cộng: <span id="oiGrandTotal"></span></div>
+      </div>
+
+      <div class="oi-actions">
+        <a href="/tai-khoan" class="btn btn-outline">← Quay lại</a>
+        <button type="button" id="oiSaveBtn" class="btn btn-primary" disabled>Lưu thay đổi</button>
+        <span id="saveStatus"></span>
+      </div>
     </div>
   </div>
+
+  <form action="/tai-khoan/don-hang/<%= order.id %>/huy" method="post" style="max-width:800px; margin-top:12px;" onsubmit="return confirm('Hủy đơn hàng #<%= order.id %>?');">
+    <button type="submit" class="btn btn-outline btn-block">Hủy đơn hàng</button>
+  </form>
 </div>
+
+<script>
+  window.__OI_ORDER_ID__ = <%= order.id %>;
+  window.__OI_SAVE_URL__ = '/tai-khoan/don-hang/<%= order.id %>/luu';
+  window.__OI_REDIRECT_URL__ = '/tai-khoan';
+  window.__OI_ITEMS__ = <%- JSON.stringify(items.map(i => ({
+    product_id: i.product_id,
+    product_name: i.product_name,
+    price: i.price,
+    qty: i.qty
+  }))).replace(/</g, '\\u003c') %>;
+  window.__OI_SHIPPING_FEE__ = <%= Number(order.shipping_fee) || 0 %>;
+</script>
+<script src="/js/account-order-edit.js"></script>
 
 <%- include('partials/footer') %>
