@@ -96,20 +96,58 @@ router.use('/admin', requireAdmin);
 
 // ---------- Dashboard ----------
 router.get('/admin', asyncHandler(async (req, res) => {
-  const [productCount, orderCount, revenue, memberCount, recentOrders] = await Promise.all([
+  const [
+    productCount, orderCount, revenue, memberCount, recentOrders, monthlyRevenueRows,
+    topProducts, pendingOrders, pendingOrdersCount, unreadContacts
+  ] = await Promise.all([
     get('SELECT COUNT(*) c FROM products'),
     get('SELECT COUNT(*) c FROM orders'),
-    get("SELECT COALESCE(SUM(total),0) s FROM orders WHERE status != 'huy'"),
+    get("SELECT COALESCE(SUM(total),0) s FROM orders WHERE status = 'hoan_thanh'"),
     get("SELECT COUNT(*) c FROM users WHERE role = 'member'"),
-    all('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5')
+    all('SELECT * FROM orders ORDER BY created_at DESC LIMIT 5'),
+    all(`
+      SELECT to_char(created_at, 'YYYY-MM') AS month, COALESCE(SUM(total),0) AS revenue
+      FROM orders WHERE status = 'hoan_thanh' AND created_at >= (CURRENT_DATE - INTERVAL '6 months')
+      GROUP BY month ORDER BY month ASC
+    `),
+    all(`
+      SELECT oi.product_id, oi.product_name, SUM(oi.qty) AS qty_sold, p.image, p.slug
+      FROM order_items oi
+      JOIN orders o ON o.id = oi.order_id
+      LEFT JOIN products p ON p.id = oi.product_id
+      WHERE o.status = 'hoan_thanh'
+      GROUP BY oi.product_id, oi.product_name, p.image, p.slug
+      ORDER BY qty_sold DESC LIMIT 5
+    `),
+    all("SELECT * FROM orders WHERE status IN ('moi','dang_xu_ly') ORDER BY created_at ASC LIMIT 5"),
+    get("SELECT COUNT(*) c FROM orders WHERE status IN ('moi','dang_xu_ly')"),
+    get('SELECT COUNT(*) c FROM contacts WHERE is_read = 0')
   ]);
   const stats = {
     productCount: Number(productCount.c),
     orderCount: Number(orderCount.c),
     revenue: Number(revenue.s),
-    memberCount: Number(memberCount.c)
+    memberCount: Number(memberCount.c),
+    pendingOrdersCount: Number(pendingOrdersCount.c),
+    unreadContacts: Number(unreadContacts.c)
   };
-  res.render('admin/dashboard', { stats, recentOrders });
+
+  const revenueByMonth = new Map(monthlyRevenueRows.map((r) => [r.month, Number(r.revenue)]));
+  const now = new Date();
+  const monthlyRevenue = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    monthlyRevenue.push({ label: `T${d.getMonth() + 1}/${d.getFullYear()}`, revenue: revenueByMonth.get(key) || 0 });
+  }
+  const thisMonth = monthlyRevenue[monthlyRevenue.length - 1].revenue;
+  const lastMonth = monthlyRevenue[monthlyRevenue.length - 2].revenue;
+  const revenueChangePct = lastMonth > 0 ? Math.round(((thisMonth - lastMonth) / lastMonth) * 100) : (thisMonth > 0 ? 100 : 0);
+
+  res.render('admin/dashboard', {
+    stats, recentOrders, monthlyRevenue, revenueChangePct,
+    topProducts, pendingOrders
+  });
 }));
 
 // ---------- Products ----------
@@ -378,7 +416,7 @@ router.post('/admin/don-hang/:id/trang-thai', asyncHandler(async (req, res) => {
 
 router.get('/admin/bao-cao-doanh-thu', asyncHandler(async (req, res) => {
   const { tu_ngay, den_ngay, khach } = req.query;
-  const conditions = ["status != 'huy'"];
+  const conditions = ["status = 'hoan_thanh'"];
   const params = [];
   if (tu_ngay) { conditions.push('created_at >= ?'); params.push(tu_ngay); }
   if (den_ngay) { conditions.push("created_at < (?::date + interval '1 day')"); params.push(den_ngay); }
@@ -430,6 +468,9 @@ router.post('/admin/doi-mat-khau/bo-qua', asyncHandler(async (req, res) => {
 // ---------- Contacts ----------
 router.get('/admin/lien-he', asyncHandler(async (req, res) => {
   const contacts = await all('SELECT * FROM contacts ORDER BY created_at DESC');
+  // Xem danh sách xong thì coi như đã đọc hết - đơn giản, không cần nút
+  // "đánh dấu đã đọc" riêng cho từng tin.
+  await run('UPDATE contacts SET is_read = 1 WHERE is_read = 0');
   res.render('admin/contacts', { contacts });
 }));
 

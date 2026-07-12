@@ -3,10 +3,11 @@
 <div class="admin-card">
   <h3 style="margin-top:0;">Tin nhắn liên hệ (<%= contacts.length %>)</h3>
   <table class="admin-table">
-    <thead><tr><th>Họ tên</th><th>Email</th><th>Điện thoại</th><th>Nội dung</th><th>Thời gian</th></tr></thead>
+    <thead><tr><th></th><th>Họ tên</th><th>Email</th><th>Điện thoại</th><th>Nội dung</th><th>Thời gian</th></tr></thead>
     <tbody>
       <% contacts.forEach(c => { %>
         <tr>
+          <td><% if (!c.is_read) { %><span class="status-pill status-moi">Mới</span><% } %></td>
           <td><%= c.name %></td>
           <td><%= c.email %></td>
           <td><%= c.phone %></td>
@@ -14,7 +15,7 @@
           <td><%= new Date(c.created_at).toLocaleString('vi-VN') %></td>
         </tr>
       <% }) %>
-      <% if (contacts.length === 0) { %><tr><td colspan="5">Chưa có tin nhắn liên hệ.</td></tr><% } %>
+      <% if (contacts.length === 0) { %><tr><td colspan="6">Chưa có tin nhắn liên hệ.</td></tr><% } %>
     </tbody>
   </table>
 </div>
