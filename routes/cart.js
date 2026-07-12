@@ -111,6 +111,11 @@ router.post('/thanh-toan', asyncHandler(async (req, res) => {
 }));
 
 router.get('/tra-cuu-don-hang', (req, res) => {
+  // Khách đã đăng nhập bằng tài khoản cá nhân đã có sẵn đơn hàng của mình ở
+  // /tai-khoan (kèm sửa/xóa đơn mới) - không cần bắt nhập lại số điện thoại.
+  if (res.locals.currentUser && !res.locals.currentUser.is_shared_guest) {
+    return res.redirect('/tai-khoan');
+  }
   res.render('order-lookup', { phone: '', orders: null, error: null, sharedAccountNotice: req.query.tk === 'chung' });
 });
 
