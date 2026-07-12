@@ -7,9 +7,15 @@
 
     <main>
       <div class="category-chips" id="categoryChips">
-        <a href="/san-pham" class="<%= !activeCategory ? 'active' : '' %>"><span class="chip-icon">🍱</span>Tất cả</a>
+        <a href="/san-pham" class="<%= !activeCategory ? 'active' : '' %>">
+          <span class="chip-thumb"><span class="chip-icon">🍱</span></span>
+          <span>Tất cả</span>
+        </a>
         <% navCategories.forEach(cat => { %>
-          <a href="/san-pham?category=<%= cat.slug %>" class="<%= activeCategory === cat.slug ? 'active' : '' %>"><span class="chip-icon"><%= categoryIcon(cat.name) %></span><%= cat.name %></a>
+          <a href="/san-pham?category=<%= cat.slug %>" class="<%= activeCategory === cat.slug ? 'active' : '' %>">
+            <span class="chip-thumb"><% if (cat.image) { %><img src="<%= cat.image %>" alt="<%= cat.name %>" /><% } else { %><span class="chip-icon"><%= categoryIcon(cat.name) %></span><% } %></span>
+            <span><%= cat.name %></span>
+          </a>
         <% }) %>
       </div>
       <div id="productResults">

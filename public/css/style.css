@@ -1,9 +1,9 @@
 :root {
-  --color-primary: #7a1f2b;
-  --color-primary-dark: #4f141d;
-  --color-accent: #c9a24b;
-  --color-accent-light: #e0c26f;
-  --color-accent-dark: #9c7a2e;
+  --color-primary: #d21f2d;
+  --color-primary-dark: #931019;
+  --color-accent: #e8a83a;
+  --color-accent-light: #f4c869;
+  --color-accent-dark: #b9821f;
   --color-dark: #2a1512;
   --color-bg: #faf6ee;
   --color-card: #ffffff;
@@ -72,7 +72,7 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 .contact-hotline-icon {
   width: 42px; height: 42px; flex-shrink: 0; border-radius: 50%; background: var(--color-primary); color: #fff;
   display: flex; align-items: center; justify-content: center; font-size: 18px;
-  box-shadow: 0 6px 14px rgba(122, 31, 43, .32); transition: transform .15s;
+  box-shadow: 0 6px 14px rgba(210, 31, 45, .32); transition: transform .15s;
 }
 .contact-hotline:hover .contact-hotline-icon { transform: scale(1.08); }
 .contact-hotline small { display: block; font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--color-muted); font-weight: 600; }
@@ -100,7 +100,7 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 }
 
 /* ---------- Nav ---------- */
-.main-nav { background: linear-gradient(180deg, #9c2e3d 0%, var(--color-primary) 100%); position: sticky; top: 0; z-index: 50; }
+.main-nav { background: linear-gradient(180deg, #e5383f 0%, var(--color-primary) 100%); position: sticky; top: 0; z-index: 50; }
 .main-nav .container { display: flex; align-items: center; justify-content: space-between; }
 .nav-toggle { display: none; border: none; background: transparent; cursor: pointer; padding: 8px 4px; flex-direction: column; justify-content: center; gap: 5px; width: 36px; height: 36px; }
 .nav-toggle span { display: block; width: 100%; height: 2px; background: #fff; border-radius: 2px; transition: transform .2s, opacity .2s; }
@@ -140,9 +140,9 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 .call-fab {
   position: fixed; right: 26px; bottom: 26px; z-index: 90;
   width: 58px; height: 58px; border-radius: 50%;
-  background: linear-gradient(135deg, #9c2e3d, var(--color-primary-dark));
+  background: linear-gradient(135deg, #e5383f, var(--color-primary-dark));
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 22px rgba(122,31,43,.45);
+  box-shadow: 0 8px 22px rgba(210,31,45,.45);
   transition: transform .2s;
 }
 .call-fab:hover { transform: scale(1.08); }
@@ -202,6 +202,12 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 .section-title::after { content: ""; flex: 1; height: 1px; background: var(--color-border); align-self: center; }
 .section-title::before { content: ""; width: 26px; height: 3px; background: var(--color-accent); align-self: center; order: -1; }
 
+.section-title-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.section-title-bar .section-title { margin: 0; }
+.section-title-bar .section-title::after { display: none; }
+.view-all-link { font-size: 12.5px; font-weight: 700; color: var(--color-accent-dark); white-space: nowrap; flex-shrink: 0; }
+.view-all-link:hover { color: var(--color-primary); }
+
 .category-chips { display: none; }
 
 .product-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
@@ -209,7 +215,7 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   background: var(--color-card); border: 1px solid var(--color-border); border-radius: var(--radius);
   overflow: hidden; transition: box-shadow .2s, transform .2s, border-color .2s;
 }
-.product-card:hover { box-shadow: 0 16px 32px rgba(122,31,43,.18); transform: translateY(-6px); border-color: var(--color-accent-light); }
+.product-card:hover { box-shadow: 0 16px 32px rgba(210,31,45,.18); transform: translateY(-6px); border-color: var(--color-accent-light); }
 .product-card .thumb { aspect-ratio: 1.1; overflow: hidden; background: var(--color-bg); }
 .product-card .thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
 .product-card:hover .thumb img { transform: scale(1.06); }
@@ -225,15 +231,15 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   position: absolute; top: 10px; z-index: 2; font-size: 10.5px; font-weight: 800; padding: 4px 10px 4px 8px;
   border-radius: 3px 10px 10px 3px; letter-spacing: .3px; box-shadow: 0 3px 8px rgba(0,0,0,.2); display: flex; align-items: center; gap: 3px;
 }
-.badge.hot { left: 0; background: linear-gradient(90deg, #b23a3a, var(--color-primary)); color: #fff; }
+.badge.hot { left: 0; background: linear-gradient(90deg, #e5383f, var(--color-primary)); color: #fff; }
 .badge.new { right: 0; border-radius: 10px 3px 3px 10px; background: linear-gradient(90deg, var(--color-accent-light), var(--color-accent)); color: #3a2400; }
 
 .btn {
   display: inline-block; border: 1px solid transparent; border-radius: var(--radius); padding: 10px 20px; cursor: pointer;
   font-weight: 600; font-size: 13px; letter-spacing: .4px; text-transform: uppercase; transition: all .18s;
 }
-.btn-primary { background: linear-gradient(135deg, #9c2e3d, var(--color-primary-dark)); color: #fff; box-shadow: 0 4px 12px rgba(122,31,43,.3); }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(122,31,43,.4); color: #fff; }
+.btn-primary { background: linear-gradient(135deg, #e5383f, var(--color-primary-dark)); color: #fff; box-shadow: 0 4px 12px rgba(210,31,45,.3); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(210,31,45,.4); color: #fff; }
 .btn-outline { background: transparent; border-color: var(--color-accent); color: var(--color-accent-dark); }
 .btn-outline:hover { background: var(--color-accent); color: #fff; border-color: var(--color-accent); transform: translateY(-2px); }
 .btn-block { display: block; width: 100%; text-align: center; }
@@ -442,7 +448,7 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
   .nav-collapse { display: none; flex-direction: column; align-items: stretch; justify-content: flex-start; }
   .nav-collapse.open {
     display: flex; position: fixed; inset: 0; z-index: 100;
-    background: linear-gradient(180deg, #9c2e3d 0%, var(--color-primary) 100%);
+    background: linear-gradient(180deg, #e5383f 0%, var(--color-primary) 100%);
     padding: 68px 20px 20px; overflow-y: auto;
   }
   .nav-menu { flex-direction: column; width: 100%; }
@@ -471,36 +477,28 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
-  /* Chip danh mục dạng lưới 3 cột, có icon, bo tròn kiểu pill - sinh động, không cuộn ngang. */
+  /* Chip danh mục dạng ảnh tròn + tên bên dưới, kiểu app bán hàng - đi cùng nút "Xem tất cả" ở tiêu đề section. */
   .category-chips {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-bottom: 18px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px 8px; margin-bottom: 20px;
   }
   .category-chips a {
-    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 4px;
-    padding: 12px 6px; border-radius: 16px; font-size: 11.5px; font-weight: 700; line-height: 1.25;
-    background: linear-gradient(180deg, #fff 0%, var(--color-bg) 100%);
-    border: 1px solid var(--color-border); color: var(--color-dark);
-    box-shadow: 0 3px 8px rgba(122,31,43,.08);
-    transition: transform .15s, box-shadow .15s, background .15s;
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 7px;
+    font-size: 11.5px; font-weight: 700; line-height: 1.25; color: var(--color-dark);
   }
-  .category-chips a:active { transform: scale(.94); }
-  .category-chips .chip-icon {
-    width: 30px; height: 30px; border-radius: 50%; font-size: 15px;
+  .category-chips a:active .chip-thumb { transform: scale(.93); }
+  .category-chips .chip-thumb {
+    width: 64px; height: 64px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    background: var(--color-accent-light);
+    background: linear-gradient(160deg, var(--color-accent-light), var(--color-accent));
+    box-shadow: 0 4px 10px rgba(210,31,45,.18); border: 2px solid #fff;
+    transition: transform .15s, box-shadow .15s, border-color .15s;
   }
-  .category-chips a:first-child {
-    grid-column: 1 / -1; flex-direction: row; font-size: 13px; padding: 11px 8px;
-    background: linear-gradient(135deg, var(--color-accent-light), var(--color-accent));
-    border-color: var(--color-accent); color: var(--color-dark);
+  .category-chips .chip-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .category-chips .chip-icon { font-size: 27px; }
+  .category-chips a.active { color: var(--color-primary); }
+  .category-chips a.active .chip-thumb {
+    border-color: var(--color-primary); box-shadow: 0 6px 14px rgba(210,31,45,.35);
   }
-  .category-chips a:first-child .chip-icon { background: rgba(255,255,255,.55); width: 26px; height: 26px; }
-  .category-chips a.active {
-    background: linear-gradient(135deg, #9c2e3d, var(--color-primary-dark));
-    border-color: var(--color-primary-dark); color: #fff;
-    box-shadow: 0 6px 14px rgba(122,31,43,.35);
-  }
-  .category-chips a.active .chip-icon { background: rgba(255,255,255,.25); }
 
   .news-list-item { flex-direction: column; }
   .news-list-item img { width: 100%; height: 180px; }

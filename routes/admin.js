@@ -272,12 +272,21 @@ router.get('/admin/danh-muc', asyncHandler(async (req, res) => {
   res.render('admin/categories', { categories, error: null });
 }));
 
-router.post('/admin/danh-muc/them', asyncHandler(async (req, res) => {
+router.post('/admin/danh-muc/them', upload.single('image_file'), asyncHandler(async (req, res) => {
   const { name } = req.body;
   if (!name) return res.redirect('/admin/danh-muc');
   const slug = await uniqueSlug(name, 'categories');
   const maxOrder = Number((await get('SELECT COALESCE(MAX(sort_order),0) m FROM categories')).m);
-  await run('INSERT INTO categories (name, slug, sort_order) VALUES (?, ?, ?)', [name, slug, maxOrder + 1]);
+  const image = req.file ? await saveUploadedFile(req.file) : null;
+  await run('INSERT INTO categories (name, slug, sort_order, image) VALUES (?, ?, ?, ?)', [name, slug, maxOrder + 1, image]);
+  res.redirect('/admin/danh-muc');
+}));
+
+router.post('/admin/danh-muc/:id/anh', upload.single('image_file'), asyncHandler(async (req, res) => {
+  if (req.file) {
+    const image = await saveUploadedFile(req.file);
+    await run('UPDATE categories SET image = ? WHERE id = ?', [image, req.params.id]);
+  }
   res.redirect('/admin/danh-muc');
 }));
 

@@ -3,8 +3,9 @@
 <div class="admin-card" style="max-width:520px;">
   <h3 style="margin-top:0;">Thêm danh mục</h3>
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
-  <form action="/admin/danh-muc/them" method="post" style="display:flex; gap:10px;">
-    <input type="text" name="name" placeholder="Tên danh mục" required style="flex:1; padding:10px; border:1px solid var(--color-border); border-radius:6px;" />
+  <form action="/admin/danh-muc/them" method="post" enctype="multipart/form-data" style="display:flex; gap:10px; flex-wrap:wrap;">
+    <input type="text" name="name" placeholder="Tên danh mục" required style="flex:1; min-width:160px; padding:10px; border:1px solid var(--color-border); border-radius:6px;" />
+    <input type="file" name="image_file" accept="image/*" style="flex:1; min-width:160px;" />
     <button type="submit" class="btn btn-primary">Thêm</button>
   </form>
 </div>
@@ -12,13 +13,20 @@
 <div class="admin-card">
   <h3 style="margin-top:0;">Danh sách danh mục (<%= categories.length %>)</h3>
   <table class="admin-table">
-    <thead><tr><th>Thứ tự</th><th>Tên danh mục</th><th>Slug</th><th>Số sản phẩm</th><th></th></tr></thead>
+    <thead><tr><th>Thứ tự</th><th>Ảnh</th><th>Tên danh mục</th><th>Slug</th><th>Số sản phẩm</th><th></th></tr></thead>
     <tbody>
       <% categories.forEach((c, i) => { %>
         <tr>
           <td class="admin-actions">
             <form action="/admin/danh-muc/<%= c.id %>/len" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === 0 ? 'disabled' : '' %>>▲</button></form>
             <form action="/admin/danh-muc/<%= c.id %>/xuong" method="post"><button type="submit" class="btn btn-outline btn-sm" <%= i === categories.length - 1 ? 'disabled' : '' %>>▼</button></form>
+          </td>
+          <td>
+            <% if (c.image) { %><img src="<%= c.image %>" alt="<%= c.name %>" style="width:44px; height:44px; border-radius:50%; object-fit:cover; display:block;" /><% } %>
+            <form action="/admin/danh-muc/<%= c.id %>/anh" method="post" enctype="multipart/form-data" style="margin-top:6px;">
+              <input type="file" name="image_file" accept="image/*" style="font-size:11px; width:110px;" />
+              <button type="submit" class="btn btn-outline btn-sm" style="padding:3px 8px; font-size:11px;">Lưu</button>
+            </form>
           </td>
           <td><%= c.name %></td>
           <td><%= c.slug %></td>
