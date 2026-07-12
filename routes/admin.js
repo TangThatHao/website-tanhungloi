@@ -465,6 +465,21 @@ router.post('/admin/doi-mat-khau/bo-qua', asyncHandler(async (req, res) => {
   res.redirect('/admin');
 }));
 
+// ---------- Khách hàng ----------
+router.get('/admin/khach-hang', asyncHandler(async (req, res) => {
+  const customers = await all(`
+    SELECT u.id, u.full_name, u.email, u.phone, u.created_at,
+      COUNT(o.id) AS order_count,
+      COALESCE(SUM(CASE WHEN o.status = 'hoan_thanh' THEN o.total ELSE 0 END), 0) AS total_spent
+    FROM users u
+    LEFT JOIN orders o ON o.user_id = u.id
+    WHERE u.role = 'member' AND u.is_shared_guest = 0
+    GROUP BY u.id
+    ORDER BY u.created_at DESC
+  `);
+  res.render('admin/customers', { customers });
+}));
+
 // ---------- Contacts ----------
 router.get('/admin/lien-he', asyncHandler(async (req, res) => {
   const contacts = await all('SELECT * FROM contacts ORDER BY created_at DESC');

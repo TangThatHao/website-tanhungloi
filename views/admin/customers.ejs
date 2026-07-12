@@ -1,0 +1,23 @@
+<%- include('partials/layout-header', { pageTitle: 'Khách hàng', activeAdminNav: 'customers' }) %>
+
+<div class="admin-card">
+  <h3 style="margin-top:0;">Danh sách khách hàng (<%= customers.length %>)</h3>
+  <table class="admin-table">
+    <thead><tr><th>Họ tên</th><th>Email</th><th>Điện thoại</th><th>Số đơn</th><th>Tổng chi tiêu</th><th>Ngày tham gia</th></tr></thead>
+    <tbody>
+      <% customers.forEach(c => { %>
+        <tr>
+          <td><%= c.full_name %></td>
+          <td><%= c.email %></td>
+          <td><%= c.phone %></td>
+          <td><%= c.order_count %></td>
+          <td><%= formatPrice(c.total_spent) %></td>
+          <td><%= new Date(c.created_at).toLocaleString('vi-VN') %></td>
+        </tr>
+      <% }) %>
+      <% if (customers.length === 0) { %><tr><td colspan="6">Chưa có khách hàng nào.</td></tr><% } %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/layout-footer') %>
