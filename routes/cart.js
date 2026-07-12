@@ -43,14 +43,13 @@ router.get('/gio-hang', asyncHandler(async (req, res) => {
 }));
 
 router.post('/gio-hang/cap-nhat', (req, res) => {
-  const qtyMap = req.body.qty || {};
   if (req.session.cart) {
     req.session.cart.forEach((item) => {
-      const newQty = parseInt(qtyMap[item.productId], 10);
+      const newQty = parseInt(req.body['qty_' + item.productId], 10);
       if (newQty && newQty > 0) item.qty = newQty;
     });
   }
-  res.redirect('/gio-hang');
+  res.redirect(req.query.goto === 'thanh-toan' ? '/thanh-toan' : '/gio-hang');
 });
 
 router.post('/gio-hang/xoa', (req, res) => {
