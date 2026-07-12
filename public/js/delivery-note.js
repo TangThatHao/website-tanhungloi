@@ -81,6 +81,10 @@
 
   function beginResize(handle, startX) {
     handle.classList.add('pgh-resizing');
+    // Drag math needs real (unscaled) pixels, but the preview may currently
+    // be shrunk to fit the window (see fitPreview) - disable that scaling
+    // for the duration of the drag so mouse-delta math isn't distorted.
+    pageEl.style.transform = 'none';
     lockAllColumnWidths();
     var th = handle.parentElement;
     var startW = th.getBoundingClientRect().width;
