@@ -23,8 +23,8 @@
                 <a href="/san-pham/<%= item.product.slug %>"><%= item.product.name %></a>
               </td>
               <td><%= formatPrice(item.product.price) %></td>
-              <td><input type="number" name="qty[<%= item.product.id %>]" value="<%= item.qty %>" min="1" /></td>
-              <td><%= formatPrice(item.lineTotal) %></td>
+              <td><input type="number" class="cart-qty-input" data-price="<%= item.product.price %>" name="qty[<%= item.product.id %>]" value="<%= item.qty %>" min="1" /></td>
+              <td class="line-total"><%= formatPrice(item.lineTotal) %></td>
               <td>
                 <form action="/gio-hang/xoa" method="post">
                   <input type="hidden" name="productId" value="<%= item.product.id %>" />
@@ -44,13 +44,46 @@
     <div class="cart-summary">
       <div class="box">
         <div class="box-body">
-          <div class="row"><span>Tạm tính</span><span><%= formatPrice(total) %></span></div>
-          <div class="row total"><span>Tổng cộng</span><span><%= formatPrice(total) %></span></div>
+          <div class="row"><span>Tạm tính</span><span id="cartSubtotal"><%= formatPrice(total) %></span></div>
+          <div class="row total"><span>Tổng cộng</span><span id="cartTotal"><%= formatPrice(total) %></span></div>
           <a href="/thanh-toan" class="btn btn-primary btn-block" style="margin-top:10px;">Tiến hành đặt hàng</a>
         </div>
       </div>
     </div>
   <% } %>
 </div>
+
+<script>
+(function () {
+  function formatPrice(n) {
+    return Number(n || 0).toLocaleString('vi-VN') + ' VNĐ';
+  }
+  var qtyInputs = document.querySelectorAll('.cart-qty-input');
+  var subtotalEl = document.getElementById('cartSubtotal');
+  var totalEl = document.getElementById('cartTotal');
+
+  function recalc() {
+    var subtotal = 0;
+    qtyInputs.forEach(function (input) {
+      var price = Number(input.getAttribute('data-price')) || 0;
+      var qty = Math.max(1, parseInt(input.value, 10) || 1);
+      var lineTotal = price * qty;
+      subtotal += lineTotal;
+      var row = input.closest('tr');
+      if (row) {
+        var cell = row.querySelector('.line-total');
+        if (cell) cell.textContent = formatPrice(lineTotal);
+      }
+    });
+    if (subtotalEl) subtotalEl.textContent = formatPrice(subtotal);
+    if (totalEl) totalEl.textContent = formatPrice(subtotal);
+  }
+
+  qtyInputs.forEach(function (input) {
+    input.addEventListener('input', recalc);
+    input.addEventListener('change', recalc);
+  });
+})();
+</script>
 
 <%- include('partials/footer') %>
