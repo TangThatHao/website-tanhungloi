@@ -19,11 +19,13 @@ function isSafeRedirect(url) {
 }
 
 router.post('/dang-nhap', memberLoginRateLimit, asyncHandler(async (req, res) => {
-  const { username, password, next } = req.body;
-  const user = await get('SELECT * FROM users WHERE username = ?', [username]);
+  const { tai_khoan, password, next } = req.body;
+  // Đăng nhập bằng số điện thoại hoặc email - vẫn kiểm tra thêm cột username
+  // để tương thích các tài khoản cũ còn tên đăng nhập tự đặt trước đây.
+  const user = await get('SELECT * FROM users WHERE username = ? OR email = ? OR phone = ?', [tai_khoan || '', tai_khoan || '', tai_khoan || '']);
 
   if (!user || !bcrypt.compareSync(password || '', user.password_hash)) {
-    return res.render('login', { error: 'Tên đăng nhập hoặc mật khẩu không đúng.', next: next || '/' });
+    return res.render('login', { error: 'Số điện thoại/Email hoặc mật khẩu không đúng.', next: next || '/' });
   }
 
   clearMemberLoginAttempts(req);
@@ -52,8 +54,8 @@ router.post('/quen-mat-khau', memberForgotPasswordRateLimit, asyncHandler(async 
   const genericSuccess = 'Nếu tài khoản tồn tại, một liên kết đặt lại mật khẩu đã được gửi tới email đã đăng ký.';
 
   const user = await get(
-    "SELECT * FROM users WHERE role IN ('member', 'admin') AND (username = ? OR email = ?)",
-    [tai_khoan || '', tai_khoan || '']
+    "SELECT * FROM users WHERE role IN ('member', 'admin') AND (username = ? OR email = ? OR phone = ?)",
+    [tai_khoan || '', tai_khoan || '', tai_khoan || '']
   );
 
   // Không tiết lộ tài khoản có tồn tại hay không (tránh dò username/email),
@@ -112,26 +114,29 @@ router.get('/dang-ky', (req, res) => {
 });
 
 router.post('/dang-ky', asyncHandler(async (req, res) => {
-  const { full_name, email, phone, username, password, confirm_password, next } = req.body;
+  const { full_name, email, phone, password, confirm_password, next } = req.body;
   const nextUrl = next || '/tai-khoan';
 
-  if (!full_name || !email || !phone || !username || !password) {
+  if (!full_name || !email || !phone || !password) {
     return res.render('register', { error: 'Vui lòng điền đầy đủ thông tin.', form: req.body, next: nextUrl });
   }
   if (password !== confirm_password) {
     return res.render('register', { error: 'Mật khẩu xác nhận không khớp.', form: req.body, next: nextUrl });
   }
-  if (await get('SELECT id FROM users WHERE username = ?', [username])) {
-    return res.render('register', { error: 'Tên đăng nhập đã tồn tại.', form: req.body, next: nextUrl });
+  if (await get('SELECT id FROM users WHERE phone = ?', [phone])) {
+    return res.render('register', { error: 'Số điện thoại này đã được đăng ký.', form: req.body, next: nextUrl });
   }
   if (await get('SELECT id FROM users WHERE email = ?', [email])) {
     return res.render('register', { error: 'Email đã được sử dụng.', form: req.body, next: nextUrl });
   }
 
+  // Không còn ô "tên đăng nhập" riêng - khách đăng nhập bằng số điện thoại
+  // hoặc email, cột username vẫn lưu số điện thoại để tương thích code cũ
+  // (ví dụ hiển thị "Xin chào, ...", uniqueness check) mà không cần đổi schema.
   const hash = bcrypt.hashSync(password, 10);
   const result = await run(
     'INSERT INTO users (full_name, email, phone, username, password_hash, role) VALUES (?, ?, ?, ?, ?, ?) RETURNING id',
-    [full_name, email, phone, username, hash, 'member']
+    [full_name, email, phone, phone, hash, 'member']
   );
 
   req.session.userId = Number(result.rows[0].id);

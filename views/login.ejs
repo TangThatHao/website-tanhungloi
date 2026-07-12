@@ -6,7 +6,7 @@
     <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
     <form action="/dang-nhap" method="post">
       <input type="hidden" name="next" value="<%= next %>" />
-      <div class="field"><label>Tên đăng nhập</label><input type="text" name="username" required /></div>
+      <div class="field"><label>Số điện thoại hoặc Email</label><input type="text" name="tai_khoan" required /></div>
       <div class="field"><label>Mật khẩu</label><input type="password" name="password" required /></div>
       <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
     </form>
