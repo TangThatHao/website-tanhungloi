@@ -11,9 +11,24 @@
   var opened = false;
   var sending = false;
 
-  function addMessage(role, text) {
+  function getSessionId() {
+    try {
+      var key = 'thl_chat_session';
+      var id = localStorage.getItem(key);
+      if (!id) {
+        id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random();
+        localStorage.setItem(key, id);
+      }
+      return id;
+    } catch (e) {
+      return String(Date.now()) + Math.random();
+    }
+  }
+  var sessionId = getSessionId();
+
+  function addMessage(role, text, extraClass) {
     var div = document.createElement('div');
-    div.className = 'chat-msg ' + (role === 'user' ? 'user' : 'bot');
+    div.className = 'chat-msg ' + (role === 'user' ? 'user' : 'bot') + (extraClass ? ' ' + extraClass : '');
     div.textContent = text;
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -24,7 +39,7 @@
     win.hidden = false;
     if (!opened) {
       opened = true;
-      addMessage('bot', 'Chào bạn, Chị Lan đây! Chị có thể tư vấn giúp bạn về sản phẩm bánh pía Tân Hưng Lợi, cách đặt hàng, hoặc câu chuyện thương hiệu. Bạn cần hỏi gì nào? 🙂');
+      addMessage('bot', 'Xin chào! Mình là trợ lý tự động của Tân Hưng Lợi, có thể hỗ trợ bạn về sản phẩm, cách đặt hàng, chính sách giao hàng... Câu nào mình chưa chắc, mình sẽ chuyển cho chị Lan hỗ trợ trực tiếp nhé! 🙂');
     }
     input.focus();
   }
@@ -34,6 +49,32 @@
     else win.hidden = true;
   });
   closeBtn.addEventListener('click', function () { win.hidden = true; });
+
+  // Chờ chị Lan trả lời qua Telegram: hỏi định kỳ xem đã có câu trả lời
+  // chưa, tối đa ~30 phút thì tự dừng (khách vẫn có thể hỏi tiếp bình
+  // thường, chỉ là không còn tự động chờ nữa).
+  function waitForHumanReply(escalationId) {
+    var attempts = 0;
+    var maxAttempts = 300;
+    var timer = setInterval(function () {
+      attempts++;
+      if (attempts > maxAttempts) {
+        clearInterval(timer);
+        return;
+      }
+      fetch('/api/tro-chuyen/cho-tra-loi/' + escalationId)
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.replied && data.answer) {
+            clearInterval(timer);
+            addMessage('bot', data.answer, 'human');
+            history.push({ role: 'assistant', text: data.answer });
+            if (history.length > 20) history = history.slice(-20);
+          }
+        })
+        .catch(function () {});
+    }, 6000);
+  }
 
   form.addEventListener('submit', function (e) {
     e.preventDefault();
@@ -45,7 +86,7 @@
 
     var typingEl = document.createElement('div');
     typingEl.className = 'chat-msg bot typing';
-    typingEl.textContent = 'Chị Lan đang trả lời...';
+    typingEl.textContent = 'Đang trả lời...';
     messagesEl.appendChild(typingEl);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
@@ -53,7 +94,7 @@
     fetch('/api/tro-chuyen', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, history: history })
+      body: JSON.stringify({ message: text, history: history, sessionId: sessionId })
     })
       .then(function (res) {
         return res.json().then(function (data) { return { ok: res.ok, data: data }; });
@@ -65,6 +106,9 @@
           history.push({ role: 'user', text: text });
           history.push({ role: 'assistant', text: result.data.reply });
           if (history.length > 20) history = history.slice(-20);
+          if (result.data.waitingForHuman && result.data.escalationId) {
+            waitForHumanReply(result.data.escalationId);
+          }
         } else {
           addMessage('bot', result.data.error || 'Có lỗi xảy ra, vui lòng thử lại.');
         }

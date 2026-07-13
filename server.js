@@ -9,6 +9,7 @@ const { seedIfEmpty } = require('./db/seed');
 const { formatPrice, categoryIcon } = require('./utils/format');
 const { loadUser } = require('./middleware/auth');
 const { ensureBucket, isSupabaseConfigured } = require('./utils/storage');
+const { startTelegramPolling } = require('./utils/chatSupport');
 const pgSession = require('connect-pg-simple')(session);
 
 // Repo này là public trên GitHub - không được phép có secret dự phòng "cứng"
@@ -107,6 +108,7 @@ async function main() {
   } else {
     console.warn('[storage] SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY chua duoc cau hinh - anh upload se luu tam vao dia, khong ben vung tren Render.');
   }
+  startTelegramPolling();
   app.listen(PORT, () => {
     console.log(`Tan Hung Loi website dang chay tai http://localhost:${PORT}`);
   });
