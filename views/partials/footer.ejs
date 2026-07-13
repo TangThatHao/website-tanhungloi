@@ -36,10 +36,39 @@
     </div>
   </footer>
 
-  <button type="button" id="chatFab" class="chat-fab" aria-label="Chat hỗ trợ tự động">💬</button>
+  <button type="button" id="chatFab" class="chat-fab" aria-label="Chat hỗ trợ tự động">
+    <svg viewBox="0 0 100 100" width="38" height="38" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="20" cy="20" r="15" fill="#2b2b2b"/>
+      <circle cx="80" cy="20" r="15" fill="#2b2b2b"/>
+      <circle cx="50" cy="54" r="40" fill="#fff"/>
+      <ellipse cx="31" cy="50" rx="13" ry="16" fill="#2b2b2b" transform="rotate(-15 31 50)"/>
+      <ellipse cx="69" cy="50" rx="13" ry="16" fill="#2b2b2b" transform="rotate(15 69 50)"/>
+      <circle cx="32" cy="51" r="4.5" fill="#fff"/>
+      <circle cx="68" cy="51" r="4.5" fill="#fff"/>
+      <circle cx="33" cy="52" r="2.3" fill="#111"/>
+      <circle cx="67" cy="52" r="2.3" fill="#111"/>
+      <ellipse cx="50" cy="64" rx="5.5" ry="4" fill="#2b2b2b"/>
+      <path d="M50 67 Q50 75 43 77 M50 67 Q50 75 57 77" stroke="#2b2b2b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    </svg>
+  </button>
   <div id="chatWindow" class="chat-window" hidden>
     <div class="chat-window-header">
-      <span>💬 Hỗ trợ tự động</span>
+      <span class="chat-window-title">
+        <svg viewBox="0 0 100 100" width="22" height="22" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="15" fill="#2b2b2b"/>
+          <circle cx="80" cy="20" r="15" fill="#2b2b2b"/>
+          <circle cx="50" cy="54" r="40" fill="#fff"/>
+          <ellipse cx="31" cy="50" rx="13" ry="16" fill="#2b2b2b" transform="rotate(-15 31 50)"/>
+          <ellipse cx="69" cy="50" rx="13" ry="16" fill="#2b2b2b" transform="rotate(15 69 50)"/>
+          <circle cx="32" cy="51" r="4.5" fill="#fff"/>
+          <circle cx="68" cy="51" r="4.5" fill="#fff"/>
+          <circle cx="33" cy="52" r="2.3" fill="#111"/>
+          <circle cx="67" cy="52" r="2.3" fill="#111"/>
+          <ellipse cx="50" cy="64" rx="5.5" ry="4" fill="#2b2b2b"/>
+          <path d="M50 67 Q50 75 43 77 M50 67 Q50 75 57 77" stroke="#2b2b2b" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+        </svg>
+        Hỗ trợ tự động
+      </span>
       <button type="button" id="chatCloseBtn" aria-label="Đóng">✕</button>
     </div>
     <div id="chatMessages" class="chat-messages"></div>
