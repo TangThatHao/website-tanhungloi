@@ -22,29 +22,6 @@ async function sendTelegram(text) {
   }
 }
 
-// Giống sendTelegram() nhưng trả về message_id của tin vừa gửi (hoặc null
-// nếu chưa cấu hình/lỗi) - cần để sau này khớp với tin nhắn Reply của chủ
-// shop, xem utils/chatSupport.js.
-async function sendTelegramAndGetMessageId(text) {
-  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) return null;
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text })
-    });
-    if (!res.ok) {
-      console.error('[notify] Telegram API tra ve loi:', await res.text());
-      return null;
-    }
-    const data = await res.json();
-    return data?.result?.message_id ?? null;
-  } catch (err) {
-    console.error('[notify] Gui Telegram that bai:', err.message);
-    return null;
-  }
-}
-
 // Gửi qua Brevo API (HTTPS) thay vì SMTP - Render free tier chặn SMTP
 // (cổng 465 và 587 đều timeout) nhưng vẫn cho gọi HTTPS API bình thường.
 // Trả về true/false để caller biết có gửi được không.
@@ -125,4 +102,4 @@ async function notifyNewOrder(order, items) {
   ]);
 }
 
-module.exports = { notifyNewOrder, sendAdminPasswordReset, sendMemberPasswordReset, sendTelegramAndGetMessageId };
+module.exports = { notifyNewOrder, sendAdminPasswordReset, sendMemberPasswordReset };

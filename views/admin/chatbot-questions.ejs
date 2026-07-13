@@ -1,0 +1,45 @@
+<%- include('partials/layout-header', { pageTitle: 'Câu hỏi chatbot', activeAdminNav: 'chatbot-questions' }) %>
+
+<div class="admin-card">
+  <h3 style="margin-top:0;">Câu hỏi chatbot chưa/đã trả lời (<%= questions.length %>)</h3>
+  <p style="color:var(--color-muted); font-size:13.5px; margin-top:-6px;">
+    Cột "Trả lời chính thức" là câu bạn duyệt để chatbot tự trả lời cho MỌI khách hỏi câu tương tự sau này.
+    Cột "Trả lời nhanh qua Telegram" chỉ là câu bạn đã gửi riêng cho khách đó lúc trước, không tự động áp dụng cho khách khác - để trống nếu chưa duyệt.
+  </p>
+  <form method="POST" action="/admin/chatbot-cau-hoi">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Thời gian</th>
+          <th>Câu hỏi khách</th>
+          <th>Khách</th>
+          <th>Trả lời nhanh qua Telegram</th>
+          <th>Trả lời chính thức (để trống = bot vẫn chuyển người thật)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% questions.forEach(q => { %>
+          <tr>
+            <td><%= new Date(q.created_at).toLocaleString('vi-VN') %></td>
+            <td><%= q.question %></td>
+            <td>
+              <% if (q.customer_name || q.customer_phone) { %>
+                <%= q.customer_name || '' %><% if (q.customer_phone) { %><br/><%= q.customer_phone %><% } %>
+              <% } else { %>
+                <span style="color:var(--color-muted);">Ẩn danh</span>
+              <% } %>
+            </td>
+            <td style="color:var(--color-muted);"><%= q.admin_reply || '—' %></td>
+            <td>
+              <textarea name="answer_<%= q.id %>" rows="2" style="width:100%; font-family:inherit; font-size:13px;"><%= q.curated_answer || '' %></textarea>
+            </td>
+          </tr>
+        <% }) %>
+        <% if (questions.length === 0) { %><tr><td colspan="5">Chưa có câu hỏi nào cần xử lý.</td></tr><% } %>
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary" style="margin-top:14px;">Lưu tất cả</button>
+  </form>
+</div>
+
+<%- include('partials/layout-footer') %>

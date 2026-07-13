@@ -110,17 +110,26 @@ CREATE TABLE IF NOT EXISTS contacts (
 );
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS is_read INTEGER DEFAULT 0;
 
--- Câu hỏi chatbot không tự trả lời chắc chắn được, chuyển cho chủ shop trả
--- lời qua Telegram. Khi đã được trả lời (status = 'da_tra_loi'), cặp
--- question/admin_reply cũng được nạp lại vào system prompt của Gemini cho
--- các lần chat sau, coi như "học" thêm kiến thức thật từ chủ.
+-- Câu hỏi chatbot không tự trả lời chắc chắn được, chuyển cho chủ shop qua
+-- Telegram (bot riêng, tách khỏi bot báo đơn hàng). admin_reply là câu trả
+-- lời nhanh qua Telegram Reply - chỉ gửi thẳng cho đúng khách đó, KHÔNG
+-- dùng để bot tự học. curated_answer là câu trả lời chủ tự duyệt/gõ trong
+-- trang quản trị (/admin/chatbot-cau-hoi) - chỉ câu này mới được nạp vào
+-- system prompt của Gemini cho các lần chat sau (coi như "học" có kiểm soát,
+-- không tự động học từ mọi câu trả lời nhanh qua Telegram).
 CREATE TABLE IF NOT EXISTS chat_escalations (
   id SERIAL PRIMARY KEY,
   session_id TEXT NOT NULL,
   question TEXT NOT NULL,
+  customer_name TEXT,
+  customer_phone TEXT,
   admin_reply TEXT,
+  curated_answer TEXT,
   telegram_message_id BIGINT,
   status TEXT NOT NULL DEFAULT 'cho_tra_loi',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   replied_at TIMESTAMP
 );
+ALTER TABLE chat_escalations ADD COLUMN IF NOT EXISTS customer_name TEXT;
+ALTER TABLE chat_escalations ADD COLUMN IF NOT EXISTS customer_phone TEXT;
+ALTER TABLE chat_escalations ADD COLUMN IF NOT EXISTS curated_answer TEXT;

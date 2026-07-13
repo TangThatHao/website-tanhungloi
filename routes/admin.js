@@ -536,4 +536,27 @@ router.get('/admin/lien-he', asyncHandler(async (req, res) => {
   res.render('admin/contacts', { contacts });
 }));
 
+// ---------- Câu hỏi chatbot ----------
+// Câu trả lời nhanh qua Telegram (admin_reply) chỉ gửi riêng cho đúng khách
+// hỏi câu đó - CHỈ khi chủ gõ/duyệt câu trả lời ở đây (curated_answer) thì
+// bot mới dùng lại cho các khách khác sau này (xem utils/chatSupport.js).
+router.get('/admin/chatbot-cau-hoi', asyncHandler(async (req, res) => {
+  const questions = await all('SELECT * FROM chat_escalations ORDER BY created_at DESC LIMIT 200');
+  res.render('admin/chatbot-questions', { questions });
+}));
+
+router.post('/admin/chatbot-cau-hoi', asyncHandler(async (req, res) => {
+  // Tên field là answer_<id> (không dùng answer[id]) - tránh đúng lỗi đã
+  // gặp trước đây với qty[id]: thư viện parse form (qs) hiểu nhầm key ngoặc
+  // vuông dạng số thành phần tử mảng thay vì key object.
+  for (const key of Object.keys(req.body)) {
+    if (!key.startsWith('answer_')) continue;
+    const id = Number(key.slice('answer_'.length));
+    if (!id) continue;
+    const text = String(req.body[key] || '').trim();
+    await run('UPDATE chat_escalations SET curated_answer = ? WHERE id = ?', [text || null, id]);
+  }
+  res.redirect('/admin/chatbot-cau-hoi');
+}));
+
 module.exports = router;

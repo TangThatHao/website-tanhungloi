@@ -76,6 +76,54 @@
     }, 6000);
   }
 
+  // Khách ẩn danh (chưa đăng nhập) - hỏi thêm SĐT (không bắt buộc) để chủ
+  // shop có thể gọi thẳng nếu cần gấp, không nhất thiết phải trả lời qua Telegram.
+  function showPhonePrompt(escalationId) {
+    var wrap = document.createElement('div');
+    wrap.className = 'chat-phone-prompt';
+
+    var label = document.createElement('div');
+    label.className = 'chat-phone-label';
+    label.textContent = 'Để lại SĐT để được liên hệ nhanh hơn nếu cần gấp (không bắt buộc):';
+
+    var row = document.createElement('div');
+    row.className = 'chat-phone-row';
+    var phoneInput = document.createElement('input');
+    phoneInput.type = 'tel';
+    phoneInput.placeholder = 'Số điện thoại';
+    var sendBtn = document.createElement('button');
+    sendBtn.type = 'button';
+    sendBtn.className = 'btn btn-primary btn-sm';
+    sendBtn.textContent = 'Gửi';
+    var skipBtn = document.createElement('button');
+    skipBtn.type = 'button';
+    skipBtn.className = 'btn btn-sm';
+    skipBtn.textContent = 'Bỏ qua';
+
+    row.appendChild(phoneInput);
+    row.appendChild(sendBtn);
+    row.appendChild(skipBtn);
+    wrap.appendChild(label);
+    wrap.appendChild(row);
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    function remove() { wrap.remove(); }
+
+    sendBtn.addEventListener('click', function () {
+      var phone = phoneInput.value.trim();
+      if (!phone) { remove(); return; }
+      fetch('/api/tro-chuyen/lien-he/' + escalationId, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone })
+      }).catch(function () {});
+      remove();
+      addMessage('bot', 'Cảm ơn bạn, mình đã gửi SĐT này cho chị Lan rồi nhé!');
+    });
+    skipBtn.addEventListener('click', remove);
+  }
+
   form.addEventListener('submit', function (e) {
     e.preventDefault();
     if (sending) return;
@@ -108,6 +156,7 @@
           if (history.length > 20) history = history.slice(-20);
           if (result.data.waitingForHuman && result.data.escalationId) {
             waitForHumanReply(result.data.escalationId);
+            if (result.data.askPhone) showPhonePrompt(result.data.escalationId);
           }
         } else {
           addMessage('bot', result.data.error || 'Có lỗi xảy ra, vui lòng thử lại.');

@@ -189,6 +189,15 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 .chat-msg.bot { align-self: flex-start; background: var(--color-bg); border: 1px solid var(--color-border); border-bottom-left-radius: 3px; }
 .chat-msg.bot.typing { color: var(--color-muted); font-style: italic; }
 .chat-msg.bot.human { border-left: 3px solid var(--color-accent); }
+.chat-phone-prompt {
+  align-self: flex-start; max-width: 90%; padding: 8px 12px; border-radius: 10px;
+  background: var(--color-bg); border: 1px dashed var(--color-border); font-size: 12.5px;
+}
+.chat-phone-label { margin-bottom: 6px; color: var(--color-muted); }
+.chat-phone-row { display: flex; gap: 6px; }
+.chat-phone-row input {
+  flex: 1; min-width: 0; padding: 6px 10px; border: 1px solid var(--color-border); border-radius: 14px; font-size: 12.5px; font-family: inherit;
+}
 .chat-input-row { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--color-border); }
 .chat-input-row input {
   flex: 1; padding: 9px 12px; border: 1px solid var(--color-border); border-radius: 20px; font-size: 13.5px; font-family: inherit;

@@ -5,7 +5,7 @@ const { asyncHandler } = require('../utils/asyncHandler');
 const { askGemini } = require('../utils/gemini');
 const { createRateLimiter } = require('../utils/rateLimit');
 const { formatPrice } = require('../utils/format');
-const { escalateToHuman, getEscalationStatus, getRecentLearnedQA } = require('../utils/chatSupport');
+const { escalateToHuman, recordCustomerPhone, getEscalationStatus, getRecentLearnedQA } = require('../utils/chatSupport');
 
 const chatLimiter = createRateLimiter({
   max: 30,
@@ -19,6 +19,12 @@ const waitLimiter = createRateLimiter({
   max: 200,
   windowMs: 15 * 60 * 1000,
   onLimited: (req, res) => res.status(429).json({ replied: false, answer: null })
+});
+
+const phoneLimiter = createRateLimiter({
+  max: 10,
+  windowMs: 15 * 60 * 1000,
+  onLimited: (req, res) => res.status(429).json({ ok: false })
 });
 
 // Server tự thêm dòng này vào cuối câu trả lời khi Gemini không chắc chắn -
@@ -55,7 +61,7 @@ DANH SÁCH SẢN PHẨM HIỆN CÓ (giá đã bao gồm, chỉ dùng đúng thô
 QUY TẮC TRẢ LỜI:
 - Xưng "mình", gọi khách là "bạn", giọng văn thân thiện, nhiệt tình, ngắn gọn, dùng tiếng Việt. KHÔNG tự xưng là "chị Lan" hay bất kỳ tên người nào - luôn thể hiện rõ đây là trợ lý tự động.
 - Chỉ tư vấn về sản phẩm, cách đặt hàng, chính sách giao hàng/thanh toán, và câu chuyện thương hiệu Tân Hưng Lợi. Nếu khách hỏi ngoài phạm vi này (chính trị, chuyện riêng tư, các chủ đề không liên quan...), lịch sự từ chối và mời khách quay lại chủ đề bánh pía - đây KHÔNG phải trường hợp cần chuyển người thật, chỉ cần từ chối lịch sự.
-- CHỈ chuyển cho chị Lan khi thật sự KHÔNG THỂ trả lời chính xác từ dữ liệu ở trên - ví dụ: hỏi tình trạng đơn hàng cụ thể, khiếu nại, mặc cả/giảm giá, yêu cầu đặc biệt (in logo, đặt riêng...), hoặc bất kỳ điều gì không có trong dữ liệu bạn được cung cấp. Nếu bạn ĐÃ trả lời đủ và đúng thông tin khách hỏi (ví dụ: giá, sản phẩm, cách đặt hàng, chính sách giao hàng đã có sẵn ở trên) thì DỪNG LẠI Ở ĐÓ - không được tự ý đề nghị "chuyển cho chị Lan tư vấn thêm" hay bất kỳ câu tương tự, và TUYỆT ĐỐI không thêm chuỗi ${ESCALATE_MARKER} trong trường hợp này.
+- CHỈ chuyển cho chị Lan khi thật sự KHÔNG THỂ trả lời chính xác từ dữ liệu ở trên - ví dụ: hỏi tình trạng đơn hàng cụ thể, khiếu nại, mặc cả/giảm giá, yêu cầu đặc biệt/tùy chỉnh (in logo, làm theo mẫu thiết kế riêng, đặt số lượng/quy cách riêng...), hoặc bất kỳ điều gì không có trong dữ liệu bạn được cung cấp. QUAN TRỌNG: với các yêu cầu đặc biệt/tùy chỉnh, LUÔN chuyển cho chị Lan - TUYỆT ĐỐI không tự đoán hay tự đưa ra câu trả lời như "có nhận" hay "không nhận" dù nghe có vẻ hợp lý, vì bạn không có dữ liệu thật về việc này. Nếu bạn ĐÃ trả lời đủ và đúng thông tin khách hỏi (ví dụ: giá, sản phẩm, cách đặt hàng, chính sách giao hàng đã có sẵn ở trên, hoặc câu đã có trong phần câu hỏi đã được duyệt) thì DỪNG LẠI Ở ĐÓ - không được tự ý đề nghị "chuyển cho chị Lan tư vấn thêm" hay bất kỳ câu tương tự, và TUYỆT ĐỐI không thêm chuỗi ${ESCALATE_MARKER} trong trường hợp này.
 - Khi thật sự cần chuyển (không thể trả lời được): đừng bịa thông tin, trả lời ngắn gọn rằng bạn sẽ chuyển câu hỏi này cho chị Lan (nhân viên thật) hỗ trợ trực tiếp, sau đó BẮT BUỘC kết thúc TOÀN BỘ câu trả lời bằng đúng chuỗi: ${ESCALATE_MARKER}
 - Không tự đặt hàng thay khách, không thu thập thông tin thanh toán qua chat - luôn hướng khách tự thao tác trên website hoặc gọi hotline.
 - Trả lời ngắn gọn, súc tích (khoảng 2-5 câu), tránh liệt kê dài dòng trừ khi khách hỏi danh sách sản phẩm.`;
@@ -70,8 +76,8 @@ async function buildSystemPrompt() {
 
   const learned = await getRecentLearnedQA();
   const learnedBlock = learned.length
-    ? '\nCÁC CÂU HỎI CHỊ LAN (nhân viên thật) ĐÃ TỪNG TRẢ LỜI TRỰC TIẾP TRƯỚC ĐÂY - ưu tiên dùng lại nếu khách hỏi câu tương tự, không cần chuyển người thật lại nữa:\n' +
-      learned.map((qa) => `- Hỏi: "${qa.question}" → Đáp: "${qa.admin_reply}"`).join('\n') +
+    ? '\nCÁC CÂU HỎI ĐÃ ĐƯỢC CHỦ SHOP DUYỆT CÂU TRẢ LỜI CHÍNH THỨC - ưu tiên dùng lại nếu khách hỏi câu tương tự, không cần chuyển người thật lại nữa:\n' +
+      learned.map((qa) => `- Hỏi: "${qa.question}" → Đáp: "${qa.curated_answer}"`).join('\n') +
       '\n'
     : '';
 
@@ -83,6 +89,15 @@ router.post('/api/tro-chuyen', chatLimiter.middleware, asyncHandler(async (req, 
   if (!message) return res.status(400).json({ error: 'Vui lòng nhập nội dung.' });
 
   const sessionId = String(req.body.sessionId || '').slice(0, 100) || req.ip;
+
+  // Khách đã đăng nhập (không tính tài khoản "đặt nhanh dùng chung") thì
+  // gửi kèm tên/SĐT có sẵn cho chủ shop, khỏi phải hỏi lại; khách ẩn danh
+  // thì để client tự hỏi xin SĐT sau (xem askPhone bên dưới).
+  const currentUser = res.locals.currentUser;
+  const customer = currentUser && !currentUser.is_shared_guest
+    ? { name: currentUser.full_name, phone: currentUser.phone }
+    : null;
+  const askPhone = !customer;
 
   const rawHistory = Array.isArray(req.body.history) ? req.body.history : [];
   const history = rawHistory
@@ -96,11 +111,12 @@ router.post('/api/tro-chuyen', chatLimiter.middleware, asyncHandler(async (req, 
 
     if (reply.includes(ESCALATE_MARKER)) {
       const cleanedReply = reply.replace(ESCALATE_MARKER, '').trim();
-      const escalationId = await escalateToHuman(sessionId, message);
+      const escalationId = await escalateToHuman(sessionId, message, customer);
       return res.json({
         reply: `${cleanedReply}\n\n⏳ Đang chờ chị Lan trả lời trực tiếp...`,
         escalationId,
-        waitingForHuman: true
+        waitingForHuman: true,
+        askPhone
       });
     }
 
@@ -111,11 +127,12 @@ router.post('/api/tro-chuyen', chatLimiter.middleware, asyncHandler(async (req, 
     } else {
       console.error('[chat] Loi goi Gemini:', err.message);
     }
-    const escalationId = await escalateToHuman(sessionId, message);
+    const escalationId = await escalateToHuman(sessionId, message, customer);
     res.status(200).json({
       reply: 'Xin lỗi, hiện mình chưa trả lời được câu này. Mình đã báo cho chị Lan hỗ trợ trực tiếp, chị sẽ trả lời bạn ngay tại đây trong giây lát nhé!\n\n⏳ Đang chờ chị Lan trả lời trực tiếp...',
       escalationId,
-      waitingForHuman: true
+      waitingForHuman: true,
+      askPhone
     });
   }
 }));
@@ -125,6 +142,14 @@ router.get('/api/tro-chuyen/cho-tra-loi/:id', waitLimiter.middleware, asyncHandl
   if (!id) return res.status(400).json({ replied: false, answer: null });
   const status = await getEscalationStatus(id);
   res.json(status);
+}));
+
+router.post('/api/tro-chuyen/lien-he/:id', phoneLimiter.middleware, asyncHandler(async (req, res) => {
+  const id = Number(req.params.id);
+  const phone = String(req.body.phone || '').trim().slice(0, 20);
+  if (!id || !phone) return res.status(400).json({ ok: false });
+  const ok = await recordCustomerPhone(id, phone);
+  res.json({ ok });
 }));
 
 module.exports = router;
