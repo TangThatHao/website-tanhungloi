@@ -235,7 +235,7 @@ router.post('/admin/san-pham/:id/sua', productUpload, asyncHandler(async (req, r
   const image = coverFile ? await saveUploadedFile(coverFile) : (image_url || product.image);
 
   await run(
-    `UPDATE products SET category_id=?, name=?, price=?, image=?, description=?, is_hot=?, is_new=?, is_export=? WHERE id=?`,
+    `UPDATE products SET category_id=?, name=?, price=?, image=?, description=?, is_hot=?, is_new=?, is_export=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`,
     [category_id, name, price ? Number(price) : null, image, description || '', req.body.is_hot ? 1 : 0, req.body.is_new ? 1 : 0, req.body.is_export ? 1 : 0, req.params.id]
   );
 

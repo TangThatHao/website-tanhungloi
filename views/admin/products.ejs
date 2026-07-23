@@ -14,7 +14,7 @@
     </select>
   </form>
   <table class="admin-table">
-    <thead><tr><th>Thứ tự</th><th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Giá</th><th>Nhãn</th><th></th></tr></thead>
+    <thead><tr><th>Thứ tự</th><th>Ảnh</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Giá</th><th>Nhãn</th><th>Sửa lần cuối</th><th></th></tr></thead>
     <tbody>
       <% products.forEach((p, i) => { %>
         <tr>
@@ -31,6 +31,7 @@
             <% if (p.is_new) { %><span class="status-pill status-hoan_thanh">MỚI</span><% } %>
             <% if (p.is_export) { %><span class="status-pill status-dang_xu_ly">XK</span><% } %>
           </td>
+          <td><%= p.updated_at ? new Date(p.updated_at).toLocaleString('vi-VN') : '-' %></td>
           <td class="admin-actions">
             <a href="/san-pham/<%= p.slug %>" target="_blank" class="btn btn-outline btn-sm">Xem</a>
             <a href="/admin/san-pham/<%= p.id %>/sua" class="btn btn-outline btn-sm">Sửa</a>

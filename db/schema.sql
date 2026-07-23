@@ -35,6 +35,9 @@ UPDATE products SET hot_order = sort_order WHERE hot_order = 0 AND is_hot = 1;
 UPDATE products SET new_order = sort_order WHERE new_order = 0 AND is_new = 1;
 UPDATE products SET export_order = sort_order WHERE export_order = 0 AND is_export = 1;
 
+-- Ghi lại lần sửa cuối cùng của sản phẩm để hiển thị trong trang quản trị.
+ALTER TABLE products ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+
 CREATE TABLE IF NOT EXISTS product_images (
   id SERIAL PRIMARY KEY,
   product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
