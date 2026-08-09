@@ -160,14 +160,14 @@ h1, h2, h3, h4 { margin: 0 0 .5em; font-family: var(--font-serif); font-weight: 
 .chat-fab {
   position: fixed; right: 26px; bottom: 96px; z-index: 90;
   width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
-  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-dark));
+  background: none; padding: 0; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
   font-size: 24px; box-shadow: 0 8px 22px rgba(185,130,31,.45);
   transition: transform .2s;
 }
 .chat-fab:hover { transform: scale(1.08); }
 .chat-avatar { border-radius: 50%; object-fit: cover; display: block; }
-.chat-fab .chat-avatar { width: 50px; height: 50px; border: 2px solid #fff; }
+.chat-fab .chat-avatar { width: 100%; height: 100%; }
 .chat-window-title .chat-avatar { width: 22px; height: 22px; border: 1px solid rgba(255,255,255,.7); }
 
 .chat-window {
