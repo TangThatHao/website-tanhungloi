@@ -1,0 +1,303 @@
+{
+ "updatedAt": "2026-11-01T04:59:49.135Z",
+ "categories": [
+  "Bánh xuất khẩu",
+  "Pía đậu sầu riêng trứng",
+  "Pía môn sầu riêng trứng",
+  "Pía sầu riêng không trứng",
+  "Bánh chay",
+  "Bánh in",
+  "Đặc sản khác",
+  "Bánh pía đậu xanh trứng"
+ ],
+ "products": [
+  {
+   "id": 1,
+   "slug": "me-lao",
+   "name": "Mè láo",
+   "price": null,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1784352204752-251187.png",
+   "category": "Đặc sản khác"
+  },
+  {
+   "id": 2,
+   "slug": "pia-dau-sau-rieng-400gram-p4",
+   "name": "Pía đậu sầu riêng 400gram (MSP: P4)",
+   "price": null,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-dau-400g.jpg",
+   "category": "Pía đậu sầu riêng trứng"
+  },
+  {
+   "id": 3,
+   "slug": "pia-dau-sau-rieng-500gram-p5",
+   "name": "Pía đậu sầu riêng 500gram (MSP: P5)",
+   "price": 70000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1784352895147-38602.png",
+   "category": "Pía đậu sầu riêng trứng"
+  },
+  {
+   "id": 5,
+   "slug": "hop-qua-banh-pia-khong-trung",
+   "name": "Hộp quà bánh pía không trứng",
+   "price": null,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/hop-qua-khong-trung.png",
+   "category": "Pía sầu riêng không trứng"
+  },
+  {
+   "id": 6,
+   "slug": "pia-dau-sau-rieng-trung-550gram-p6l",
+   "name": "Pía đậu sầu riêng trứng 550gram (MSP: P6L)",
+   "price": 80000,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-dau-trung-550g.png",
+   "category": "Pía đậu sầu riêng trứng"
+  },
+  {
+   "id": 7,
+   "slug": "pia-chay-dau-sau-rieng-400gram-p4cc",
+   "name": "Pía chay đậu sầu riêng 400gram (P4_CC)",
+   "price": 60000,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-chay-400g.jpg",
+   "category": "Bánh chay"
+  },
+  {
+   "id": 11,
+   "slug": "pia-dau-sau-rieng-khong-trung-500gram-p5kt",
+   "name": "Pía đậu sầu riêng không trứng 500gram (MSP: P5_KT)",
+   "price": 65000,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-dau-khong-trung-500g.jpg",
+   "category": "Pía sầu riêng không trứng"
+  },
+  {
+   "id": 12,
+   "slug": "pia-mon-sau-rieng-500gram-p5m",
+   "name": "Pía môn sầu riêng 500gram (MSP: P5_M)",
+   "price": 70000,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-mon-500g.jpg",
+   "category": "Pía môn sầu riêng trứng"
+  },
+  {
+   "id": 23,
+   "slug": "banh-chay-xuat-khau-400gram",
+   "name": "Bánh chay xuất khẩu 400gram",
+   "price": null,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/banh-chay-xuat-khau-400g.jpg",
+   "category": "Bánh xuất khẩu"
+  },
+  {
+   "id": 14,
+   "slug": "banh-in-nhan-500gram",
+   "name": "Bánh in nhân (500gram)",
+   "price": 50000,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/banh-in-nhan.jpg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 18,
+   "slug": "banh-pia-dau-sau-rieng-trung",
+   "name": "Bánh pía đậu sầu riêng trứng",
+   "price": 50000,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-dau-trung.jpg",
+   "category": "Pía đậu sầu riêng trứng"
+  },
+  {
+   "id": 19,
+   "slug": "pia-dau-sau-rieng-trung-400gram-p4l",
+   "name": "Pía đậu sầu riêng trứng 400gram (MSP: P4L)",
+   "price": 65000,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-dau-trung-400g-p4l.jpg",
+   "category": "Pía đậu sầu riêng trứng"
+  },
+  {
+   "id": 20,
+   "slug": "pia-mon-sau-rieng-300gram-p3m",
+   "name": "Pía môn sầu riêng 300gram (MSP: P3_M)",
+   "price": 50000,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-mon-300g.jpg",
+   "category": "Pía môn sầu riêng trứng"
+  },
+  {
+   "id": 21,
+   "slug": "hop-qua-banh-pia-sau-rieng-dac-biet-khong-trung",
+   "name": "Hộp quà bánh pía sầu riêng trứng",
+   "price": null,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/hop-qua-khong-trung-dat-biet.png",
+   "category": "Pía đậu sầu riêng trứng"
+  },
+  {
+   "id": 22,
+   "slug": "banh-in-nhan-hinh-chu-nhat",
+   "name": "Bánh in nhân hình chữ nhật",
+   "price": 50000,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/banh-in-nhan-chu-nhat.jpg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 13,
+   "slug": "banh-pia-dau-dua-sau-rieng",
+   "name": "Bánh Pía Đậu dừa sầu riêng",
+   "price": null,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/banh-pia-dau-dua.jpg",
+   "category": "Bánh xuất khẩu"
+  },
+  {
+   "id": 24,
+   "slug": "banh-pia-sau-rieng-khong-trung-xuat-khau",
+   "name": "Bánh pía sầu riêng không trứng (xuất khẩu)",
+   "price": null,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/banh-pia-khong-trung-xk.jpg",
+   "category": "Bánh xuất khẩu"
+  },
+  {
+   "id": 25,
+   "slug": "banh-pia-khoai-mon-sau-rieng-dac-biet-thom-ngon",
+   "name": "Bánh pía khoai môn sầu riêng đặc biệt thơm ngon",
+   "price": null,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/banh-pia-khoai-mon-dac-biet.jpg",
+   "category": "Bánh xuất khẩu"
+  },
+  {
+   "id": 26,
+   "slug": "pia-dau-sau-rieng-450gram-ph450",
+   "name": "Pía đậu sầu riêng 450gram (MSP: P_H450)",
+   "price": null,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-dau-450g-ph450.jpg",
+   "category": "Bánh xuất khẩu"
+  },
+  {
+   "id": 29,
+   "slug": "pia-dau-sau-rieng-450gram-ph450-2",
+   "name": "Pía đậu sầu riêng 450gram (MSP: P_H450)",
+   "price": null,
+   "image": "https://banhpiasoctrang.onrender.com/images/products/pia-dau-450g-ph450.jpg",
+   "category": "Bánh chay"
+  },
+  {
+   "id": 30,
+   "slug": "banh-pia-dau-xanh-sau-rieng-2-trung-muoi",
+   "name": "Bánh pía đậu xanh sầu riêng 2 trứng muối",
+   "price": 95000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1784351818282-500930.png",
+   "category": "Pía đậu sầu riêng trứng"
+  },
+  {
+   "id": 31,
+   "slug": "pia-trang-4-trung-500g",
+   "name": "Pía trăng (4 trứng )500g",
+   "price": null,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1787719781015-899559.jpeg",
+   "category": "Pía đậu sầu riêng trứng"
+  },
+  {
+   "id": 32,
+   "slug": "pia-trang-8-trung-800g",
+   "name": "Pía trăng (8 trứng) 800g",
+   "price": null,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1787719944712-798104.jpeg",
+   "category": "Pía đậu sầu riêng trứng"
+  },
+  {
+   "id": 33,
+   "slug": "pia-kim-sa-trung-tan-chay",
+   "name": "Pía kim sa (trứng tan chảy)",
+   "price": 95000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1787720203504-336925.jpeg",
+   "category": "Bánh xuất khẩu"
+  },
+  {
+   "id": 34,
+   "slug": "banh-in-trang",
+   "name": "Bánh in trắng",
+   "price": 50000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1787720680774-63455.jpeg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 35,
+   "slug": "banh-in-trang-trang-lon",
+   "name": "Bánh in trăng trắng lớn",
+   "price": null,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1787721158523-90117.jpeg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 36,
+   "slug": "banh-trung-thu-thap-cam-1-trung-muoi",
+   "name": "Bánh trung thu thập cẩm 1 trứng muối",
+   "price": 300000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1787721358562-878490.jpeg",
+   "category": "Đặc sản khác"
+  },
+  {
+   "id": 37,
+   "slug": "banh-in-vang",
+   "name": "Bánh in vàng",
+   "price": 70000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1787721523682-226484.jpeg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 38,
+   "slug": "hop-combo-qua-tang",
+   "name": "Hộp combo quà tặng",
+   "price": null,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1787721768395-254133.jpeg",
+   "category": "Đặc sản khác"
+  },
+  {
+   "id": 39,
+   "slug": "banh-in-trang-trang-1-ky",
+   "name": "Bánh in trăng trắng 1 ký",
+   "price": 100000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1789357342318-477688.jpeg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 40,
+   "slug": "banh-in-trang-trang-nho",
+   "name": "Bánh in trăng trắng nhỏ 500g",
+   "price": 60000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1789357415293-891587.jpeg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 42,
+   "slug": "banh-trung-thu-thap-cam-2-trung-muoi",
+   "name": "Bánh trung thu thập cẩm 2 trứng muối",
+   "price": 320000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1789358058556-89593.jpeg",
+   "category": "Đặc sản khác"
+  },
+  {
+   "id": 43,
+   "slug": "banh-in-trang-vang-lon",
+   "name": "Bánh in trăng vàng lớn",
+   "price": 130000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1789358153340-789514.jpeg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 44,
+   "slug": "banh-in-trang-vang-lon-1",
+   "name": "Bánh in trăng vàng lớn",
+   "price": 130000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1789358153661-331323.jpeg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 45,
+   "slug": "banh-in-trang-vang-lon-2",
+   "name": "Bánh in trăng vàng lớn",
+   "price": 130000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1789358158878-645159.jpeg",
+   "category": "Bánh in"
+  },
+  {
+   "id": 46,
+   "slug": "banh-trung-thu-thap-cam-2-trung-muoi-1",
+   "name": "Bánh trung thu thập cẩm 2 trứng muối",
+   "price": 320000,
+   "image": "https://addfiyihbqeeudnhrdmr.supabase.co/storage/v1/object/public/uploads/1789358173448-697194.jpeg",
+   "category": "Đặc sản khác"
+  }
+ ]
+}
