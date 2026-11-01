@@ -558,5 +558,8 @@ renderDataInfo();
 syncProducts(false);
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  // Có bản app mới (sw.js đổi VERSION) thì tự tải lại để dùng ngay, không phải mở app 2 lần
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) location.reload(); });
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
