@@ -126,9 +126,9 @@ async function renderReceipt(inv, s, money, words) {
 
   if (inv.name || inv.phone || inv.addr) {
     rule();
-    if (inv.name) text('Khách: ' + inv.name, { size: 26, bold: true, after: 0 });
-    if (inv.phone) text('ĐT: ' + inv.phone, { size: 25, after: 0 });
-    if (inv.addr) text('Đ/c: ' + inv.addr, { size: 23, after: 0 });
+    if (inv.name) text('Khách: ' + inv.name, { size: 28, bold: true, after: 0 });
+    if (inv.phone) text('ĐT: ' + inv.phone, { size: 27, after: 0 });
+    if (inv.addr) text('Đ/c: ' + inv.addr, { size: 25, after: 0 });
   }
   rule();
 
