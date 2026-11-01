@@ -159,7 +159,9 @@ async function renderReceipt(inv, s, money, words) {
     rule();
     text('QUÉT MÃ ĐỂ CHUYỂN KHOẢN', { size: 25, bold: true, align: 'center', after: 6 });
     const qr = qrcode(0, 'M');
-    qr.addData(vietQRPayload({ bin: s.bankBin, acc: s.bankAcc, amount, info: inv.no }));
+    // Nội dung chuyển khoản chỉ ghi tên khách (không dấu), không ghi số hóa đơn/hàng hóa
+    const info = ascii(inv.name || '').trim();
+    qr.addData(vietQRPayload({ bin: s.bankBin, acc: s.bankAcc, amount, info }));
     qr.make();
     const n = qr.getModuleCount();
     const cell = Math.max(3, Math.floor(Math.min(290, W - 2 * P) / n));  // ô vuông nguyên điểm -> in nét, dễ quét
@@ -172,7 +174,7 @@ async function renderReceipt(inv, s, money, words) {
     text('STK: ' + s.bankAcc, { size: 28, bold: true, align: 'center', after: 0 });
     if (s.bankOwner) text(s.bankOwner.toUpperCase(), { size: 23, align: 'center', after: 0 });
     if (amount) text('Số tiền: ' + money(amount) + ' đ', { size: 24, align: 'center', after: 0 });
-    text('Nội dung: ' + ascii(inv.no), { size: 22, align: 'center', after: 0 });
+    if (info) text('Nội dung: ' + info, { size: 22, align: 'center', after: 0 });
   }
 
   rule();
