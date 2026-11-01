@@ -125,6 +125,9 @@ input:focus, textarea:focus { outline: none; border-color: var(--red); }
 #cusActions { margin-bottom: 12px; }
 #cusActions .btn { flex: 1; text-align: center; text-decoration: none; }
 .danger { color: #c00; margin-top: 8px; }
+.edit-banner { background: #e8f1ff; border: 1px solid #7aa7e8; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+.inv-actions { display: flex; gap: 8px; justify-content: center; padding: 8px 10px; background: #fff; border-bottom: 1px solid var(--line); }
+.inv-actions .btn { flex: 1; max-width: 190px; margin: 0; }
 #importCus { margin-bottom: 4px; }
 #importPreview { font-size: 15px; margin: 4px 2px 12px; }
 #importPreview .ok { color: #1a7f37; font-weight: 700; }

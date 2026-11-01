@@ -11,7 +11,7 @@ const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } cat
 const DEFAULT_SETTINGS = {
   name: 'TÂN HƯNG LỢI',
   slogan: 'Đặc sản bánh pía Sóc Trăng',
-  addr: 'Sóc Trăng: 122 Lý Thường Kiệt, TP Sóc Trăng\nSài Gòn: 418/45 Hồng Bàng, P. Minh Phụng, TP.HCM',
+  addr: 'Sóc Trăng: 122 Lý Thường Kiệt\nSài Gòn: 418/45 Hồng Bàng, P. Minh Phụng',
   phone: '0919 454 484',
   thanks: 'Cảm ơn quý khách! Hẹn gặp lại.',
   bankBin: '', bankAcc: '', bankOwner: '',
@@ -19,6 +19,10 @@ const DEFAULT_SETTINGS = {
   api: 'https://banhpiasoctrang.onrender.com'
 };
 let settings = { ...DEFAULT_SETTINGS, ...load(K.settings, {}) };
+// Địa chỉ mặc định cũ (có "TP Sóc Trăng", "TP.HCM" thừa ở cuối) -> bản rút gọn
+const OLD_ADDR = 'Sóc Trăng: 122 Lý Thường Kiệt, TP Sóc Trăng\nSài Gòn: 418/45 Hồng Bàng, P. Minh Phụng, TP.HCM';
+const fixOldAddr = (s) => { if (s.addr === OLD_ADDR) s.addr = DEFAULT_SETTINGS.addr; return s; };
+fixOldAddr(settings);
 let catalog = load(K.products, null);          // { updatedAt, products: [...] }
 let invoices = load(K.invoices, []);
 invoices.forEach((v) => { v.id = v.id || v.no; });   // hóa đơn cũ chưa có id riêng
@@ -170,6 +174,7 @@ function fillDraftForm() {
   $('#note').value = draft.note;
   $('#printQR').checked = draft.qr !== false;
   renderQrRow();
+  renderEditing();
   for (const k of ['ship', 'discount', 'paid']) $('#' + (k === 'ship' ? 'shipFee' : k)).value = draft[k] ? fmt(draft[k]) : '';
   renderLines();
 }
@@ -268,8 +273,19 @@ for (const [id, key] of [['shipFee', 'ship'], ['discount', 'discount'], ['paid',
   bindMoney($('#' + id), (v) => { draft[key] = v; saveDraft(); renderTotals(); });
 }
 
+// Đang sửa hóa đơn cũ: hiện dòng báo + đổi chữ nút
+function renderEditing() {
+  const inv = draft.editing && invoices.find((v) => v.id === draft.editing);
+  if (draft.editing && !inv) draft.editing = null;   // hóa đơn đã bị xóa ở máy khác
+  $('#editBanner').hidden = !inv;
+  if (inv) $('#editNo').textContent = inv.no;
+  $('#issueBtn').textContent = inv ? 'Lưu hóa đơn' : 'Xuất hóa đơn';
+  $('#clearBtn').textContent = inv ? 'Hủy sửa' : 'Làm mới';
+}
+
 $('#clearBtn').addEventListener('click', () => {
-  if ((draft.lines.length || draft.name) && !confirm('Xóa hết nội dung đang nhập?')) return;
+  const msg = draft.editing ? 'Hủy sửa? Hóa đơn cũ giữ nguyên như trước.' : 'Xóa hết nội dung đang nhập?';
+  if ((draft.lines.length || draft.name) && !confirm(msg)) return;
   draft = emptyDraft(); saveDraft(); fillDraftForm();
 });
 
@@ -285,15 +301,17 @@ $('#issueBtn').addEventListener('click', () => {
   const noPrice = lines.filter((l) => !l.price);
   if (noPrice.length && !confirm(`${noPrice.length} sản phẩm chưa có đơn giá (tính 0 đ). Vẫn xuất hóa đơn?`)) return;
   const now = new Date();
+  const old = draft.editing && invoices.find((v) => v.id === draft.editing);
   const inv = {
-    id: newId(), no: nextInvoiceNo(now), date: now.toISOString(),
+    id: old ? old.id : newId(), no: old ? old.no : nextInvoiceNo(now), date: old ? old.date : now.toISOString(),
     name: draft.name.trim(), phone: draft.phone.trim(), addr: draft.addr.trim(), note: draft.note.trim(),
     lines: lines.map(({ id, name, price, qty }) => ({ id, name, price, qty })),
     ship: draft.ship, discount: draft.discount, paid: draft.paid, qr: draft.qr !== false
   };
   Object.assign(inv, calc(inv));
+  if (old) inv.editedAt = now.toISOString();
   inv.customerId = upsertCustomer(inv);
-  invoices.unshift(inv);
+  if (old) invoices[invoices.indexOf(old)] = inv; else invoices.unshift(inv);
   save(K.invoices, invoices);
   queuePut('invoices', inv);
   draft = emptyDraft(); saveDraft(); fillDraftForm();
@@ -529,8 +547,9 @@ $('#doImport').addEventListener('click', () => {
 
 /* ================= Hóa đơn ================= */
 let viewing = null, receiptCanvas = null;
-async function openInvoice(inv) {
+async function openInvoice(inv, sample = false) {
   viewing = inv;
+  $('#invActions').hidden = sample;
   $('#receiptImg').removeAttribute('src');
   $('#viewer').hidden = false;
   $('#viewer .paper-wrap').scrollTop = 0;
@@ -538,6 +557,32 @@ async function openInvoice(inv) {
   $('#receiptImg').src = receiptCanvas.toDataURL('image/png');
 }
 $('#closeViewer').addEventListener('click', () => { $('#viewer').hidden = true; renderHistory(); });
+
+const closeAllSheets = () => { for (const id of ['viewer', 'cusSheet', 'picker']) $('#' + id).hidden = true; };
+$('#editInv').addEventListener('click', () => {
+  const v = viewing;
+  const busyDraft = draft.lines.length && draft.editing !== v.id;
+  if (busyDraft && !confirm('Đang có hóa đơn nhập dở, bỏ nội dung đó để sửa hóa đơn này?')) return;
+  draft = {
+    ...emptyDraft(), editing: v.id, name: v.name || '', phone: v.phone || '', addr: v.addr || '', note: v.note || '',
+    lines: v.lines.map((l) => ({ ...l })), ship: v.ship || 0, discount: v.discount || 0, paid: v.paid || 0, qr: v.qr !== false
+  };
+  saveDraft(); fillDraftForm();
+  closeAllSheets(); switchTab('new');
+  toast('Sửa xong bấm "Lưu hóa đơn"');
+});
+$('#delInv').addEventListener('click', () => {
+  const v = viewing;
+  if (!confirm(`Xóa hóa đơn ${v.no} (${v.name || 'Khách lẻ'} · ${fmt(v.total)} đ)? Không lấy lại được.`)) return;
+  invoices = invoices.filter((x) => x.id !== v.id);
+  save(K.invoices, invoices);
+  queueDel('invoices', v.id);
+  if (draft.editing === v.id) { draft = emptyDraft(); saveDraft(); fillDraftForm(); }
+  $('#viewer').hidden = true;
+  renderHistory(); renderCustomers();
+  if (!$('#cusSheet').hidden && editingCus) openCustomer(editingCus);
+  toast('Đã xóa hóa đơn ' + v.no);
+});
 
 // Mở bảng chia sẻ của iPhone với ảnh hóa đơn (Zalo, Messenger, app máy in, Lưu ảnh...)
 async function shareReceipt() {
@@ -578,7 +623,7 @@ function historyItem(v) {
   const d = new Date(v.date);
   return `<div class="hitem" data-no="${esc(v.no)}">
     <div class="top"><span>${esc(v.name || 'Khách lẻ')}</span><b>${fmt(v.total)} đ</b></div>
-    <div class="sub">${esc(v.no)} · ${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}
+    <div class="sub">${esc(v.no)}${v.editedAt ? ' (đã sửa)' : ''} · ${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}
       · ${v.lines.reduce((s, l) => s + l.qty, 0)} món${v.phone ? ' · ' + esc(v.phone) : ''}</div>
   </div>`;
 }
@@ -645,7 +690,7 @@ $('#testPrint').addEventListener('click', () => {
     ship: 0, discount: 0, paid: 0
   };
   Object.assign(sample, calc(sample));
-  openInvoice(sample);
+  openInvoice(sample, true);
 });
 
 /* ================= Sao lưu online (khách, hóa đơn, cài đặt) ================= */
@@ -706,9 +751,9 @@ function applyServer(data) {
   };
   customers = merge(data.customers || [], 'customers');
   invoices = merge(data.invoices || [], 'invoices').sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-  if (data.settings && !outbox.settings) settings = { ...DEFAULT_SETTINGS, ...data.settings, api: settings.api };
+  if (data.settings && !outbox.settings) settings = fixOldAddr({ ...DEFAULT_SETTINGS, ...data.settings, api: settings.api });
   save(K.customers, customers); save(K.invoices, invoices); save(K.settings, settings);
-  fillSettings(); renderQrRow(); renderCustomers(); renderHistory();
+  fillSettings(); renderQrRow(); renderEditing(); renderCustomers(); renderHistory();
 }
 
 async function syncNow() {

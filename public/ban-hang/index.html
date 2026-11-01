@@ -23,6 +23,7 @@
   <main>
     <!-- ===== TẠO HÓA ĐƠN ===== -->
     <section id="tab-new" class="tab active">
+      <div id="editBanner" class="edit-banner" hidden>✏️ Đang sửa hóa đơn <b id="editNo"></b>. Sửa xong bấm <b>Lưu hóa đơn</b>.</div>
       <div class="card">
         <div class="card-title">Khách hàng</div>
         <input id="cusName" placeholder="Tên khách hàng" autocomplete="off" />
@@ -98,7 +99,7 @@
         <div class="card-title">Thông tin cửa hàng (in trên hóa đơn)</div>
         <label class="lbl">Tên cửa hàng</label><input id="sName" />
         <label class="lbl">Dòng phụ</label><input id="sSlogan" />
-        <label class="lbl">Địa chỉ</label><textarea id="sAddr" rows="3"></textarea>
+        <label class="lbl">Địa chỉ</label><textarea id="sAddr" rows="2"></textarea>
         <label class="lbl">Điện thoại</label><input id="sPhone" inputmode="tel" />
         <label class="lbl">Lời cảm ơn cuối hóa đơn</label><input id="sThanks" />
       </div>
@@ -209,6 +210,10 @@
       <span class="spacer"></span>
       <button id="shareBtn" class="btn btn-outline btn-sm">Gửi ảnh</button>
       <button id="printBtn" class="btn btn-primary btn-sm">🖨 In</button>
+    </div>
+    <div id="invActions" class="inv-actions">
+      <button id="editInv" class="btn btn-outline btn-sm">✏️ Sửa hóa đơn</button>
+      <button id="delInv" class="btn btn-ghost btn-sm danger">🗑 Xóa</button>
     </div>
     <div class="paper-wrap"><img id="receiptImg" class="receipt" alt="Hóa đơn" /></div>
   </div>
