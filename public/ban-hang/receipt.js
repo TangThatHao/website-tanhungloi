@@ -37,6 +37,9 @@ function vietQRPayload({ bin, acc, amount, info }) {
 }
 
 /* ================= Vẽ hóa đơn ================= */
+// Hóa đơn chỉ in tên sản phẩm, bỏ mã ở cuối: "(MSP: P5)", "(MSP: P5_KT)", "(P4_CC)"...
+const shortName = (name) => String(name).replace(/\s*\((?:MSP\s*:\s*)?[A-Z0-9_]+\)\s*$/, '').trim()
+  || String(name);
 const FF = '"Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif';
 /**
  * Trả về canvas đen trắng đúng khổ giấy. Cùng một hình dùng cho xem trước, gửi ảnh và in Bluetooth.
@@ -105,7 +108,13 @@ async function renderReceipt(inv, s, money, words) {
   /* --- Đầu hóa đơn --- */
   text(s.name, { size: 36, bold: true, align: 'center', after: 0 });
   text(s.slogan, { size: 22, align: 'center', after: 4 });
-  text(s.addr, { size: 21, align: 'center', after: 2, lh: 1.22 });
+  // Mỗi dòng địa chỉ in trên đúng 1 dòng: dòng nào dài thì thu nhỏ chữ cho vừa khổ giấy (tối thiểu 15px)
+  for (const ln of String(s.addr || '').split('\n').filter((x) => x.trim())) {
+    let size = 21;
+    for (font(size); size > 15 && ctx.measureText(ln).width > W - 2 * P; font(size)) size--;
+    text(ln, { size, align: 'center', after: 0, lh: 1.25 });
+  }
+  y += 2;
   text('ĐT: ' + s.phone, { size: 26, bold: true, align: 'center', after: 0 });
   rule('thick');
 
@@ -125,7 +134,7 @@ async function renderReceipt(inv, s, money, words) {
 
   /* --- Hàng hóa: tên 1 dòng, "SL x đơn giá ....... thành tiền" dòng dưới --- */
   inv.lines.forEach((l, i) => {
-    text(`${i + 1}. ${l.name}`, { size: 26, bold: true, after: 0 });
+    text(`${i + 1}. ${shortName(l.name)}`, { size: 26, bold: true, after: 0 });
     row(`${l.qty} x ${money(l.price)}`, money(l.price * l.qty), { size: 26, rbold: true, after: 8, indent: 30 });
   });
   rule();
