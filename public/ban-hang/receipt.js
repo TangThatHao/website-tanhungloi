@@ -154,7 +154,7 @@ async function renderReceipt(inv, s, money, words) {
   if (inv.note) { rule(); text('Ghi chú: ' + inv.note, { size: 23, after: 0 }); }
 
   /* --- Mã QR chuyển khoản --- */
-  if (s.bankBin && s.bankAcc && typeof qrcode === 'function') {
+  if (inv.qr !== false && s.bankBin && s.bankAcc && typeof qrcode === 'function') {
     const amount = inv.paid ? inv.due : inv.total;
     rule();
     text('QUÉT MÃ ĐỂ CHUYỂN KHOẢN', { size: 25, bold: true, align: 'center', after: 6 });

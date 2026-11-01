@@ -19,7 +19,7 @@ let settings = { ...DEFAULT_SETTINGS, ...load(K.settings, {}) };
 let catalog = load(K.products, null);          // { updatedAt, products: [...] }
 let invoices = load(K.invoices, []);
 let customers = load(K.customers, []);         // [{ id, name, phone, addr, note, createdAt }]
-const emptyDraft = () => ({ name: '', phone: '', addr: '', lines: [], ship: 0, discount: 0, paid: 0, note: '' });
+const emptyDraft = () => ({ name: '', phone: '', addr: '', lines: [], ship: 0, discount: 0, paid: 0, note: '', qr: true });
 let draft = { ...emptyDraft(), ...load(K.draft, {}) };
 
 /* ================= Tiện ích ================= */
@@ -163,6 +163,8 @@ function fillDraftForm() {
   $('#cusPhone').value = draft.phone;
   $('#cusAddr').value = draft.addr;
   $('#note').value = draft.note;
+  $('#printQR').checked = draft.qr !== false;
+  renderQrRow();
   for (const k of ['ship', 'discount', 'paid']) $('#' + (k === 'ship' ? 'shipFee' : k)).value = draft[k] ? fmt(draft[k]) : '';
   renderLines();
 }
@@ -253,6 +255,10 @@ function fillCustomer(c) {
 document.addEventListener('click', (e) => {
   if (!e.target.closest('#cusSuggest, #cusName, #cusPhone')) $('#cusSuggest').hidden = true;
 });
+// Ô tick in mã QR chuyển khoản: chỉ hiện khi đã nhập tài khoản ngân hàng trong Cài đặt
+function renderQrRow() { $('#qrRow').hidden = !(settings.bankBin && settings.bankAcc); }
+$('#printQR').addEventListener('change', (e) => { draft.qr = e.target.checked; saveDraft(); });
+
 for (const [id, key] of [['shipFee', 'ship'], ['discount', 'discount'], ['paid', 'paid']]) {
   bindMoney($('#' + id), (v) => { draft[key] = v; saveDraft(); renderTotals(); });
 }
@@ -278,7 +284,7 @@ $('#issueBtn').addEventListener('click', () => {
     no: nextInvoiceNo(now), date: now.toISOString(),
     name: draft.name.trim(), phone: draft.phone.trim(), addr: draft.addr.trim(), note: draft.note.trim(),
     lines: lines.map(({ id, name, price, qty }) => ({ id, name, price, qty })),
-    ship: draft.ship, discount: draft.discount, paid: draft.paid
+    ship: draft.ship, discount: draft.discount, paid: draft.paid, qr: draft.qr !== false
   };
   Object.assign(inv, calc(inv));
   inv.customerId = upsertCustomer(inv);
@@ -510,7 +516,7 @@ $('#saveSettings').addEventListener('click', () => {
   for (const [id, k] of Object.entries(SETTING_FIELDS)) settings[k] = $('#' + id).value.trim() || DEFAULT_SETTINGS[k];
   settings.bankAcc = settings.bankAcc.replace(/\s/g, '');
   if (settings.bankAcc && !settings.bankBin) return toast('Chọn ngân hàng cho số tài khoản');
-  save(K.settings, settings); fillSettings();
+  save(K.settings, settings); fillSettings(); renderQrRow();
   toast('Đã lưu cài đặt');
 });
 $('#sApi').addEventListener('change', () => {
