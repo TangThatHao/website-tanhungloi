@@ -38,46 +38,6 @@ function vietQRPayload({ bin, acc, amount, info }) {
 
 /* ================= Vẽ hóa đơn ================= */
 const FF = '"Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif';
-let logoImg = null;
-function loadLogo() {
-  if (!logoImg) {
-    logoImg = new Promise((res) => {
-      const im = new Image();
-      im.onload = () => res(im);
-      im.onerror = () => res(null);
-      im.src = 'icons/logo.png';
-    });
-  }
-  return logoImg;
-}
-
-// Ảnh màu -> chấm đen/trắng (khuếch tán sai số Floyd–Steinberg) để logo in nhiệt không bị bệt
-function ditherInto(ctx, img, x, y, w, h) {
-  const t = document.createElement('canvas');
-  t.width = w; t.height = h;
-  const tc = t.getContext('2d');
-  tc.fillStyle = '#fff'; tc.fillRect(0, 0, w, h);
-  tc.drawImage(img, 0, 0, w, h);
-  const d = tc.getImageData(0, 0, w, h);
-  const g = new Float32Array(w * h);
-  for (let i = 0; i < w * h; i++) g[i] = d.data[i * 4] * 0.299 + d.data[i * 4 + 1] * 0.587 + d.data[i * 4 + 2] * 0.114;
-  for (let yy = 0; yy < h; yy++) {
-    for (let xx = 0; xx < w; xx++) {
-      const i = yy * w + xx, v = g[i] < 150 ? 0 : 255, e = g[i] - v;
-      g[i] = v;
-      if (xx + 1 < w) g[i + 1] += e * 7 / 16;
-      if (yy + 1 < h) {
-        if (xx) g[i + w - 1] += e * 3 / 16;
-        g[i + w] += e * 5 / 16;
-        if (xx + 1 < w) g[i + w + 1] += e / 16;
-      }
-    }
-  }
-  for (let i = 0; i < w * h; i++) d.data[i * 4] = d.data[i * 4 + 1] = d.data[i * 4 + 2] = g[i];
-  tc.putImageData(d, 0, 0);
-  ctx.drawImage(t, x, y);
-}
-
 /**
  * Trả về canvas đen trắng đúng khổ giấy. Cùng một hình dùng cho xem trước, gửi ảnh và in Bluetooth.
  * inv: hóa đơn; s: cài đặt cửa hàng; money: hàm định dạng tiền; words: hàm đọc số thành chữ
@@ -143,14 +103,6 @@ async function renderReceipt(inv, s, money, words) {
   };
 
   /* --- Đầu hóa đơn --- */
-  if (s.logo) {
-    const img = await loadLogo();
-    if (img) {
-      const lw = Math.round(W * 0.55), lh = Math.round(img.height * lw / img.width);
-      ditherInto(ctx, img, Math.round((W - lw) / 2), y, lw, lh);
-      y += lh + 6;
-    }
-  }
   text(s.name, { size: 36, bold: true, align: 'center', after: 0 });
   text(s.slogan, { size: 22, align: 'center', after: 4 });
   text(s.addr, { size: 21, align: 'center', after: 2, lh: 1.22 });
@@ -294,11 +246,19 @@ function escposRaster(canvas) {
 async function btPrint(canvas, onProgress) {
   if (!bt.ch || !bt.device.gatt.connected) await btConnect();
   const data = escposRaster(canvas);
-  const ch = bt.ch, CH = 180, noResp = ch.properties.writeWithoutResponse;
-  for (let i = 0; i < data.length; i += CH) {
-    const chunk = data.slice(i, i + CH);
-    if (noResp) { await ch.writeValueWithoutResponse(chunk); await sleep(12); }
-    else await ch.writeValue(chunk);
-    if (onProgress && i % (CH * 40) === 0) onProgress(Math.round(i * 100 / data.length));
+  const ch = bt.ch, noResp = ch.properties.writeWithoutResponse;
+  // Gửi gói 180 byte cho nhanh; máy in/điện thoại nào chỉ nhận gói nhỏ (20 byte) thì tự chuyển sang gói nhỏ
+  let size = 180, sent = 0;
+  for (let i = 0; i < data.length;) {
+    const chunk = data.slice(i, i + size);
+    try {
+      if (noResp) { await ch.writeValueWithoutResponse(chunk); await sleep(size > 20 ? 12 : 4); }
+      else await ch.writeValue(chunk);
+    } catch (e) {
+      if (size > 20 && i === 0) { size = 20; continue; }
+      throw e;
+    }
+    i += chunk.length;
+    if (onProgress && ++sent % 30 === 0) onProgress(Math.round(i * 100 / data.length));
   }
 }

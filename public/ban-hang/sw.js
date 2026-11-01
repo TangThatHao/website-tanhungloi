@@ -1,10 +1,10 @@
 // Lưu sẵn giao diện app để mở được cả khi không có mạng.
 // Mỗi lần sửa app, tăng số VERSION để iPhone tải bản mới.
-const VERSION = 'banhang-v3';
+const VERSION = 'banhang-v5';
 const SHELL = [
   './', 'index.html', 'style.css', 'app.js', 'receipt.js', 'manifest.webmanifest',
   'vendor/qrcode.js', 'data/products.json',
-  'icons/logo.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'
+  'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {

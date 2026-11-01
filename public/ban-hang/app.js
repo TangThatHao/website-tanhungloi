@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS = {
   phone: '0919 454 484',
   thanks: 'Cảm ơn quý khách! Hẹn gặp lại.',
   bankBin: '', bankAcc: '', bankOwner: '',
-  paper: '58', logo: true,
+  paper: '58',
   api: 'https://banhpiasoctrang.onrender.com'
 };
 let settings = { ...DEFAULT_SETTINGS, ...load(K.settings, {}) };
@@ -505,12 +505,10 @@ $('#sBankBin').innerHTML = '<option value="">— Chọn ngân hàng —</option>
   + BANKS.map(([bin, name]) => `<option value="${bin}">${esc(name)}</option>`).join('');
 function fillSettings() {
   for (const [id, k] of Object.entries(SETTING_FIELDS)) $('#' + id).value = settings[k];
-  $('#sLogo').checked = settings.logo;
 }
 $('#saveSettings').addEventListener('click', () => {
   for (const [id, k] of Object.entries(SETTING_FIELDS)) settings[k] = $('#' + id).value.trim() || DEFAULT_SETTINGS[k];
   settings.bankAcc = settings.bankAcc.replace(/\s/g, '');
-  settings.logo = $('#sLogo').checked;
   if (settings.bankAcc && !settings.bankBin) return toast('Chọn ngân hàng cho số tài khoản');
   save(K.settings, settings); fillSettings();
   toast('Đã lưu cài đặt');
@@ -533,6 +531,17 @@ $('#btConnect').addEventListener('click', async () => {
     if (e.name !== 'NotFoundError') toast('Không kết nối được: ' + e.message, 4000);
   }
   renderBtStatus();
+});
+
+// Hóa đơn mẫu để thử máy in, mã QR (không lưu vào lịch sử)
+$('#testPrint').addEventListener('click', () => {
+  const sample = {
+    no: 'HD-MAU', date: new Date().toISOString(), name: 'Khách in thử', phone: '0900 000 000', addr: '', note: '',
+    lines: [{ name: 'Pía đậu sầu riêng 500gram', price: 70000, qty: 2 }, { name: 'Bánh in nhân (500gram)', price: 50000, qty: 1 }],
+    ship: 0, discount: 0, paid: 0
+  };
+  Object.assign(sample, calc(sample));
+  openInvoice(sample);
 });
 
 /* ================= Chuyển tab ================= */
