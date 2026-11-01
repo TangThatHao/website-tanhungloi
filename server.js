@@ -43,6 +43,8 @@ app.use((req, res, next) => {
 });
 
 app.use(express.urlencoded({ extended: true }));
+// App bán hàng đồng bộ lần đầu có thể gửi cả trăm hóa đơn một lúc -> cho phép body lớn hơn mặc định 100kb
+app.use('/api/pos', express.json({ limit: '5mb' }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -71,12 +73,15 @@ setInterval(() => {
 }, 30 * 1000).unref();
 
 app.use((req, res, next) => {
-  if (req.method === 'GET' && !req.path.startsWith('/admin') && !req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico)$/)) {
+  if (req.method === 'GET' && !req.path.startsWith('/admin') && !req.path.startsWith('/api/') && !req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico)$/)) {
     visitCount++;
   }
   res.locals.visitCount = visitCount;
   next();
 });
+
+// API app bán hàng: không cần dữ liệu menu/giỏ hàng của loadUser
+app.use(require('./routes/pos'));
 
 app.use(loadUser);
 

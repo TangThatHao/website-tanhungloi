@@ -136,3 +136,32 @@ CREATE TABLE IF NOT EXISTS chat_escalations (
 ALTER TABLE chat_escalations ADD COLUMN IF NOT EXISTS customer_name TEXT;
 ALTER TABLE chat_escalations ADD COLUMN IF NOT EXISTS customer_phone TEXT;
 ALTER TABLE chat_escalations ADD COLUMN IF NOT EXISTS curated_answer TEXT;
+
+-- ===== App bán hàng trên điện thoại (public/ban-hang) =====
+-- Sao lưu khách hàng, hóa đơn, cài đặt của app để cài lại/đổi điện thoại
+-- không mất dữ liệu. Chỉ tài khoản admin đăng nhập trong app mới đọc/ghi được.
+-- Mỗi bản ghi lưu nguyên dạng JSON của app (data) để app đổi cấu trúc không
+-- phải sửa bảng.
+CREATE TABLE IF NOT EXISTS pos_tokens (
+  token_hash TEXT PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS pos_customers (
+  id TEXT PRIMARY KEY,
+  data JSONB NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS pos_invoices (
+  id TEXT PRIMARY KEY,
+  data JSONB NOT NULL,
+  deleted INTEGER NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS pos_settings (
+  id INTEGER PRIMARY KEY DEFAULT 1,
+  data JSONB NOT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

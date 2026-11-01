@@ -1,7 +1,10 @@
 'use strict';
 
 /* ================= Lưu trữ trên máy ================= */
-const K = { products: 'thl.products', settings: 'thl.settings', invoices: 'thl.invoices', draft: 'thl.draft', customers: 'thl.customers' };
+const K = {
+  products: 'thl.products', settings: 'thl.settings', invoices: 'thl.invoices', draft: 'thl.draft',
+  customers: 'thl.customers', auth: 'thl.auth', outbox: 'thl.outbox'
+};
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast('Không lưu được dữ liệu: ' + e.message); } };
 
@@ -18,6 +21,7 @@ const DEFAULT_SETTINGS = {
 let settings = { ...DEFAULT_SETTINGS, ...load(K.settings, {}) };
 let catalog = load(K.products, null);          // { updatedAt, products: [...] }
 let invoices = load(K.invoices, []);
+invoices.forEach((v) => { v.id = v.id || v.no; });   // hóa đơn cũ chưa có id riêng
 let customers = load(K.customers, []);         // [{ id, name, phone, addr, note, createdAt }]
 const emptyDraft = () => ({ name: '', phone: '', addr: '', lines: [], ship: 0, discount: 0, paid: 0, note: '', qr: true });
 let draft = { ...emptyDraft(), ...load(K.draft, {}) };
@@ -30,6 +34,7 @@ const parseMoney = (s) => +String(s).replace(/\D/g, '') || 0;
 const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 const pad = (n) => String(n).padStart(2, '0');
 const digits = (s) => String(s || '').replace(/\D/g, '');
+const newId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
 let toastTimer;
 function toast(msg, ms = 2500) {
@@ -281,7 +286,7 @@ $('#issueBtn').addEventListener('click', () => {
   if (noPrice.length && !confirm(`${noPrice.length} sản phẩm chưa có đơn giá (tính 0 đ). Vẫn xuất hóa đơn?`)) return;
   const now = new Date();
   const inv = {
-    no: nextInvoiceNo(now), date: now.toISOString(),
+    id: newId(), no: nextInvoiceNo(now), date: now.toISOString(),
     name: draft.name.trim(), phone: draft.phone.trim(), addr: draft.addr.trim(), note: draft.note.trim(),
     lines: lines.map(({ id, name, price, qty }) => ({ id, name, price, qty })),
     ship: draft.ship, discount: draft.discount, paid: draft.paid, qr: draft.qr !== false
@@ -290,6 +295,7 @@ $('#issueBtn').addEventListener('click', () => {
   inv.customerId = upsertCustomer(inv);
   invoices.unshift(inv);
   save(K.invoices, invoices);
+  queuePut('invoices', inv);
   draft = emptyDraft(); saveDraft(); fillDraftForm();
   openInvoice(inv);
 });
@@ -349,10 +355,11 @@ function upsertCustomer({ name, phone, addr }) {
     if (phone) c.phone = phone;
     if (addr) c.addr = addr;
   } else {
-    c = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, phone, addr, note: '', createdAt: new Date().toISOString() };
+    c = { id: newId(), name, phone, addr, note: '', createdAt: new Date().toISOString() };
     customers.push(c);
   }
   saveCustomers();
+  queuePut('customers', c);
   return c.id;
 }
 
@@ -407,9 +414,11 @@ $('#saveCus').addEventListener('click', () => {
   if (!data.name && !data.phone) return toast('Nhập tên hoặc số điện thoại');
   const dup = data.phone && customers.find((x) => x !== editingCus && digits(x.phone) === digits(data.phone));
   if (dup) return toast(`Số này đã có trong danh sách: ${dup.name}`, 3500);
-  if (editingCus) Object.assign(editingCus, data);
-  else customers.push({ id: Date.now().toString(36), ...data, createdAt: new Date().toISOString() });
+  let c = editingCus;
+  if (c) Object.assign(c, data);
+  else customers.push(c = { id: newId(), ...data, createdAt: new Date().toISOString() });
   saveCustomers();
+  queuePut('customers', c);
   $('#cusSheet').hidden = true; renderCustomers();
   toast('Đã lưu khách hàng');
 });
@@ -417,6 +426,7 @@ $('#delCus').addEventListener('click', () => {
   if (!editingCus || !confirm(`Xóa khách "${editingCus.name}"? (Hóa đơn cũ vẫn giữ lại)`)) return;
   customers = customers.filter((x) => x !== editingCus);
   saveCustomers();
+  queueDel('customers', editingCus.id);
   $('#cusSheet').hidden = true; renderCustomers();
 });
 $('#sellCus').addEventListener('click', () => {
@@ -428,6 +438,93 @@ $('#cusInvoices').addEventListener('click', (e) => {
   const item = e.target.closest('.hitem');
   const inv = item && invoices.find((v) => v.no === item.dataset.no);
   if (inv) openInvoice(inv);
+});
+
+/* --- Nhập danh sách khách từ Excel (dán) hoặc file .txt/.csv --- */
+// Đổi đầu số di động 11 số cũ sang 10 số (quy định chuyển đổi năm 2018)
+const OLD_MOBILE = {
+  '0120': '070', '0121': '079', '0122': '077', '0126': '076', '0128': '078', '0123': '083', '0124': '084',
+  '0125': '085', '0127': '081', '0129': '082', '0162': '032', '0163': '033', '0164': '034', '0165': '035',
+  '0166': '036', '0167': '037', '0168': '038', '0169': '039', '0186': '056', '0188': '058', '0199': '059'
+};
+function fixPhone(p) {
+  const d = digits(p);
+  if (d.length === 11 && OLD_MOBILE[d.slice(0, 4)]) {
+    return (OLD_MOBILE[d.slice(0, 4)] + d.slice(4)).replace(/(\d{4})(\d{3})(\d{3})/, '$1 $2 $3');
+  }
+  return String(p || '').trim().replace(/\s+/g, ' ');
+}
+const looksPhone = (s) => /^[\d\s.()+-]+$/.test(s.trim()) && digits(s).length >= 9;
+// Tách 1 dòng CSV có ngoặc kép (Excel lưu .csv sẽ bọc ô có dấu phẩy trong "...")
+function csvCells(line) {
+  const out = []; let cur = '', q = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (q) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ',' || ch === ';') { out.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+function parseCustomerList(text) {
+  const list = [];
+  for (const raw of text.replace(/^\uFEFF/, '').split(/\r?\n/)) {
+    if (!raw.trim()) continue;
+    const cells = (raw.includes('\t') ? raw.split('\t') : csvCells(raw)).map((c) => c.trim());
+    const pi = cells.map(looksPhone).lastIndexOf(true);
+    const phone = pi >= 0 ? fixPhone(cells[pi]) : '';
+    const rest = cells.filter((c, i) => i !== pi && c);
+    const name = (rest[0] || '').replace(/\s+/g, ' ');
+    const addr = rest.slice(1).join(', ').replace(/\s+/g, ' ');
+    if (/^(t[eê]n|ho ten|họ tên)$/i.test(name) && !phone) continue;   // dòng tiêu đề
+    if (!name && !phone) continue;
+    list.push({ name, phone, addr });
+  }
+  return list;
+}
+const cusKey = (c) => digits(c.phone) + '|' + norm(c.name).replace(/\s+/g, ' ').trim();
+let importRows = [];
+function previewImport() {
+  const have = new Set(customers.map(cusKey)), seen = new Set();
+  importRows = parseCustomerList($('#importText').value).map((c) => {
+    const k = cusKey(c), dup = have.has(k) || seen.has(k);
+    seen.add(k);
+    return { ...c, dup };
+  });
+  const fresh = importRows.filter((r) => !r.dup).length;
+  $('#doImport').disabled = !fresh;
+  $('#importPreview').innerHTML = importRows.length ? `
+    <div>Đọc được <b>${importRows.length}</b> khách: <span class="ok">${fresh} khách mới</span>${importRows.length - fresh ? `, ${importRows.length - fresh} đã có (bỏ qua)` : ''}.</div>
+    <table>${importRows.map((r) => `<tr class="${r.dup ? 'dup' : ''}"><td><b>${esc(r.name || '(không tên)')}</b><br>${esc(r.addr)}</td>
+      <td style="white-space:nowrap">${esc(r.phone || '—')}${r.dup ? '<br><i>đã có</i>' : ''}</td></tr>`).join('')}</table>` : '';
+}
+$('#importCus').addEventListener('click', () => {
+  $('#importText').value = ''; previewImport();
+  $('#importSheet').hidden = false;
+});
+$('#closeImport').addEventListener('click', () => { $('#importSheet').hidden = true; });
+$('#importText').addEventListener('input', previewImport);
+$('#importFile').addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  $('#importText').value = await f.text();
+  e.target.value = '';
+  previewImport();
+});
+$('#doImport').addEventListener('click', () => {
+  const now = new Date().toISOString();
+  const add = importRows.filter((r) => !r.dup);
+  for (const r of add) {
+    const c = { id: newId(), name: r.name, phone: r.phone, addr: r.addr, note: '', createdAt: now };
+    customers.push(c);
+    queuePut('customers', c);
+  }
+  saveCustomers();
+  $('#importSheet').hidden = true;
+  renderCustomers();
+  toast(`Đã thêm ${add.length} khách hàng`);
 });
 
 /* ================= Hóa đơn ================= */
@@ -517,6 +614,7 @@ $('#saveSettings').addEventListener('click', () => {
   settings.bankAcc = settings.bankAcc.replace(/\s/g, '');
   if (settings.bankAcc && !settings.bankBin) return toast('Chọn ngân hàng cho số tài khoản');
   save(K.settings, settings); fillSettings(); renderQrRow();
+  queueSettings();
   toast('Đã lưu cài đặt');
 });
 $('#sApi').addEventListener('change', () => {
@@ -550,6 +648,173 @@ $('#testPrint').addEventListener('click', () => {
   openInvoice(sample);
 });
 
+/* ================= Sao lưu online (khách, hóa đơn, cài đặt) ================= */
+// Dữ liệu vẫn lưu trên máy để dùng khi mất mạng; mỗi thay đổi được xếp vào "hộp thư đi"
+// (outbox) rồi gửi lên website khi có mạng. Khi mở app thì tải bản mới nhất về.
+let auth = load(K.auth, null);                 // { token, name, lastSync }
+const emptyOutbox = () => ({ customers: { put: {}, del: [] }, invoices: { put: {}, del: [] }, settings: null });
+let outbox = { ...emptyOutbox(), ...load(K.outbox, {}) };
+const saveOutbox = () => save(K.outbox, outbox);
+const outboxCount = () => ['customers', 'invoices'].reduce((n, k) =>
+  n + Object.keys(outbox[k].put).length + outbox[k].del.length, 0) + (outbox.settings ? 1 : 0);
+const cloudSettings = () => { const { api, ...rest } = settings; return rest; };   // địa chỉ website giữ riêng từng máy
+
+// Chưa đăng nhập thì khỏi xếp hàng: lúc đăng nhập app gửi toàn bộ dữ liệu trên máy lên
+function queuePut(kind, item) {
+  if (!auth) return;
+  outbox[kind].put[item.id] = item;
+  outbox[kind].del = outbox[kind].del.filter((id) => id !== item.id);
+  saveOutbox(); scheduleSync();
+}
+function queueDel(kind, id) {
+  if (!auth) return;
+  delete outbox[kind].put[id];
+  if (!outbox[kind].del.includes(id)) outbox[kind].del.push(id);
+  saveOutbox(); scheduleSync();
+}
+function queueSettings() { if (!auth) return; outbox.settings = cloudSettings(); saveOutbox(); scheduleSync(); }
+
+const apiBase = () => settings.api.replace(/\/$/, '');
+async function posApi(path, body) {
+  const res = await fetch(apiBase() + '/api/pos/' + path, {
+    method: body ? 'POST' : 'GET', cache: 'no-store',
+    headers: { 'Content-Type': 'application/json', ...(auth ? { Authorization: 'Bearer ' + auth.token } : {}) },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && auth && path !== 'dang-nhap') {
+    auth = null; save(K.auth, null); renderCloud();
+    toast('Phiên đăng nhập sao lưu đã hết, vào Cài đặt để đăng nhập lại', 4000);
+  }
+  if (!res.ok) throw new Error(data.error || 'Lỗi máy chủ (' + res.status + ')');
+  return data;
+}
+
+let syncTimer = null, syncing = false, lastPull = 0, cloudMsg = '';
+function scheduleSync(ms = 1500) {
+  if (!auth) { renderCloud(); return; }
+  clearTimeout(syncTimer); syncTimer = setTimeout(syncNow, ms);
+}
+
+// Gộp dữ liệu website với các thay đổi trên máy chưa gửi được
+function applyServer(data) {
+  const merge = (list, kind) => {
+    const map = new Map(list.map((x) => [x.id, x]));
+    for (const [id, x] of Object.entries(outbox[kind].put)) map.set(id, x);
+    for (const id of outbox[kind].del) map.delete(id);
+    return [...map.values()];
+  };
+  customers = merge(data.customers || [], 'customers');
+  invoices = merge(data.invoices || [], 'invoices').sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  if (data.settings && !outbox.settings) settings = { ...DEFAULT_SETTINGS, ...data.settings, api: settings.api };
+  save(K.customers, customers); save(K.invoices, invoices); save(K.settings, settings);
+  fillSettings(); renderQrRow(); renderCustomers(); renderHistory();
+}
+
+async function syncNow() {
+  if (!auth || syncing) return;
+  syncing = true; cloudMsg = 'Đang đồng bộ…'; renderCloud();
+  let failed = false;
+  try {
+    if (outboxCount()) {
+      const sending = outbox;
+      outbox = emptyOutbox(); saveOutbox();
+      try {
+        await posApi('dong-bo', {
+          customers: { put: Object.values(sending.customers.put), del: sending.customers.del },
+          invoices: { put: Object.values(sending.invoices.put), del: sending.invoices.del },
+          settings: sending.settings
+        });
+      } catch (e) {
+        // Gửi lỗi -> trả lại hộp thư đi (không đè lên thay đổi mới hơn vừa xếp vào)
+        for (const k of ['customers', 'invoices']) {
+          outbox[k].put = { ...sending[k].put, ...outbox[k].put };
+          outbox[k].del = [...new Set([...sending[k].del, ...outbox[k].del])];
+        }
+        outbox.settings = outbox.settings || sending.settings;
+        saveOutbox();
+        throw e;
+      }
+    }
+    applyServer(await posApi('du-lieu'));
+    lastPull = Date.now();
+    auth.lastSync = new Date().toISOString(); save(K.auth, auth);
+    cloudMsg = '';
+  } catch (e) {
+    failed = true;
+    cloudMsg = navigator.onLine ? 'Chưa đồng bộ được: ' + e.message : 'Đang mất mạng – sẽ tự gửi khi có mạng';
+  } finally {
+    syncing = false; renderCloud();
+    if (!failed && outboxCount()) scheduleSync(500);   // có thay đổi mới trong lúc đang gửi
+  }
+}
+
+function renderCloud() {
+  const on = !!auth, pending = outboxCount();
+  $('#cloudOut').hidden = on; $('#cloudIn').hidden = !on;
+  document.querySelectorAll('.cloud-warn').forEach((el) => { el.hidden = on; });
+  $('#cloudStatus').textContent = !on ? '' : syncing ? '☁ …' : pending ? `☁ chờ gửi ${pending}` : '☁ ✓';
+  if (on) {
+    const t = auth.lastSync ? new Date(auth.lastSync).toLocaleString('vi-VN') : 'chưa';
+    $('#cloudInfo').innerHTML = `✓ Đã đăng nhập: <b>${esc(auth.name)}</b><br>Đồng bộ lần cuối: ${t}`
+      + (pending ? `<br>Còn <b>${pending}</b> thay đổi chờ gửi lên` : '')
+      + (cloudMsg ? `<br><span class="muted">${esc(cloudMsg)}</span>` : '');
+  }
+}
+
+$('#lgBtn').addEventListener('click', async () => {
+  const user = $('#lgUser').value.trim(), pass = $('#lgPass').value;
+  if (!user || !pass) return toast('Nhập tài khoản và mật khẩu');
+  const btn = $('#lgBtn');
+  btn.disabled = true; btn.textContent = 'Đang đăng nhập… (website có thể mất ~1 phút để thức dậy)';
+  try {
+    const r = await posApi('dang-nhap', { tai_khoan: user, password: pass });
+    auth = { token: r.token, name: r.name }; save(K.auth, auth);
+    $('#lgPass').value = '';
+    // Lần đầu đăng nhập trên máy này: gửi dữ liệu đang có lên. Khách đã có trên website
+    // (trùng tên + SĐT) thì dùng bản trên website, không tạo trùng.
+    const server = await posApi('du-lieu');
+    const byKey = new Map((server.customers || []).map((c) => [cusKey(c), c.id]));
+    const remap = {};
+    for (const c of customers) {
+      const sid = byKey.get(cusKey(c));
+      if (sid && sid !== c.id) remap[c.id] = sid; else outbox.customers.put[c.id] = c;
+    }
+    for (const v of invoices) {
+      if (remap[v.customerId]) v.customerId = remap[v.customerId];
+      outbox.invoices.put[v.id] = v;
+    }
+    customers = customers.filter((c) => !remap[c.id]);
+    if (!server.settings) outbox.settings = cloudSettings();
+    saveOutbox();
+    await syncNow();
+    toast('Đã bật sao lưu online ✓');
+  } catch (e) {
+    toast(e.message, 4000);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Đăng nhập';
+    renderCloud();
+  }
+});
+$('#syncNowBtn').addEventListener('click', () => syncNow());
+$('#logoutBtn').addEventListener('click', async () => {
+  const pending = outboxCount();
+  if (!confirm(pending ? `Còn ${pending} thay đổi CHƯA gửi lên website, đăng xuất sẽ không gửi nữa. Vẫn đăng xuất?`
+    : 'Đăng xuất sao lưu online? Dữ liệu trên máy vẫn giữ nguyên.')) return;
+  try { await posApi('dang-xuat', {}); } catch { /* vẫn đăng xuất trên máy */ }
+  auth = null; save(K.auth, null);
+  outbox = emptyOutbox(); saveOutbox();
+  renderCloud();
+});
+document.querySelectorAll('.cloud-warn').forEach((el) => el.addEventListener('click', () => {
+  switchTab('settings'); $('#cloudCard').scrollIntoView({ block: 'start' });
+}));
+window.addEventListener('online', () => scheduleSync(500));
+// Mở lại app (từ nền) thì tải dữ liệu mới, tối đa 1 lần / 30 giây
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && Date.now() - lastPull > 30000) scheduleSync(300);
+});
+
 /* ================= Chuyển tab ================= */
 const TITLES = { new: 'Tạo hóa đơn', customers: 'Khách hàng', history: 'Lịch sử hóa đơn', settings: 'Cài đặt' };
 function switchTab(tab) {
@@ -558,7 +823,7 @@ function switchTab(tab) {
   $('#title').textContent = TITLES[tab];
   if (tab === 'history') renderHistory();
   if (tab === 'customers') renderCustomers();
-  if (tab === 'settings') renderBtStatus();
+  if (tab === 'settings') { renderBtStatus(); renderCloud(); }
   window.scrollTo(0, 0);
 }
 document.querySelector('.tabbar').addEventListener('click', (e) => {
@@ -571,6 +836,8 @@ fillDraftForm();
 fillSettings();
 renderDataInfo();
 syncProducts(false);
+renderCloud();
+if (auth) syncNow();
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   // Có bản app mới (sw.js đổi VERSION) thì tự tải lại để dùng ngay, không phải mở app 2 lần

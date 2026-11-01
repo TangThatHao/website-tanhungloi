@@ -17,7 +17,7 @@
 <body>
   <header class="appbar">
     <h1 id="title">Tạo hóa đơn</h1>
-    <span id="syncStatus" class="sync"></span>
+    <div class="sync"><span id="cloudStatus"></span><span id="syncStatus"></span></div>
   </header>
 
   <main>
@@ -59,16 +59,19 @@
 
     <!-- ===== KHÁCH HÀNG ===== -->
     <section id="tab-customers" class="tab">
+      <div class="cloud-warn" hidden>⚠️ Dữ liệu mới chỉ lưu trên máy này. <b>Bấm vào đây</b> để bật sao lưu online, cài lại app không mất.</div>
       <div class="search-row">
         <input id="cusSearch" type="search" placeholder="Tìm theo tên, số điện thoại..." />
         <button id="addCustomer" class="btn btn-primary">＋ Thêm</button>
       </div>
+      <button id="importCus" class="btn btn-outline btn-block">📥 Nhập danh sách khách từ Excel</button>
       <div id="cusSummary" class="muted small"></div>
       <div id="cusList"></div>
     </section>
 
     <!-- ===== LỊCH SỬ ===== -->
     <section id="tab-history" class="tab">
+      <div class="cloud-warn" hidden>⚠️ Dữ liệu mới chỉ lưu trên máy này. <b>Bấm vào đây</b> để bật sao lưu online, cài lại app không mất.</div>
       <input id="histSearch" type="search" placeholder="Tìm theo tên, SĐT, số hóa đơn..." />
       <div id="histSummary" class="muted small"></div>
       <div id="histList"></div>
@@ -76,6 +79,21 @@
 
     <!-- ===== CÀI ĐẶT ===== -->
     <section id="tab-settings" class="tab">
+      <div class="card" id="cloudCard">
+        <div class="card-title">☁️ Sao lưu online</div>
+        <div id="cloudOut">
+          <div class="muted small">Đăng nhập bằng <b>tài khoản quản trị website</b> để lưu khách hàng, hóa đơn và cài đặt lên mạng.
+            Cài lại app hay đổi điện thoại chỉ cần đăng nhập lại là có đủ dữ liệu.</div>
+          <input id="lgUser" placeholder="Tài khoản quản trị (tên đăng nhập / email / SĐT)" autocapitalize="off" autocorrect="off" autocomplete="username" />
+          <input id="lgPass" type="password" placeholder="Mật khẩu" autocomplete="current-password" />
+          <button id="lgBtn" class="btn btn-primary btn-block">Đăng nhập</button>
+        </div>
+        <div id="cloudIn" hidden>
+          <div id="cloudInfo" class="small"></div>
+          <button id="syncNowBtn" class="btn btn-outline btn-block">↻ Đồng bộ ngay</button>
+          <button id="logoutBtn" class="btn btn-ghost btn-block">Đăng xuất</button>
+        </div>
+      </div>
       <div class="card">
         <div class="card-title">Thông tin cửa hàng (in trên hóa đơn)</div>
         <label class="lbl">Tên cửa hàng</label><input id="sName" />
@@ -159,6 +177,28 @@
       <div id="cusStats" class="muted small"></div>
       <div id="cusInvoices"></div>
       <button id="delCus" class="btn btn-ghost btn-block danger">Xóa khách hàng này</button>
+    </div>
+  </div>
+
+  <!-- ===== NHẬP DANH SÁCH KHÁCH ===== -->
+  <div id="importSheet" class="sheet" hidden>
+    <div class="sheet-head">
+      <button id="closeImport" class="btn btn-ghost btn-sm">‹ Đóng</button>
+      <span class="spacer"></span>
+      <b>Nhập danh sách</b>
+      <span class="spacer"></span>
+      <button id="doImport" class="btn btn-primary btn-sm" disabled>Nhập</button>
+    </div>
+    <div class="plist">
+      <div class="help">
+        Danh sách gồm 3 cột: <b>Tên – Địa chỉ – Điện thoại</b>.<br />
+        <b>Cách 1:</b> bấm <b>Chọn file</b> bên dưới, chọn file danh sách (.txt / .csv) đã gửi vào điện thoại.<br />
+        <b>Cách 2:</b> trong Excel bôi đen 3 cột, bấm Sao chép, rồi dán vào ô bên dưới.<br />
+        Khách đã có (trùng tên và số điện thoại) sẽ không bị thêm lần nữa.
+      </div>
+      <label class="btn btn-outline btn-block" style="text-align:center;margin:10px 0">📄 Chọn file<input type="file" id="importFile" accept=".txt,.csv,.tsv,text/plain,text/csv" hidden /></label>
+      <textarea id="importText" rows="8" placeholder="...hoặc dán danh sách vào đây"></textarea>
+      <div id="importPreview"></div>
     </div>
   </div>
 
