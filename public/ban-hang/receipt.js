@@ -216,8 +216,13 @@ const bt = { device: null, ch: null };
 const btSupported = () => !!(navigator.bluetooth && navigator.bluetooth.requestDevice);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function btConnect() {
-  const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: BT_SERVICES });
+const PRINTER_KEY = 'thl.printer';             // máy in dùng lần trước: { id, name }
+const savedPrinter = () => { try { return JSON.parse(localStorage.getItem(PRINTER_KEY)); } catch { return null; } };
+// Kết nối Bluetooth có thể treo rất lâu khi máy in tắt/ở xa -> cắt sau ms giây
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('Hết thời gian chờ máy in')), ms))]);
+
+// Kết nối tới 1 máy in đã biết, tìm đặc tính (characteristic) cho phép ghi dữ liệu in
+async function openPrinter(device) {
   const server = await device.gatt.connect();
   let ch = null;
   for (const svc of await server.getPrimaryServices()) {
@@ -227,9 +232,39 @@ async function btConnect() {
     if (ch) break;
   }
   if (!ch) { device.gatt.disconnect(); throw new Error('Máy này không phải máy in hoặc chưa hỗ trợ'); }
-  device.addEventListener('gattserverdisconnected', () => { bt.ch = null; });
+  if (bt.device !== device) device.addEventListener('gattserverdisconnected', () => { bt.ch = null; });
   bt.device = device; bt.ch = ch;
+  try { localStorage.setItem(PRINTER_KEY, JSON.stringify({ id: device.id, name: device.name || '' })); } catch { /* bỏ qua */ }
   return device.name || 'Máy in';
+}
+
+// Hiện bảng chọn máy in (trình duyệt bắt buộc người dùng tự chọn lần đầu)
+async function btConnect() {
+  const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: BT_SERVICES });
+  return openPrinter(device);
+}
+
+// Kết nối lại máy in cũ mà không hỏi: máy in tự ngắt khi để lâu không in,
+// hoặc app vừa mở lại (trình duyệt nào nhớ thiết bị đã cho phép thì dùng được getDevices)
+let reconnecting = null;                        // đang nối sẵn ở chế độ nền thì bấm In dùng chung lần nối đó
+function btReconnect() {
+  if (!reconnecting) reconnecting = tryReconnect().finally(() => { reconnecting = null; });
+  return reconnecting;
+}
+async function tryReconnect() {
+  if (bt.ch && bt.device.gatt.connected) return true;
+  if (bt.device) {
+    try { await withTimeout(openPrinter(bt.device), 4000); return true; } catch { /* thử cách khác */ }
+  }
+  const saved = savedPrinter();
+  if (saved && navigator.bluetooth.getDevices) {
+    try {
+      const list = await navigator.bluetooth.getDevices();
+      const d = list.find((x) => x.id === saved.id) || list.find((x) => saved.name && x.name === saved.name);
+      if (d) { await withTimeout(openPrinter(d), 4000); return true; }
+    } catch { /* trình duyệt không nhớ được -> phải chọn lại */ }
+  }
+  return false;
 }
 
 function escposRaster(canvas) {
@@ -255,7 +290,9 @@ function escposRaster(canvas) {
 }
 
 async function btPrint(canvas, onProgress) {
-  if (!bt.ch || !bt.device.gatt.connected) await btConnect();
+  if (!bt.ch || !bt.device.gatt.connected) {
+    if (!(await btReconnect())) await btConnect();
+  }
   const data = escposRaster(canvas);
   const ch = bt.ch, noResp = ch.properties.writeWithoutResponse;
   // Gửi gói 180 byte cho nhanh; máy in/điện thoại nào chỉ nhận gói nhỏ (20 byte) thì tự chuyển sang gói nhỏ

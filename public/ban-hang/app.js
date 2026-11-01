@@ -553,6 +553,8 @@ async function openInvoice(inv, sample = false) {
   $('#receiptImg').removeAttribute('src');
   $('#viewer').hidden = false;
   $('#viewer .paper-wrap').scrollTop = 0;
+  // Nối sẵn máy in đã dùng trong lúc xem hóa đơn, bấm In là in luôn
+  if (btSupported() && savedPrinter() && !(bt.ch && bt.device.gatt.connected)) btReconnect().catch(() => {});
   receiptCanvas = await renderReceipt(inv, settings, fmt, moneyToWords);
   $('#receiptImg').src = receiptCanvas.toDataURL('image/png');
 }
@@ -609,7 +611,13 @@ async function busy(btn, label, fn) {
 $('#shareBtn').addEventListener('click', () => busy($('#shareBtn'), 'Đang tạo…', shareReceipt));
 $('#printBtn').addEventListener('click', () => busy($('#printBtn'), 'Đang in…', async () => {
   if (btSupported()) {
-    await btPrint(receiptCanvas, (p) => { $('#printBtn').textContent = `Đang in ${p}%`; });
+    try {
+      await btPrint(receiptCanvas, (p) => { $('#printBtn').textContent = `Đang in ${p}%`; });
+    } catch (e) {
+      // Thử nối lại máy in cũ quá lâu -> trình duyệt không cho mở bảng chọn máy in nữa
+      if (e.name === 'SecurityError') { toast('Không thấy máy in cũ. Bật máy in rồi bấm In lần nữa', 4000); return; }
+      throw e;
+    }
     toast('Đã gửi lệnh in ✓');
     renderBtStatus();
   } else {
@@ -672,8 +680,11 @@ $('#syncBtn').addEventListener('click', () => syncProducts(true));
 function renderBtStatus() {
   $('#btBox').hidden = !btSupported();
   $('#btHelp').hidden = btSupported();
+  const saved = savedPrinter();
   $('#btStatus').textContent = bt.ch && bt.device.gatt.connected
-    ? '✓ Đã kết nối: ' + (bt.device.name || 'Máy in') : 'Chưa kết nối. Khi bấm In, app sẽ hỏi chọn máy in.';
+    ? '✓ Đã kết nối: ' + (bt.device.name || 'Máy in')
+    : saved ? `Máy in đã lưu: ${saved.name || 'Máy in'} (tự kết nối khi in). Muốn đổi máy in thì bấm nút trên.`
+      : 'Chưa kết nối. Khi bấm In, app sẽ hỏi chọn máy in.';
 }
 $('#btConnect').addEventListener('click', async () => {
   try { const name = await btConnect(); toast('Đã kết nối ' + name); } catch (e) {
