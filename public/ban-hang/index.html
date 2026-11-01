@@ -27,6 +27,7 @@
         <div class="card-title">Khách hàng</div>
         <input id="cusName" placeholder="Tên khách hàng" autocomplete="off" />
         <input id="cusPhone" placeholder="Số điện thoại" inputmode="tel" autocomplete="off" />
+        <div id="cusSuggest" class="suggest" hidden></div>
         <input id="cusAddr" placeholder="Địa chỉ" autocomplete="off" />
       </div>
 
@@ -55,6 +56,16 @@
       </div>
     </section>
 
+    <!-- ===== KHÁCH HÀNG ===== -->
+    <section id="tab-customers" class="tab">
+      <div class="search-row">
+        <input id="cusSearch" type="search" placeholder="Tìm theo tên, số điện thoại..." />
+        <button id="addCustomer" class="btn btn-primary">＋ Thêm</button>
+      </div>
+      <div id="cusSummary" class="muted small"></div>
+      <div id="cusList"></div>
+    </section>
+
     <!-- ===== LỊCH SỬ ===== -->
     <section id="tab-history" class="tab">
       <input id="histSearch" type="search" placeholder="Tìm theo tên, SĐT, số hóa đơn..." />
@@ -68,13 +79,37 @@
         <div class="card-title">Thông tin cửa hàng (in trên hóa đơn)</div>
         <label class="lbl">Tên cửa hàng</label><input id="sName" />
         <label class="lbl">Dòng phụ</label><input id="sSlogan" />
-        <label class="lbl">Địa chỉ</label><textarea id="sAddr" rows="2"></textarea>
+        <label class="lbl">Địa chỉ</label><textarea id="sAddr" rows="3"></textarea>
         <label class="lbl">Điện thoại</label><input id="sPhone" inputmode="tel" />
-        <label class="lbl">Thông tin chuyển khoản</label><textarea id="sBank" rows="2" placeholder="VD: Vietcombank 0123456789 - Nguyễn Thị Lan"></textarea>
         <label class="lbl">Lời cảm ơn cuối hóa đơn</label><input id="sThanks" />
-        <button id="saveSettings" class="btn btn-primary btn-block">Lưu thông tin</button>
       </div>
       <div class="card">
+        <div class="card-title">Tài khoản nhận chuyển khoản (mã QR)</div>
+        <label class="lbl">Ngân hàng</label><select id="sBankBin"></select>
+        <label class="lbl">Số tài khoản</label><input id="sBankAcc" inputmode="numeric" autocomplete="off" />
+        <label class="lbl">Tên chủ tài khoản</label><input id="sBankOwner" autocapitalize="characters" autocomplete="off" />
+        <div class="muted small">Để trống số tài khoản thì hóa đơn không in mã QR.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Máy in hóa đơn</div>
+        <label class="lbl">Khổ giấy</label>
+        <select id="sPaper"><option value="58">58 mm (máy in nhỏ cầm tay)</option><option value="80">80 mm</option></select>
+        <label class="check"><input type="checkbox" id="sLogo" /> In logo ở đầu hóa đơn</label>
+        <div id="btBox">
+          <button id="btConnect" class="btn btn-outline btn-block">🔗 Kết nối máy in Bluetooth</button>
+          <div id="btStatus" class="muted small"></div>
+        </div>
+        <div id="btHelp" class="help">
+          <b>Cách in trên iPhone:</b><br />
+          Safari trên iPhone không tự kết nối được máy in Bluetooth. Chọn 1 trong 2 cách:<br />
+          <b>Cách 1:</b> Cài app đi kèm máy in (xem hướng dẫn trong hộp máy). Khi xuất hóa đơn, bấm <b>In</b>
+          rồi chọn app máy in trong bảng chia sẻ.<br />
+          <b>Cách 2:</b> Cài trình duyệt miễn phí <b>Bluefy</b> trên App Store, mở trang bán hàng bằng Bluefy.
+          Bấm <b>In</b> là in thẳng ra máy, không cần app khác.
+        </div>
+      </div>
+      <button id="saveSettings" class="btn btn-primary btn-block">Lưu cài đặt</button>
+      <div class="card" style="margin-top:12px">
         <div class="card-title">Dữ liệu sản phẩm</div>
         <div id="dataInfo" class="muted small"></div>
         <button id="syncBtn" class="btn btn-outline btn-block">↻ Cập nhật giá từ website</button>
@@ -85,6 +120,7 @@
 
   <nav class="tabbar">
     <button data-tab="new" class="active"><span>🧾</span>Hóa đơn</button>
+    <button data-tab="customers"><span>👥</span>Khách hàng</button>
     <button data-tab="history"><span>📚</span>Lịch sử</button>
     <button data-tab="settings"><span>⚙️</span>Cài đặt</button>
   </nav>
@@ -99,20 +135,47 @@
     <div id="pList" class="plist"></div>
   </div>
 
+  <!-- ===== CHI TIẾT KHÁCH HÀNG ===== -->
+  <div id="cusSheet" class="sheet" hidden>
+    <div class="sheet-head">
+      <button id="closeCus" class="btn btn-ghost btn-sm">‹ Đóng</button>
+      <span class="spacer"></span>
+      <b id="cusSheetTitle"></b>
+      <span class="spacer"></span>
+      <button id="saveCus" class="btn btn-primary btn-sm">Lưu</button>
+    </div>
+    <div class="plist">
+      <div class="card">
+        <label class="lbl">Tên khách hàng</label><input id="cName" autocomplete="off" />
+        <label class="lbl">Số điện thoại</label><input id="cPhone" inputmode="tel" autocomplete="off" />
+        <label class="lbl">Địa chỉ</label><textarea id="cAddr" rows="2"></textarea>
+        <label class="lbl">Ghi chú</label><input id="cNote" placeholder="VD: khách sỉ, thích bánh ít ngọt..." autocomplete="off" />
+      </div>
+      <div id="cusActions" class="actions">
+        <a id="callCus" class="btn btn-outline">📞 Gọi</a>
+        <button id="sellCus" class="btn btn-primary">🧾 Tạo hóa đơn</button>
+      </div>
+      <div id="cusStats" class="muted small"></div>
+      <div id="cusInvoices"></div>
+      <button id="delCus" class="btn btn-ghost btn-block danger">Xóa khách hàng này</button>
+    </div>
+  </div>
+
   <!-- ===== XEM HÓA ĐƠN ===== -->
   <div id="viewer" class="sheet" hidden>
     <div class="sheet-head">
       <button id="closeViewer" class="btn btn-ghost btn-sm">‹ Đóng</button>
       <span class="spacer"></span>
-      <button id="printBtn" class="btn btn-outline btn-sm">In / PDF</button>
-      <button id="shareBtn" class="btn btn-primary btn-sm">Gửi ảnh</button>
+      <button id="shareBtn" class="btn btn-outline btn-sm">Gửi ảnh</button>
+      <button id="printBtn" class="btn btn-primary btn-sm">🖨 In</button>
     </div>
-    <div class="paper-wrap"><div id="paper" class="paper"></div></div>
+    <div class="paper-wrap"><img id="receiptImg" class="receipt" alt="Hóa đơn" /></div>
   </div>
 
   <div id="toast" class="toast" hidden></div>
 
-  <script src="vendor/html2canvas.min.js"></script>
+  <script src="vendor/qrcode.js"></script>
+  <script src="receipt.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

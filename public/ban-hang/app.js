@@ -1,7 +1,7 @@
 'use strict';
 
 /* ================= Lưu trữ trên máy ================= */
-const K = { products: 'thl.products', settings: 'thl.settings', invoices: 'thl.invoices', draft: 'thl.draft' };
+const K = { products: 'thl.products', settings: 'thl.settings', invoices: 'thl.invoices', draft: 'thl.draft', customers: 'thl.customers' };
 const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } };
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { toast('Không lưu được dữ liệu: ' + e.message); } };
 
@@ -10,13 +10,15 @@ const DEFAULT_SETTINGS = {
   slogan: 'Đặc sản bánh pía Sóc Trăng',
   addr: 'Sóc Trăng: 122 Lý Thường Kiệt, TP Sóc Trăng\nSài Gòn: 418/45 Hồng Bàng, P. Minh Phụng, TP.HCM',
   phone: '0919 454 484',
-  bank: '',
   thanks: 'Cảm ơn quý khách! Hẹn gặp lại.',
+  bankBin: '', bankAcc: '', bankOwner: '',
+  paper: '58', logo: true,
   api: 'https://banhpiasoctrang.onrender.com'
 };
 let settings = { ...DEFAULT_SETTINGS, ...load(K.settings, {}) };
 let catalog = load(K.products, null);          // { updatedAt, products: [...] }
 let invoices = load(K.invoices, []);
+let customers = load(K.customers, []);         // [{ id, name, phone, addr, note, createdAt }]
 const emptyDraft = () => ({ name: '', phone: '', addr: '', lines: [], ship: 0, discount: 0, paid: 0, note: '' });
 let draft = { ...emptyDraft(), ...load(K.draft, {}) };
 
@@ -27,6 +29,7 @@ const fmt = (n) => Math.round(n || 0).toLocaleString('vi-VN');
 const parseMoney = (s) => +String(s).replace(/\D/g, '') || 0;
 const norm = (s) => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 const pad = (n) => String(n).padStart(2, '0');
+const digits = (s) => String(s || '').replace(/\D/g, '');
 
 let toastTimer;
 function toast(msg, ms = 2500) {
@@ -216,8 +219,40 @@ $('#lines').addEventListener('focusout', (e) => {
 });
 
 for (const [id, key] of [['cusName', 'name'], ['cusPhone', 'phone'], ['cusAddr', 'addr'], ['note', 'note']]) {
-  $('#' + id).addEventListener('input', (e) => { draft[key] = e.target.value; saveDraft(); });
+  $('#' + id).addEventListener('input', (e) => {
+    draft[key] = e.target.value; saveDraft();
+    if (key === 'name' || key === 'phone') renderSuggest(e.target.value);
+  });
 }
+
+/* --- Gợi ý khách cũ khi gõ tên hoặc số điện thoại --- */
+function renderSuggest(q) {
+  const box = $('#cusSuggest');
+  const nq = norm(q.trim()), dq = digits(q);
+  const list = nq.length < 2 ? [] : customers.filter((c) =>
+    norm(c.name).includes(nq) || (dq.length >= 3 && digits(c.phone).includes(dq))).slice(0, 5);
+  // Đã chọn đúng khách rồi thì thôi không gợi ý nữa
+  if (list.length === 1 && list[0].name === draft.name && list[0].phone === draft.phone) list.length = 0;
+  box.hidden = !list.length;
+  box.innerHTML = list.map((c) => `<button data-id="${c.id}">👤 <b>${esc(c.name || 'Không tên')}</b>
+    <small>${esc(c.phone)}${c.addr ? ' · ' + esc(c.addr) : ''}</small></button>`).join('');
+}
+$('#cusSuggest').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  const c = btn && customers.find((x) => x.id === btn.dataset.id);
+  if (!c) return;
+  fillCustomer(c);
+  $('#cusSuggest').hidden = true;
+});
+function fillCustomer(c) {
+  Object.assign(draft, { name: c.name, phone: c.phone, addr: c.addr });
+  saveDraft();
+  $('#cusName').value = c.name; $('#cusPhone').value = c.phone; $('#cusAddr').value = c.addr;
+}
+// Chạm ra ngoài thì ẩn gợi ý
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#cusSuggest, #cusName, #cusPhone')) $('#cusSuggest').hidden = true;
+});
 for (const [id, key] of [['shipFee', 'ship'], ['discount', 'discount'], ['paid', 'paid']]) {
   bindMoney($('#' + id), (v) => { draft[key] = v; saveDraft(); renderTotals(); });
 }
@@ -246,6 +281,7 @@ $('#issueBtn').addEventListener('click', () => {
     ship: draft.ship, discount: draft.discount, paid: draft.paid
   };
   Object.assign(inv, calc(inv));
+  inv.customerId = upsertCustomer(inv);
   invoices.unshift(inv);
   save(K.invoices, invoices);
   draft = emptyDraft(); saveDraft(); fillDraftForm();
@@ -287,82 +323,162 @@ $('#pList').addEventListener('click', (e) => {
   if (p) addProduct(p);
 });
 
-/* ================= Hóa đơn ================= */
-let viewing = null;
-function invoiceHTML(inv) {
-  const d = new Date(inv.date);
-  const when = `${pad(d.getHours())}:${pad(d.getMinutes())} ngày ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
-  const rows = inv.lines.map((l, i) => `
-    <tr><td class="c">${i + 1}</td><td>${esc(l.name)}</td><td class="c">${l.qty}</td>
-    <td class="r">${fmt(l.price)}</td><td class="r">${fmt(l.price * l.qty)}</td></tr>`).join('');
-  const sumRow = (label, val, cls = '') => `<div class="row ${cls}"><span>${label}</span><b>${val}</b></div>`;
-  return `
-    <div class="inv-head">
-      <img src="icons/logo.png" alt="" />
-      <div>
-        <div class="inv-shop">${esc(settings.name)}</div>
-        <div class="s">${esc(settings.slogan)}</div>
-        <div class="s">${esc(settings.addr).replace(/\n/g, '<br>')}</div>
-        <div class="s">ĐT: <b>${esc(settings.phone)}</b></div>
-      </div>
-    </div>
-    <div class="inv-title">HÓA ĐƠN BÁN HÀNG</div>
-    <div class="inv-no">Số: <b>${esc(inv.no)}</b> · ${when}</div>
-    <div class="inv-cus">
-      ${inv.name ? `<div>Khách hàng: <b>${esc(inv.name)}</b></div>` : ''}
-      ${inv.phone ? `<div>Điện thoại: ${esc(inv.phone)}</div>` : ''}
-      ${inv.addr ? `<div>Địa chỉ: ${esc(inv.addr)}</div>` : ''}
-    </div>
-    <table class="inv-table">
-      <thead><tr><th class="c">#</th><th>Sản phẩm</th><th class="c">SL</th><th class="r">Đ.giá</th><th class="r">T.tiền</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-    <div class="inv-sum">
-      ${inv.ship || inv.discount ? sumRow('Tiền hàng', fmt(inv.sub) + ' đ') : ''}
-      ${inv.ship ? sumRow('Phí vận chuyển', '+' + fmt(inv.ship) + ' đ') : ''}
-      ${inv.discount ? sumRow('Giảm giá', '−' + fmt(inv.discount) + ' đ') : ''}
-      ${sumRow('TỔNG CỘNG', fmt(inv.total) + ' đ', 'grand')}
-      ${inv.paid ? sumRow('Đã trả trước', fmt(inv.paid) + ' đ') + sumRow('Còn phải thu', fmt(inv.due) + ' đ') : ''}
-    </div>
-    <div class="inv-words">Bằng chữ: ${moneyToWords(inv.total)}.</div>
-    ${inv.note ? `<div class="inv-note">Ghi chú: ${esc(inv.note)}</div>` : ''}
-    ${settings.bank ? `<div class="inv-bank">💳 ${esc(settings.bank)}</div>` : ''}
-    <div class="inv-sign"><div><b>Khách hàng</b><i>(Ký, ghi rõ họ tên)</i></div><div><b>Người bán hàng</b><i>(Ký, ghi rõ họ tên)</i></div></div>
-    <div class="inv-thanks">${esc(settings.thanks)}</div>`;
+/* ================= Khách hàng ================= */
+const saveCustomers = () => save(K.customers, customers);
+
+// Tìm khách trùng: ưu tiên theo số điện thoại, không có SĐT thì theo tên
+function matchCustomer({ name, phone }) {
+  const p = digits(phone);
+  if (p) return customers.find((c) => digits(c.phone) === p);
+  const n = norm(name || '').trim();
+  return n ? customers.find((c) => !digits(c.phone) && norm(c.name).trim() === n) : undefined;
 }
 
-function openInvoice(inv) {
+// Sau mỗi hóa đơn: thêm khách mới hoặc cập nhật thông tin khách cũ. Trả về id khách.
+function upsertCustomer({ name, phone, addr }) {
+  if (!name && !phone) return null;
+  let c = matchCustomer({ name, phone });
+  if (c) {
+    if (name) c.name = name;
+    if (phone) c.phone = phone;
+    if (addr) c.addr = addr;
+  } else {
+    c = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name, phone, addr, note: '', createdAt: new Date().toISOString() };
+    customers.push(c);
+  }
+  saveCustomers();
+  return c.id;
+}
+
+function invoicesOf(c) {
+  const p = digits(c.phone);
+  return invoices.filter((v) => v.customerId === c.id || (!v.customerId && p && digits(v.phone) === p));
+}
+
+function renderCustomers() {
+  const q = norm($('#cusSearch').value.trim()), dq = digits($('#cusSearch').value);
+  const rows = customers.map((c) => {
+    const invs = invoicesOf(c);
+    return { c, count: invs.length, spent: invs.reduce((s, v) => s + v.total, 0), last: invs[0]?.date || c.createdAt };
+  }).filter(({ c }) => !q || norm(c.name).includes(q) || (dq.length >= 3 && digits(c.phone).includes(dq)))
+    .sort((a, b) => (b.last || '').localeCompare(a.last || ''));
+  $('#cusSummary').textContent = `${customers.length} khách hàng`;
+  $('#cusList').innerHTML = rows.length ? rows.map(({ c, count, spent }) => `
+    <div class="citem" data-id="${c.id}">
+      <div class="av">${esc((c.name || '?').trim().split(/\s+/).pop().charAt(0).toUpperCase())}</div>
+      <div class="ci"><div class="cn">${esc(c.name || 'Không tên')}</div><div class="cs">${esc(c.phone || 'Chưa có SĐT')}</div></div>
+      <div class="cm">${count ? `<b>${fmt(spent)} đ</b>${count} lần mua` : 'Chưa mua'}</div>
+    </div>`).join('')
+    : `<div class="empty">${customers.length ? 'Không tìm thấy khách' : 'Chưa có khách hàng nào.<br>Khách sẽ tự được lưu khi xuất hóa đơn.'}</div>`;
+}
+$('#cusSearch').addEventListener('input', renderCustomers);
+$('#cusList').addEventListener('click', (e) => {
+  const item = e.target.closest('.citem');
+  const c = item && customers.find((x) => x.id === item.dataset.id);
+  if (c) openCustomer(c);
+});
+$('#addCustomer').addEventListener('click', () => openCustomer(null));
+
+let editingCus = null;
+function openCustomer(c) {
+  editingCus = c;
+  $('#cusSheetTitle').textContent = c ? 'Khách hàng' : 'Thêm khách mới';
+  $('#cName').value = c?.name || ''; $('#cPhone').value = c?.phone || '';
+  $('#cAddr').value = c?.addr || ''; $('#cNote').value = c?.note || '';
+  $('#cusActions').hidden = !c; $('#delCus').hidden = !c;
+  $('#callCus').hidden = !c?.phone;
+  if (c?.phone) $('#callCus').href = 'tel:' + digits(c.phone);
+  const invs = c ? invoicesOf(c) : [];
+  $('#cusStats').textContent = invs.length
+    ? `Đã mua ${invs.length} lần · tổng ${fmt(invs.reduce((s, v) => s + v.total, 0))} đ` : '';
+  $('#cusInvoices').innerHTML = invs.map(historyItem).join('');
+  $('#cusSheet').hidden = false;
+  if (!c) $('#cName').focus();
+}
+$('#closeCus').addEventListener('click', () => { $('#cusSheet').hidden = true; renderCustomers(); });
+$('#saveCus').addEventListener('click', () => {
+  const data = { name: $('#cName').value.trim(), phone: $('#cPhone').value.trim(), addr: $('#cAddr').value.trim(), note: $('#cNote').value.trim() };
+  if (!data.name && !data.phone) return toast('Nhập tên hoặc số điện thoại');
+  const dup = data.phone && customers.find((x) => x !== editingCus && digits(x.phone) === digits(data.phone));
+  if (dup) return toast(`Số này đã có trong danh sách: ${dup.name}`, 3500);
+  if (editingCus) Object.assign(editingCus, data);
+  else customers.push({ id: Date.now().toString(36), ...data, createdAt: new Date().toISOString() });
+  saveCustomers();
+  $('#cusSheet').hidden = true; renderCustomers();
+  toast('Đã lưu khách hàng');
+});
+$('#delCus').addEventListener('click', () => {
+  if (!editingCus || !confirm(`Xóa khách "${editingCus.name}"? (Hóa đơn cũ vẫn giữ lại)`)) return;
+  customers = customers.filter((x) => x !== editingCus);
+  saveCustomers();
+  $('#cusSheet').hidden = true; renderCustomers();
+});
+$('#sellCus').addEventListener('click', () => {
+  fillCustomer(editingCus);
+  $('#cusSheet').hidden = true;
+  switchTab('new');
+});
+$('#cusInvoices').addEventListener('click', (e) => {
+  const item = e.target.closest('.hitem');
+  const inv = item && invoices.find((v) => v.no === item.dataset.no);
+  if (inv) openInvoice(inv);
+});
+
+/* ================= Hóa đơn ================= */
+let viewing = null, receiptCanvas = null;
+async function openInvoice(inv) {
   viewing = inv;
-  $('#paper').innerHTML = invoiceHTML(inv);
+  $('#receiptImg').removeAttribute('src');
   $('#viewer').hidden = false;
   $('#viewer .paper-wrap').scrollTop = 0;
+  receiptCanvas = await renderReceipt(inv, settings, fmt, moneyToWords);
+  $('#receiptImg').src = receiptCanvas.toDataURL('image/png');
 }
 $('#closeViewer').addEventListener('click', () => { $('#viewer').hidden = true; renderHistory(); });
-$('#printBtn').addEventListener('click', () => window.print());
 
-// Chụp tờ hóa đơn thành ảnh PNG rồi mở bảng chia sẻ của iPhone (Zalo, Messenger, Lưu ảnh...)
-$('#shareBtn').addEventListener('click', async () => {
-  const btn = $('#shareBtn');
-  btn.disabled = true; btn.textContent = 'Đang tạo ảnh…';
-  try {
-    const canvas = await html2canvas($('#paper'), { scale: 2, backgroundColor: '#ffffff', useCORS: true });
-    const blob = await new Promise((r) => canvas.toBlob(r, 'image/png'));
-    const file = new File([blob], `${viewing.no}.png`, { type: 'image/png' });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      await navigator.share({ files: [file], title: 'Hóa đơn ' + viewing.no });
-    } else {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = file.name;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-      toast('Đã lưu ảnh hóa đơn');
-    }
-  } catch (e) {
-    if (e.name !== 'AbortError') toast('Không tạo được ảnh: ' + e.message, 4000);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Gửi ảnh';
+// Mở bảng chia sẻ của iPhone với ảnh hóa đơn (Zalo, Messenger, app máy in, Lưu ảnh...)
+async function shareReceipt() {
+  const blob = await new Promise((r) => receiptCanvas.toBlob(r, 'image/png'));
+  const file = new File([blob], `${viewing.no}.png`, { type: 'image/png' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    await navigator.share({ files: [file], title: 'Hóa đơn ' + viewing.no });
+  } else {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    toast('Đã lưu ảnh hóa đơn');
   }
-});
+}
+async function busy(btn, label, fn) {
+  if (!receiptCanvas) return;
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = label;
+  try { await fn(); } catch (e) {
+    if (e.name !== 'AbortError' && e.name !== 'NotFoundError') toast('Lỗi: ' + e.message, 4000);
+  } finally { btn.disabled = false; btn.textContent = old; }
+}
+$('#shareBtn').addEventListener('click', () => busy($('#shareBtn'), 'Đang tạo…', shareReceipt));
+$('#printBtn').addEventListener('click', () => busy($('#printBtn'), 'Đang in…', async () => {
+  if (btSupported()) {
+    await btPrint(receiptCanvas, (p) => { $('#printBtn').textContent = `Đang in ${p}%`; });
+    toast('Đã gửi lệnh in ✓');
+    renderBtStatus();
+  } else {
+    // Safari iPhone không có Bluetooth cho web -> gửi ảnh sang app của máy in
+    toast('Chọn app máy in trong danh sách để in', 3500);
+    await shareReceipt();
+  }
+}));
+
+function historyItem(v) {
+  const d = new Date(v.date);
+  return `<div class="hitem" data-no="${esc(v.no)}">
+    <div class="top"><span>${esc(v.name || 'Khách lẻ')}</span><b>${fmt(v.total)} đ</b></div>
+    <div class="sub">${esc(v.no)} · ${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}
+      · ${v.lines.reduce((s, l) => s + l.qty, 0)} món${v.phone ? ' · ' + esc(v.phone) : ''}</div>
+  </div>`;
+}
 
 /* ================= Lịch sử ================= */
 function renderHistory() {
@@ -371,14 +487,7 @@ function renderHistory() {
   const today = new Date().toDateString();
   const todays = invoices.filter((v) => new Date(v.date).toDateString() === today);
   $('#histSummary').textContent = `Hôm nay: ${todays.length} hóa đơn · ${fmt(todays.reduce((s, v) => s + v.total, 0))} đ`;
-  $('#histList').innerHTML = list.length ? list.map((v) => {
-    const d = new Date(v.date);
-    return `<div class="hitem" data-no="${esc(v.no)}">
-      <div class="top"><span>${esc(v.name || 'Khách lẻ')}</span><b>${fmt(v.total)} đ</b></div>
-      <div class="sub">${esc(v.no)} · ${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}
-        · ${v.lines.reduce((s, l) => s + l.qty, 0)} món${v.phone ? ' · ' + esc(v.phone) : ''}</div>
-    </div>`;
-  }).join('') : '<div class="empty">Chưa có hóa đơn nào</div>';
+  $('#histList').innerHTML = list.length ? list.map(historyItem).join('') : '<div class="empty">Chưa có hóa đơn nào</div>';
 }
 $('#histSearch').addEventListener('input', renderHistory);
 $('#histList').addEventListener('click', (e) => {
@@ -388,12 +497,23 @@ $('#histList').addEventListener('click', (e) => {
 });
 
 /* ================= Cài đặt ================= */
-const SETTING_FIELDS = { sName: 'name', sSlogan: 'slogan', sAddr: 'addr', sPhone: 'phone', sBank: 'bank', sThanks: 'thanks', sApi: 'api' };
-function fillSettings() { for (const [id, k] of Object.entries(SETTING_FIELDS)) $('#' + id).value = settings[k]; }
+const SETTING_FIELDS = {
+  sName: 'name', sSlogan: 'slogan', sAddr: 'addr', sPhone: 'phone', sThanks: 'thanks',
+  sBankBin: 'bankBin', sBankAcc: 'bankAcc', sBankOwner: 'bankOwner', sPaper: 'paper', sApi: 'api'
+};
+$('#sBankBin').innerHTML = '<option value="">— Chọn ngân hàng —</option>'
+  + BANKS.map(([bin, name]) => `<option value="${bin}">${esc(name)}</option>`).join('');
+function fillSettings() {
+  for (const [id, k] of Object.entries(SETTING_FIELDS)) $('#' + id).value = settings[k];
+  $('#sLogo').checked = settings.logo;
+}
 $('#saveSettings').addEventListener('click', () => {
   for (const [id, k] of Object.entries(SETTING_FIELDS)) settings[k] = $('#' + id).value.trim() || DEFAULT_SETTINGS[k];
+  settings.bankAcc = settings.bankAcc.replace(/\s/g, '');
+  settings.logo = $('#sLogo').checked;
+  if (settings.bankAcc && !settings.bankBin) return toast('Chọn ngân hàng cho số tài khoản');
   save(K.settings, settings); fillSettings();
-  toast('Đã lưu thông tin cửa hàng');
+  toast('Đã lưu cài đặt');
 });
 $('#sApi').addEventListener('change', () => {
   settings.api = $('#sApi').value.trim() || DEFAULT_SETTINGS.api;
@@ -401,16 +521,34 @@ $('#sApi').addEventListener('change', () => {
 });
 $('#syncBtn').addEventListener('click', () => syncProducts(true));
 
+// Máy in Bluetooth: chỉ hiện nút kết nối khi trình duyệt hỗ trợ (Bluefy, Chrome Android...)
+function renderBtStatus() {
+  $('#btBox').hidden = !btSupported();
+  $('#btHelp').hidden = btSupported();
+  $('#btStatus').textContent = bt.ch && bt.device.gatt.connected
+    ? '✓ Đã kết nối: ' + (bt.device.name || 'Máy in') : 'Chưa kết nối. Khi bấm In, app sẽ hỏi chọn máy in.';
+}
+$('#btConnect').addEventListener('click', async () => {
+  try { const name = await btConnect(); toast('Đã kết nối ' + name); } catch (e) {
+    if (e.name !== 'NotFoundError') toast('Không kết nối được: ' + e.message, 4000);
+  }
+  renderBtStatus();
+});
+
 /* ================= Chuyển tab ================= */
-const TITLES = { new: 'Tạo hóa đơn', history: 'Lịch sử hóa đơn', settings: 'Cài đặt' };
+const TITLES = { new: 'Tạo hóa đơn', customers: 'Khách hàng', history: 'Lịch sử hóa đơn', settings: 'Cài đặt' };
+function switchTab(tab) {
+  document.querySelectorAll('.tabbar button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.id === 'tab-' + tab));
+  $('#title').textContent = TITLES[tab];
+  if (tab === 'history') renderHistory();
+  if (tab === 'customers') renderCustomers();
+  if (tab === 'settings') renderBtStatus();
+  window.scrollTo(0, 0);
+}
 document.querySelector('.tabbar').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
-  if (!btn) return;
-  document.querySelectorAll('.tabbar button').forEach((b) => b.classList.toggle('active', b === btn));
-  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('active', t.id === 'tab-' + btn.dataset.tab));
-  $('#title').textContent = TITLES[btn.dataset.tab];
-  if (btn.dataset.tab === 'history') renderHistory();
-  window.scrollTo(0, 0);
+  if (btn) switchTab(btn.dataset.tab);
 });
 
 /* ================= Khởi động ================= */

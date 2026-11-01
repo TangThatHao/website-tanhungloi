@@ -1,9 +1,9 @@
 // Lưu sẵn giao diện app để mở được cả khi không có mạng.
 // Mỗi lần sửa app, tăng số VERSION để iPhone tải bản mới.
-const VERSION = 'banhang-v1';
+const VERSION = 'banhang-v2';
 const SHELL = [
-  './', 'index.html', 'style.css', 'app.js', 'manifest.webmanifest',
-  'vendor/html2canvas.min.js', 'data/products.json',
+  './', 'index.html', 'style.css', 'app.js', 'receipt.js', 'manifest.webmanifest',
+  'vendor/qrcode.js', 'data/products.json',
   'icons/logo.png', 'icons/icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png'
 ];
 
