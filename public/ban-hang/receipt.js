@@ -238,11 +238,17 @@ async function openPrinter(device) {
   return device.name || 'Máy in';
 }
 
-// Hiện bảng chọn máy in (trình duyệt bắt buộc người dùng tự chọn lần đầu)
-async function btConnect() {
-  const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: BT_SERVICES });
+// Hiện bảng chọn máy in (trình duyệt bắt buộc người dùng tự chọn lần đầu).
+// onlySaved: chỉ liệt kê máy in đã dùng trước đó -> chạm 1 cái là xong (Bluefy không nhớ thiết bị
+// giữa các lần mở app nên mỗi lần mở lại phải chọn lại 1 lần)
+async function btConnect(onlySaved = false) {
+  const saved = onlySaved && savedPrinter();
+  const device = await navigator.bluetooth.requestDevice(saved && saved.name
+    ? { filters: [{ name: saved.name }], optionalServices: BT_SERVICES }
+    : { acceptAllDevices: true, optionalServices: BT_SERVICES });
   return openPrinter(device);
 }
+const btRemembers = () => !!(navigator.bluetooth && navigator.bluetooth.getDevices);
 
 // Kết nối lại máy in cũ mà không hỏi: máy in tự ngắt khi để lâu không in,
 // hoặc app vừa mở lại (trình duyệt nào nhớ thiết bị đã cho phép thì dùng được getDevices)
@@ -291,7 +297,7 @@ function escposRaster(canvas) {
 
 async function btPrint(canvas, onProgress) {
   if (!bt.ch || !bt.device.gatt.connected) {
-    if (!(await btReconnect())) await btConnect();
+    if (!(await btReconnect())) await btConnect(true);
   }
   const data = escposRaster(canvas);
   const ch = bt.ch, noResp = ch.properties.writeWithoutResponse;

@@ -683,8 +683,11 @@ function renderBtStatus() {
   const saved = savedPrinter();
   $('#btStatus').textContent = bt.ch && bt.device.gatt.connected
     ? '✓ Đã kết nối: ' + (bt.device.name || 'Máy in')
-    : saved ? `Máy in đã lưu: ${saved.name || 'Máy in'} (tự kết nối khi in). Muốn đổi máy in thì bấm nút trên.`
+    : saved ? `Máy in đã lưu: ${saved.name || 'Máy in'}. Muốn đổi máy in khác thì bấm nút trên.`
       : 'Chưa kết nối. Khi bấm In, app sẽ hỏi chọn máy in.';
+  $('#btStatus').textContent += btRemembers()
+    ? ' · Trình duyệt này nhớ được máy in: mở lại app không phải chọn lại.'
+    : ' · Trình duyệt này không nhớ máy in khi đóng app: mỗi lần mở lại app chạm chọn máy in 1 lần, sau đó in không hỏi nữa.';
 }
 $('#btConnect').addEventListener('click', async () => {
   try { const name = await btConnect(); toast('Đã kết nối ' + name); } catch (e) {
