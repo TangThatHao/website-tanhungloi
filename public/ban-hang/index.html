@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Bán hàng Tân Hưng Lợi</title>
+  <meta name="theme-color" content="#b3122a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Bán hàng" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="appbar">
+    <h1 id="title">Tạo hóa đơn</h1>
+    <span id="syncStatus" class="sync"></span>
+  </header>
+
+  <main>
+    <!-- ===== TẠO HÓA ĐƠN ===== -->
+    <section id="tab-new" class="tab active">
+      <div class="card">
+        <div class="card-title">Khách hàng</div>
+        <input id="cusName" placeholder="Tên khách hàng" autocomplete="off" />
+        <input id="cusPhone" placeholder="Số điện thoại" inputmode="tel" autocomplete="off" />
+        <input id="cusAddr" placeholder="Địa chỉ" autocomplete="off" />
+      </div>
+
+      <div class="card">
+        <div class="card-title">Hàng đã chọn <span id="lineCount" class="muted"></span></div>
+        <div id="lines"></div>
+        <button id="openPicker" class="btn btn-outline btn-block">＋ Thêm sản phẩm</button>
+      </div>
+
+      <div class="card">
+        <div class="row"><label for="shipFee">Phí vận chuyển</label><input id="shipFee" class="money" inputmode="numeric" placeholder="0" /></div>
+        <div class="row"><label for="discount">Giảm giá</label><input id="discount" class="money" inputmode="numeric" placeholder="0" /></div>
+        <div class="row"><label for="paid">Khách đã trả trước</label><input id="paid" class="money" inputmode="numeric" placeholder="0" /></div>
+        <textarea id="note" rows="2" placeholder="Ghi chú (giờ giao, lời nhắn...)"></textarea>
+      </div>
+
+      <div class="totals card">
+        <div class="row"><span>Tiền hàng</span><b id="tSub">0</b></div>
+        <div class="row big"><span>Tổng cộng</span><b id="tTotal">0</b></div>
+        <div class="row" id="tDueRow" hidden><span>Còn phải thu</span><b id="tDue">0</b></div>
+      </div>
+
+      <div class="actions">
+        <button id="clearBtn" class="btn btn-ghost">Làm mới</button>
+        <button id="issueBtn" class="btn btn-primary">Xuất hóa đơn</button>
+      </div>
+    </section>
+
+    <!-- ===== LỊCH SỬ ===== -->
+    <section id="tab-history" class="tab">
+      <input id="histSearch" type="search" placeholder="Tìm theo tên, SĐT, số hóa đơn..." />
+      <div id="histSummary" class="muted small"></div>
+      <div id="histList"></div>
+    </section>
+
+    <!-- ===== CÀI ĐẶT ===== -->
+    <section id="tab-settings" class="tab">
+      <div class="card">
+        <div class="card-title">Thông tin cửa hàng (in trên hóa đơn)</div>
+        <label class="lbl">Tên cửa hàng</label><input id="sName" />
+        <label class="lbl">Dòng phụ</label><input id="sSlogan" />
+        <label class="lbl">Địa chỉ</label><textarea id="sAddr" rows="2"></textarea>
+        <label class="lbl">Điện thoại</label><input id="sPhone" inputmode="tel" />
+        <label class="lbl">Thông tin chuyển khoản</label><textarea id="sBank" rows="2" placeholder="VD: Vietcombank 0123456789 - Nguyễn Thị Lan"></textarea>
+        <label class="lbl">Lời cảm ơn cuối hóa đơn</label><input id="sThanks" />
+        <button id="saveSettings" class="btn btn-primary btn-block">Lưu thông tin</button>
+      </div>
+      <div class="card">
+        <div class="card-title">Dữ liệu sản phẩm</div>
+        <div id="dataInfo" class="muted small"></div>
+        <button id="syncBtn" class="btn btn-outline btn-block">↻ Cập nhật giá từ website</button>
+        <label class="lbl">Địa chỉ website</label><input id="sApi" autocapitalize="off" autocorrect="off" />
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button data-tab="new" class="active"><span>🧾</span>Hóa đơn</button>
+    <button data-tab="history"><span>📚</span>Lịch sử</button>
+    <button data-tab="settings"><span>⚙️</span>Cài đặt</button>
+  </nav>
+
+  <!-- ===== CHỌN SẢN PHẨM ===== -->
+  <div id="picker" class="sheet" hidden>
+    <div class="sheet-head">
+      <input id="pSearch" type="search" placeholder="Tìm sản phẩm..." autocomplete="off" />
+      <button id="closePicker" class="btn btn-primary btn-sm">Xong</button>
+    </div>
+    <div id="pCats" class="chips"></div>
+    <div id="pList" class="plist"></div>
+  </div>
+
+  <!-- ===== XEM HÓA ĐƠN ===== -->
+  <div id="viewer" class="sheet" hidden>
+    <div class="sheet-head">
+      <button id="closeViewer" class="btn btn-ghost btn-sm">‹ Đóng</button>
+      <span class="spacer"></span>
+      <button id="printBtn" class="btn btn-outline btn-sm">In / PDF</button>
+      <button id="shareBtn" class="btn btn-primary btn-sm">Gửi ảnh</button>
+    </div>
+    <div class="paper-wrap"><div id="paper" class="paper"></div></div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

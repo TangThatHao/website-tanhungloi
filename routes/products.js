@@ -48,7 +48,21 @@ router.get('/san-pham', asyncHandler(async (req, res) => {
   });
 }));
 
-router.get('/san-pham/:slug', asyncHandler(async (req, res) => {
+// Danh sách sản phẩm + đơn giá dạng JSON cho app bán hàng trên điện thoại
+// (Phan mem ban hang). Chỉ trả các cột vốn đã hiện công khai trên trang
+// sản phẩm. Cho phép gọi từ domain khác (CORS) vì app có thể chạy ở nơi khác.
+router.get('/api/san-pham', asyncHandler(async (req, res) => {
+  const products = await all(
+    `SELECT p.id, p.name, p.slug, p.price, p.image, c.name AS category
+     FROM products p LEFT JOIN categories c ON c.id = p.category_id
+     ORDER BY c.sort_order ASC, p.sort_order ASC`
+  );
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Cache-Control', 'no-store');
+  res.json({ updatedAt: new Date().toISOString(), products });
+}));
+
+router.get('/san-pham/:slug',asyncHandler(async (req, res) => {
   const product = await get('SELECT * FROM products WHERE slug = ?', [req.params.slug]);
   if (!product) return res.status(404).send('Không tìm thấy sản phẩm.');
 
