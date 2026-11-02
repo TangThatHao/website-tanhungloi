@@ -114,6 +114,14 @@
         <div class="card-title">Máy in hóa đơn</div>
         <label class="lbl">Khổ giấy</label>
         <select id="sPaper"><option value="58">58 mm (máy in nhỏ cầm tay)</option><option value="80">80 mm</option></select>
+        <label class="lbl">Cỡ chữ trên hóa đơn in</label>
+        <div class="font-ctl">
+          <button id="fontDown" class="btn btn-outline" aria-label="Chữ nhỏ hơn">A −</button>
+          <b id="fontVal">100%</b>
+          <button id="fontUp" class="btn btn-outline" aria-label="Chữ to hơn">A +</button>
+        </div>
+        <div class="muted small">Xem trước phần đầu hóa đơn:</div>
+        <img id="fontPreview" class="receipt font-preview" alt="Xem trước cỡ chữ" />
         <div id="btBox">
           <button id="btConnect" class="btn btn-outline btn-block">🔗 Kết nối máy in Bluetooth</button>
           <div id="btStatus" class="muted small"></div>

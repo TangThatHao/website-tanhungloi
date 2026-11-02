@@ -15,7 +15,7 @@ const DEFAULT_SETTINGS = {
   phone: '0919 454 484',
   thanks: 'Cảm ơn quý khách! Hẹn gặp lại.',
   bankBin: '', bankAcc: '', bankOwner: '',
-  paper: '58',
+  paper: '58', fontScale: 100,
   api: 'https://banhpiasoctrang.onrender.com'
 };
 let settings = { ...DEFAULT_SETTINGS, ...load(K.settings, {}) };
@@ -696,16 +696,35 @@ $('#btConnect').addEventListener('click', async () => {
   renderBtStatus();
 });
 
-// Hóa đơn mẫu để thử máy in, mã QR (không lưu vào lịch sử)
-$('#testPrint').addEventListener('click', () => {
+// Hóa đơn mẫu để thử máy in, mã QR, cỡ chữ (không lưu vào lịch sử)
+function sampleInvoice() {
   const sample = {
     no: 'HD-MAU', date: new Date().toISOString(), name: 'Khách in thử', phone: '0900 000 000', addr: '', note: '',
     lines: [{ name: 'Pía đậu sầu riêng 500gram', price: 70000, qty: 2 }, { name: 'Bánh in nhân (500gram)', price: 50000, qty: 1 }],
     ship: 0, discount: 0, paid: 0
   };
-  Object.assign(sample, calc(sample));
-  openInvoice(sample, true);
-});
+  return Object.assign(sample, calc(sample));
+}
+$('#testPrint').addEventListener('click', () => openInvoice(sampleInvoice(), true));
+
+/* --- Cỡ chữ hóa đơn in: nút − / +, xem trước phần đầu hóa đơn ngay bên dưới --- */
+async function renderFontScale() {
+  $('#fontVal').textContent = settings.fontScale + '%';
+  $('#fontDown').disabled = settings.fontScale <= 80;
+  $('#fontUp').disabled = settings.fontScale >= 150;
+  const full = await renderReceipt(sampleInvoice(), settings, fmt, moneyToWords);
+  const c = document.createElement('canvas');            // chỉ hiện phần đầu cho gọn
+  c.width = full.width; c.height = Math.min(full.height, 620);
+  c.getContext('2d').drawImage(full, 0, 0);
+  $('#fontPreview').src = c.toDataURL('image/png');
+}
+for (const [id, step] of [['fontDown', -10], ['fontUp', 10]]) {
+  $('#' + id).addEventListener('click', () => {
+    settings.fontScale = Math.min(150, Math.max(80, (settings.fontScale || 100) + step));
+    save(K.settings, settings); queueSettings();
+    renderFontScale();
+  });
+}
 
 /* ================= Sao lưu online (khách, hóa đơn, cài đặt) ================= */
 // Dữ liệu vẫn lưu trên máy để dùng khi mất mạng; mỗi thay đổi được xếp vào "hộp thư đi"
@@ -882,7 +901,7 @@ function switchTab(tab) {
   $('#title').textContent = TITLES[tab];
   if (tab === 'history') renderHistory();
   if (tab === 'customers') renderCustomers();
-  if (tab === 'settings') { renderBtStatus(); renderCloud(); }
+  if (tab === 'settings') { renderBtStatus(); renderCloud(); renderFontScale(); }
   window.scrollTo(0, 0);
 }
 document.querySelector('.tabbar').addEventListener('click', (e) => {

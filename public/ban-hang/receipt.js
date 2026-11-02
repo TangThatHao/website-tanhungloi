@@ -48,14 +48,16 @@ const FF = '"Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif';
 async function renderReceipt(inv, s, money, words) {
   const W = s.paper === '80' ? 576 : 384;
   const P = 4;                       // lề trái/phải (máy in đã có lề riêng)
+  // Cỡ chữ người dùng chọn trong Cài đặt (80% - 150%); mọi cỡ chữ bên dưới nhân với k
+  const k = Math.min(1.5, Math.max(0.8, (Number(s.fontScale) || 100) / 100));
   const c = document.createElement('canvas');
-  c.width = W; c.height = 2400 + inv.lines.length * 160;
+  c.width = W; c.height = Math.ceil((2400 + inv.lines.length * 160) * Math.max(1, k));
   const ctx = c.getContext('2d');
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, c.height);
   ctx.fillStyle = '#000'; ctx.textBaseline = 'top';
   let y = 6;
 
-  const font = (size, bold, italic) => { ctx.font = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${size}px ${FF}`; };
+  const font = (size, bold, italic) => { ctx.font = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${size * k}px ${FF}`; };
   const wrap = (str, maxW) => {
     const out = [];
     for (const para of String(str).split('\n')) {
@@ -75,13 +77,15 @@ async function renderReceipt(inv, s, money, words) {
     }
     return out;
   };
-  const text = (str, { size = 24, bold = false, italic = false, align = 'left', after = 4, lh = 1.28 } = {}) => {
+  // fit: dòng phải nằm gọn 1 dòng (tiêu đề, tổng tiền...) -> chữ to quá khổ giấy thì tự thu nhỏ cho vừa
+  const text = (str, { size = 24, bold = false, italic = false, align = 'left', after = 4, lh = 1.28, fit = false } = {}) => {
     if (!str) return;
     font(size, bold, italic);
+    if (fit) while (size * k > 13 && ctx.measureText(str).width > W - 2 * P) font(--size, bold, italic);
     for (const ln of wrap(str, W - 2 * P)) {
       const w = ctx.measureText(ln).width;
       ctx.fillText(ln, align === 'center' ? (W - w) / 2 : align === 'right' ? W - P - w : P, y);
-      y += Math.round(size * lh);
+      y += Math.round(size * k * lh);
     }
     y += after;
   };
@@ -94,7 +98,7 @@ async function renderReceipt(inv, s, money, words) {
     lines.forEach((ln, i) => {
       ctx.fillText(ln, P + indent, y);
       if (i === lines.length - 1) { font(size, rbold); ctx.fillText(right, W - P - rw, y); font(size, bold); }
-      y += Math.round(size * 1.28);
+      y += Math.round(size * k * 1.28);
     });
     y += after;
   };
@@ -106,23 +110,23 @@ async function renderReceipt(inv, s, money, words) {
   };
 
   /* --- Đầu hóa đơn --- */
-  text(s.name, { size: 36, bold: true, align: 'center', after: 0 });
-  text(s.slogan, { size: 22, align: 'center', after: 4 });
+  text(s.name, { size: 36, bold: true, align: 'center', after: 0, fit: true });
+  text(s.slogan, { size: 22, align: 'center', after: 4, fit: true });
   // Mỗi dòng địa chỉ in trên đúng 1 dòng: dòng nào dài thì thu nhỏ chữ cho vừa khổ giấy (tối thiểu 15px)
   for (const ln of String(s.addr || '').split('\n').filter((x) => x.trim())) {
     let size = 21;
-    for (font(size); size > 15 && ctx.measureText(ln).width > W - 2 * P; font(size)) size--;
+    for (font(size); size * k > 15 && ctx.measureText(ln).width > W - 2 * P; font(size)) size--;
     text(ln, { size, align: 'center', after: 0, lh: 1.25 });
   }
   y += 2;
-  text('ĐT: ' + s.phone, { size: 26, bold: true, align: 'center', after: 0 });
+  text('ĐT: ' + s.phone, { size: 26, bold: true, align: 'center', after: 0, fit: true });
   rule('thick');
 
-  text('HÓA ĐƠN BÁN HÀNG', { size: 34, bold: true, align: 'center', after: 2 });
+  text('HÓA ĐƠN BÁN HÀNG', { size: 34, bold: true, align: 'center', after: 2, fit: true });
   const d = new Date(inv.date), pad = (n) => String(n).padStart(2, '0');
-  text('Số: ' + inv.no, { size: 24, bold: true, align: 'center', after: 0 });
+  text('Số: ' + inv.no, { size: 24, bold: true, align: 'center', after: 0, fit: true });
   text(`${pad(d.getHours())}:${pad(d.getMinutes())}  ngày ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`,
-    { size: 24, align: 'center', after: 0 });
+    { size: 24, align: 'center', after: 0, fit: true });
 
   if (inv.name || inv.phone || inv.addr) {
     rule();
@@ -147,11 +151,11 @@ async function renderReceipt(inv, s, money, words) {
 
   // Khối nền đen chữ trắng cho TỔNG CỘNG: nổi bật, dễ đọc
   y += 6;
-  const boxTop = y, boxH = 8 + Math.round(26 * 1.28) + Math.round(44 * 1.28) + 4;
+  const boxTop = y, boxH = 8 + Math.round(26 * k * 1.28) + Math.round(44 * k * 1.28) + 4;
   ctx.fillRect(P, boxTop, W - 2 * P, boxH);
   ctx.fillStyle = '#fff';
   y += 8; text('TỔNG CỘNG', { size: 26, bold: true, align: 'center', after: 0 });
-  text(money(inv.total) + ' đ', { size: 44, bold: true, align: 'center', after: 0 });
+  text(money(inv.total) + ' đ', { size: 44, bold: true, align: 'center', after: 0, fit: true });
   ctx.fillStyle = '#000';
   y = boxTop + boxH + 8;
   text('(' + words(inv.total) + ')', { size: 21, italic: true, align: 'center', after: 4, lh: 1.2 });
@@ -166,7 +170,7 @@ async function renderReceipt(inv, s, money, words) {
   if (inv.qr !== false && s.bankBin && s.bankAcc && typeof qrcode === 'function') {
     const amount = inv.paid ? inv.due : inv.total;
     rule();
-    text('QUÉT MÃ ĐỂ CHUYỂN KHOẢN', { size: 25, bold: true, align: 'center', after: 6 });
+    text('QUÉT MÃ ĐỂ CHUYỂN KHOẢN', { size: 25, bold: true, align: 'center', after: 6, fit: true });
     const qr = qrcode(0, 'M');
     // Nội dung chuyển khoản chỉ ghi tên khách (không dấu), không ghi số hóa đơn/hàng hóa
     const info = ascii(inv.name || '').trim();
@@ -180,7 +184,7 @@ async function renderReceipt(inv, s, money, words) {
     }
     y += n * cell + 10;
     text(bankName(s.bankBin), { size: 24, bold: true, align: 'center', after: 0 });
-    text('STK: ' + s.bankAcc, { size: 28, bold: true, align: 'center', after: 0 });
+    text('STK: ' + s.bankAcc, { size: 28, bold: true, align: 'center', after: 0, fit: true });
     if (s.bankOwner) text(s.bankOwner.toUpperCase(), { size: 23, align: 'center', after: 0 });
     if (amount) text('Số tiền: ' + money(amount) + ' đ', { size: 24, align: 'center', after: 0 });
     if (info) text('Nội dung: ' + info, { size: 22, align: 'center', after: 0 });

@@ -137,6 +137,11 @@ input:focus, textarea:focus { outline: none; border-color: var(--red); }
 
 .check { display: flex; align-items: center; gap: 10px; margin: 10px 2px; }
 .check input { width: 22px; height: 22px; margin: 0; padding: 0; -webkit-appearance: checkbox; appearance: auto; accent-color: var(--red); }
+.font-ctl { display: flex; align-items: center; justify-content: center; gap: 18px; margin: 4px 0 6px; }
+.font-ctl .btn { font-size: 20px; min-width: 82px; padding: 8px 14px; }
+.font-ctl .btn:disabled { opacity: .35; }
+.font-ctl b { font-size: 22px; min-width: 70px; text-align: center; }
+.font-preview { margin: 6px auto 10px; max-width: 300px; border: 1px solid var(--line); }
 .help { font-size: 14px; line-height: 1.5; background: #fff8e1; border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
 
 /* Xem trước hóa đơn (ảnh đúng như bản in) */
