@@ -41,6 +41,17 @@ function vietQRPayload({ bin, acc, amount, info }) {
 const shortName = (name) => String(name).replace(/\s*\((?:MSP\s*:\s*)?[A-Z0-9_]+\)\s*$/, '').trim()
   || String(name);
 const FF = '"Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif';
+// Các khu vực trên hóa đơn chỉnh được cỡ chữ riêng (mã, tên hiển thị trong Cài đặt)
+const RECEIPT_ZONES = [
+  ['head', 'Đầu hóa đơn (tên cửa hàng, địa chỉ, điện thoại)'],
+  ['title', 'Tiêu đề, số và ngày hóa đơn'],
+  ['cus', 'Thông tin khách'],
+  ['items', 'Danh sách hàng'],
+  ['total', 'Tổng tiền'],
+  ['note', 'Ghi chú'],
+  ['bank', 'Chuyển khoản (chữ dưới mã QR)'],
+  ['thanks', 'Lời cảm ơn']
+];
 /**
  * Trả về canvas đen trắng đúng khổ giấy. Cùng một hình dùng cho xem trước, gửi ảnh và in Bluetooth.
  * inv: hóa đơn; s: cài đặt cửa hàng; money: hàm định dạng tiền; words: hàm đọc số thành chữ
@@ -48,10 +59,15 @@ const FF = '"Helvetica Neue", Helvetica, Arial, "Segoe UI", sans-serif';
 async function renderReceipt(inv, s, money, words) {
   const W = s.paper === '80' ? 576 : 384;
   const P = 4;                       // lề trái/phải (máy in đã có lề riêng)
-  // Cỡ chữ người dùng chọn trong Cài đặt (80% - 150%); mọi cỡ chữ bên dưới nhân với k
-  const k = Math.min(1.5, Math.max(0.8, (Number(s.fontScale) || 100) / 100));
+  // Cỡ chữ từng khu vực người dùng chọn trong Cài đặt (80% - 150%, mặc định 100% = cỡ đã chốt).
+  // zone('...') đặt hệ số k cho khu vực sắp vẽ; mọi cỡ chữ bên dưới nhân với k.
+  const fs = s.fontScales || {};
+  const scaleOf = (z) => Math.min(1.5, Math.max(0.8, (Number(fs[z]) || 100) / 100));
+  let k = 1;
+  const zone = (z) => { k = scaleOf(z); };
+  const kMax = Math.max(1, ...RECEIPT_ZONES.map(([z]) => scaleOf(z)));
   const c = document.createElement('canvas');
-  c.width = W; c.height = Math.ceil((2400 + inv.lines.length * 160) * Math.max(1, k));
+  c.width = W; c.height = Math.ceil((2400 + inv.lines.length * 160) * kMax);
   const ctx = c.getContext('2d');
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, c.height);
   ctx.fillStyle = '#000'; ctx.textBaseline = 'top';
@@ -110,6 +126,7 @@ async function renderReceipt(inv, s, money, words) {
   };
 
   /* --- Đầu hóa đơn --- */
+  zone('head');
   text(s.name, { size: 36, bold: true, align: 'center', after: 0, fit: true });
   text(s.slogan, { size: 22, align: 'center', after: 4, fit: true });
   // Mỗi dòng địa chỉ in trên đúng 1 dòng: dòng nào dài thì thu nhỏ chữ cho vừa khổ giấy (tối thiểu 15px)
@@ -122,6 +139,7 @@ async function renderReceipt(inv, s, money, words) {
   text('ĐT: ' + s.phone, { size: 26, bold: true, align: 'center', after: 0, fit: true });
   rule('thick');
 
+  zone('title');
   text('HÓA ĐƠN BÁN HÀNG', { size: 34, bold: true, align: 'center', after: 2, fit: true });
   const d = new Date(inv.date), pad = (n) => String(n).padStart(2, '0');
   text('Số: ' + inv.no, { size: 24, bold: true, align: 'center', after: 0, fit: true });
@@ -130,6 +148,7 @@ async function renderReceipt(inv, s, money, words) {
 
   if (inv.name || inv.phone || inv.addr) {
     rule();
+    zone('cus');
     if (inv.name) text('Khách: ' + inv.name, { size: 28, bold: true, after: 0 });
     if (inv.phone) text('ĐT: ' + inv.phone, { size: 27, after: 0 });
     if (inv.addr) text('Đ/c: ' + inv.addr, { size: 25, after: 0 });
@@ -137,6 +156,7 @@ async function renderReceipt(inv, s, money, words) {
   rule();
 
   /* --- Hàng hóa: tên 1 dòng, "SL x đơn giá ....... thành tiền" dòng dưới --- */
+  zone('items');
   inv.lines.forEach((l, i) => {
     text(`${i + 1}. ${shortName(l.name)}`, { size: 26, bold: true, after: 0 });
     row(`${l.qty} x ${money(l.price)}`, money(l.price * l.qty), { size: 26, rbold: true, after: 8, indent: 30 });
@@ -144,6 +164,7 @@ async function renderReceipt(inv, s, money, words) {
   rule();
 
   /* --- Tổng tiền --- */
+  zone('total');
   const qty = inv.lines.reduce((t, l) => t + l.qty, 0);
   row(`Tiền hàng (${qty} món)`, money(inv.sub), { size: 25 });
   if (inv.ship) row('Phí vận chuyển', '+' + money(inv.ship), { size: 25 });
@@ -164,12 +185,13 @@ async function renderReceipt(inv, s, money, words) {
     row('Đã trả trước', money(inv.paid), { size: 25 });
     row('CÒN PHẢI THU', money(inv.due) + ' đ', { size: 28, bold: true });
   }
-  if (inv.note) { rule(); text('Ghi chú: ' + inv.note, { size: 23, after: 0 }); }
+  if (inv.note) { rule(); zone('note'); text('Ghi chú: ' + inv.note, { size: 23, after: 0 }); }
 
   /* --- Mã QR chuyển khoản --- */
   if (inv.qr !== false && s.bankBin && s.bankAcc && typeof qrcode === 'function') {
     const amount = inv.paid ? inv.due : inv.total;
     rule();
+    zone('bank');
     text('QUÉT MÃ ĐỂ CHUYỂN KHOẢN', { size: 25, bold: true, align: 'center', after: 6, fit: true });
     const qr = qrcode(0, 'M');
     // Nội dung chuyển khoản chỉ ghi tên khách (không dấu), không ghi số hóa đơn/hàng hóa
@@ -183,6 +205,7 @@ async function renderReceipt(inv, s, money, words) {
       if (qr.isDark(r, col)) ctx.fillRect(qx + col * cell, y + r * cell, cell, cell);
     }
     y += n * cell + 10;
+    zone('bank');
     text(bankName(s.bankBin), { size: 24, bold: true, align: 'center', after: 0 });
     text('STK: ' + s.bankAcc, { size: 28, bold: true, align: 'center', after: 0, fit: true });
     if (s.bankOwner) text(s.bankOwner.toUpperCase(), { size: 23, align: 'center', after: 0 });
@@ -191,6 +214,7 @@ async function renderReceipt(inv, s, money, words) {
   }
 
   rule();
+  zone('thanks');
   text(s.thanks, { size: 24, bold: true, italic: true, align: 'center', after: 0 });
   y += 18;
 

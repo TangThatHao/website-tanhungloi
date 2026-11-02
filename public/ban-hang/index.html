@@ -114,14 +114,6 @@
         <div class="card-title">Máy in hóa đơn</div>
         <label class="lbl">Khổ giấy</label>
         <select id="sPaper"><option value="58">58 mm (máy in nhỏ cầm tay)</option><option value="80">80 mm</option></select>
-        <label class="lbl">Cỡ chữ trên hóa đơn in</label>
-        <div class="font-ctl">
-          <button id="fontDown" class="btn btn-outline" aria-label="Chữ nhỏ hơn">A −</button>
-          <b id="fontVal">100%</b>
-          <button id="fontUp" class="btn btn-outline" aria-label="Chữ to hơn">A +</button>
-        </div>
-        <div class="muted small">Xem trước phần đầu hóa đơn:</div>
-        <img id="fontPreview" class="receipt font-preview" alt="Xem trước cỡ chữ" />
         <div id="btBox">
           <button id="btConnect" class="btn btn-outline btn-block">🔗 Kết nối máy in Bluetooth</button>
           <div id="btStatus" class="muted small"></div>
@@ -135,6 +127,14 @@
           <b>Cách 2:</b> Cài trình duyệt miễn phí <b>Bluefy</b> trên App Store, mở trang bán hàng bằng Bluefy.
           Bấm <b>In</b> là in thẳng ra máy, không cần app khác.
         </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Cỡ chữ trên hóa đơn in</div>
+        <div class="muted small">Chỉnh riêng từng phần, hình xem trước ở dưới đổi ngay. Tự lưu, không cần bấm Lưu.</div>
+        <div id="fontZones"></div>
+        <button id="fontReset" class="btn btn-outline btn-block">↺ Về cỡ chữ mặc định</button>
+        <div class="muted small">Xem trước hóa đơn:</div>
+        <div class="font-preview-box"><img id="fontPreview" class="receipt" alt="Xem trước cỡ chữ" /></div>
       </div>
       <button id="saveSettings" class="btn btn-primary btn-block">Lưu cài đặt</button>
       <div class="card" style="margin-top:12px">
